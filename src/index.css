@@ -1,0 +1,68 @@
+@import "tailwindcss";
+
+html, body, #root { height: 100%; margin: 0; overflow: hidden; font-family: 'Fredoka', system-ui, sans-serif; }
+
+.font-display { font-family: 'Lilita One', 'Fredoka', sans-serif; letter-spacing: 0.02em; }
+.text-outline { -webkit-text-stroke: 1.5px rgba(40, 20, 60, 0.9); paint-order: stroke fill; text-shadow: 0 3px 0 rgba(40, 20, 60, 0.9); }
+.text-outline-sm { -webkit-text-stroke: 1px rgba(40, 20, 60, 0.85); paint-order: stroke fill; text-shadow: 0 2px 0 rgba(40, 20, 60, 0.85); }
+
+/* Chunky candy button */
+.btn-candy {
+  position: relative; border-radius: 1.1rem; border: 3px solid rgba(40, 20, 60, 0.9);
+  box-shadow: 0 6px 0 var(--shadow, #7c2d12), 0 10px 18px rgba(0,0,0,0.25), inset 0 2px 0 rgba(255,255,255,0.55);
+  transition: transform 0.08s, box-shadow 0.08s; font-family: 'Lilita One', 'Fredoka', sans-serif;
+}
+.btn-candy:active { transform: translateY(5px); box-shadow: 0 1px 0 var(--shadow, #7c2d12), inset 0 2px 0 rgba(255,255,255,0.55); }
+.btn-candy:disabled { filter: saturate(0.3) brightness(0.8); transform: none; }
+
+/* Wooden/cartoon panel */
+.panel-pop {
+  border: 3px solid rgba(40, 20, 60, 0.9); border-radius: 1.4rem;
+  box-shadow: 0 6px 0 rgba(40, 20, 60, 0.9), 0 12px 24px rgba(0,0,0,0.25), inset 0 2px 0 rgba(255,255,255,0.4);
+}
+.pill-pop {
+  border: 2.5px solid rgba(40, 20, 60, 0.9); border-radius: 999px;
+  box-shadow: 0 3px 0 rgba(40, 20, 60, 0.9), inset 0 2px 0 rgba(255,255,255,0.35);
+}
+.card-tower {
+  border: 3px solid rgba(40, 20, 60, 0.9); border-radius: 1.2rem;
+  box-shadow: 0 5px 0 rgba(40, 20, 60, 0.9), inset 0 2px 0 rgba(255,255,255,0.4);
+  transition: transform 0.1s;
+}
+.card-tower.selected { transform: translateY(-8px) scale(1.06); box-shadow: 0 8px 0 rgba(40,20,60,0.9), 0 0 0 4px #fff, 0 0 22px 6px rgba(255, 230, 80, 0.8); }
+
+/* Portrait window inside tower cards: colored backdrop + soft sunburst */
+.portrait-win { position: relative; overflow: hidden; border: 3px solid rgba(40,20,60,0.9); border-radius: 0.85rem; box-shadow: inset 0 -10px 18px rgba(0,0,0,0.18); }
+.portrait-win::before { content: ''; position: absolute; inset: -40%; background: repeating-conic-gradient(from 0deg at 50% 62%, rgba(255,255,255,0.28) 0deg 9deg, transparent 9deg 18deg); }
+.portrait-win::after { content: ''; position: absolute; left: 12%; right: 12%; bottom: 7%; height: 12%; background: radial-gradient(ellipse, rgba(0,0,0,0.28), transparent 70%); }
+.portrait-win img { position: relative; z-index: 1; filter: drop-shadow(0 3px 0 rgba(40,20,60,0.35)); }
+
+/* Price tag: gold when affordable, red when not (card itself always stays fully opaque) */
+.price-tag { border: 2.5px solid rgba(40,20,60,0.9); border-radius: 999px; box-shadow: 0 2px 0 rgba(40,20,60,0.9), inset 0 2px 0 rgba(255,255,255,0.5); }
+
+@keyframes floatUp {
+  0% { opacity: 0; transform: translate(-50%, -30%) scale(0.6); }
+  15% { opacity: 1; transform: translate(-50%, -60%) scale(1.2); }
+  100% { opacity: 0; transform: translate(-50%, -220%) scale(1); }
+}
+.float-up { animation: floatUp 1.1s ease-out forwards; }
+
+@keyframes popIn {
+  0% { opacity: 0; transform: scale(0.7) translateY(30px) rotate(-2deg); }
+  100% { opacity: 1; transform: scale(1) translateY(0) rotate(0); }
+}
+.pop-in { animation: popIn 0.4s cubic-bezier(.2,1.6,.4,1) forwards; }
+
+@keyframes wiggle { 0%,100% { transform: rotate(-3deg) scale(1); } 50% { transform: rotate(3deg) scale(1.05); } }
+.wiggle { animation: wiggle 0.9s ease-in-out infinite; }
+
+@keyframes sunray { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+.sunray { animation: sunray 30s linear infinite; }
+
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { scrollbar-width: none; }
+
+/* drag-to-scroll lists (see ui/useDragScroll.ts): open hand on the list, pointing hand on cards, closed hand while dragging */
+[data-drag-scroll] { cursor: grab; }
+[data-drag-scroll] button, [data-drag-scroll] [role="button"] { cursor: pointer; }
+[data-dragging="1"], [data-dragging="1"] * { cursor: grabbing !important; }

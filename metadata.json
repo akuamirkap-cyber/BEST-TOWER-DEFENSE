@@ -1,0 +1,6 @@
+{
+  "name": "Voxel Defense",
+  "description": "Hypercasual voxel 3D tower defense game",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
