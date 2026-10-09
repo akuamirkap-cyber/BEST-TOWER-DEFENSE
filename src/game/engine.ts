@@ -20,7 +20,7 @@ import type { World } from './world';
 import { buildOrc, buildLog, poseOrc } from './orcs';
 import type { OrcKind } from './orcs';
 
-export type TowerType = 'cannon' | 'frost' | 'blaster' | 'tesla' | 'sniper' | 'poison' | 'banner' | 'flame' | 'trap' | 'repair' | 'shield' | 'plasma' | 'piggy' | 'wind' | 'boomer' | 'mine' | 'cactus' | 'hive' | 'golem' | 'clock' | 'prism' | 'cupid' | 'hook' | 'bowl' | 'barracks' | 'mind';
+export type TowerType = 'cannon' | 'frost' | 'blaster' | 'tesla' | 'sniper' | 'poison' | 'banner' | 'flame' | 'trap' | 'repair' | 'shield' | 'plasma' | 'piggy' | 'wind' | 'boomer' | 'mine' | 'cactus' | 'hive' | 'golem' | 'clock' | 'prism' | 'cupid' | 'hook' | 'bowl' | 'barracks' | 'mind' | 'vortex' | 'meteor' | 'orbital' | 'siren' | 'naga' | 'storm' | 'quake' | 'glacier';
 export interface TowerDef {
   name: string; cost: number; dmg: number; range: number; rate: number;
   color: number; accent: number; desc: string; icon: string; air: boolean; ground: boolean; tag: string;
@@ -52,6 +52,14 @@ export const TOWER_DEFS: Record<TowerType, TowerDef> = {
   bowl: { name: 'Bowling', cost: 100, dmg: 28, range: 3.4, rate: 2.6, color: 0xfffaf0, accent: 0xdc2626, desc: 'Bola gelinding di jalan', icon: '🎳', air: false, ground: true, tag: 'Strike!' },
   barracks: { name: 'Barak', cost: 120, dmg: 12, range: 2.8, rate: 0.85, color: 0x93c5fd, accent: 0x2563eb, desc: 'Prajurit tombak: sodok & lempar', icon: '🏰', air: false, ground: true, tag: 'Prajurit·Mental' },
   mind: { name: 'Hipnotis', cost: 150, dmg: 0, range: 3.2, rate: 4.0, color: 0xc084fc, accent: 0x7e22ce, desc: '1 laser: orc serang temannya', icon: '🧠', air: true, ground: true, tag: 'Laser·Kendali pikiran' },
+  vortex: { name: 'Vortex', cost: 135, dmg: 8, range: 3.3, rate: 3.2, color: 0x818cf8, accent: 0x4338ca, desc: 'Singularitas: sedot & remuk musuh', icon: '🌀', air: true, ground: true, tag: 'Gravitasi·Sedot' },
+  meteor: { name: 'Meteor', cost: 160, dmg: 75, range: 4.2, rate: 3.4, color: 0xf87171, accent: 0xb91c1c, desc: 'Hujan meteor & kawah magma', icon: '☄️', air: false, ground: true, tag: 'Nuker·Magma' },
+  orbital: { name: 'Surya', cost: 145, dmg: 16, range: 3.6, rate: 0.15, color: 0xfacc15, accent: 0xd97706, desc: 'Sinar surya: lelehkan armor', icon: '☀️', air: true, ground: true, tag: 'Lelehkan Armor' },
+  siren: { name: 'Siren', cost: 125, dmg: 14, range: 3.2, rate: 2.2, color: 0x22d3ee, accent: 0x0891b2, desc: 'Gema sonik: bangkitkan klon hantu orc', icon: '🎶', air: true, ground: true, tag: 'Klon Hantu' },
+  naga: { name: 'Naga Purba', cost: 155, dmg: 32, range: 4.0, rate: 2.2, color: 0xef4444, accent: 0xb91c1c, desc: 'Lidah api & retakan lahar di jalur jalan', icon: '🐉', air: true, ground: true, tag: 'Lahar Jalur' },
+  storm: { name: 'Badai', cost: 145, dmg: 26, range: 3.6, rate: 2.4, color: 0x0284c7, accent: 0x38bdf8, desc: 'Tornado berjalan: angkat musuh & bisukan skill', icon: '🌪️', air: true, ground: true, tag: 'Tornado Berjalan' },
+  quake: { name: 'Gempa', cost: 135, dmg: 30, range: 3.2, rate: 2.8, color: 0xb45309, accent: 0xf97316, desc: 'Pasak seismik: ikat 4 orc & 100% echo damage', icon: '⛓️', air: false, ground: true, tag: 'Ikatan Jiwa' },
+  glacier: { name: 'Gletser', cost: 150, dmg: 38, range: 3.4, rate: 3.8, color: 0x06b6d4, accent: 0xe0f2fe, desc: 'Tembok es fisik penghadang jalan + shatter', icon: '🧊', air: false, ground: true, tag: 'Barikade Es' },
 };
 export const TOWER_HP = 20;
 /** the stats of a tower at a given level (+ banner buff) – shared by the game AND the card-info screen, so both always agree */
@@ -63,7 +71,7 @@ export const upgradeCostOf = (type: TowerType, level: number): number | null => 
 /** Piggy bank: interest paid when a wave ends (a % of your gold, capped per piggy) and the bonus coins dropped by every orc that dies inside its range */
 export const PIGGY = { pct: (l: number) => 0.06 + 0.03 * (l - 1), cap: (l: number) => 25 + 20 * (l - 1), bounty: (l: number) => l };
 
-type EnemyType = 'normal' | 'fast' | 'tank' | 'shaman' | 'berserker' | 'dragon' | 'boss' | 'baby' | 'gunner' | 'jumper' | 'log' | 'balloon' | 'cannoneer' | 'archer' | 'dread' | 'captain' | 'legion';
+type EnemyType = 'normal' | 'fast' | 'tank' | 'shaman' | 'berserker' | 'dragon' | 'boss' | 'baby' | 'gunner' | 'jumper' | 'log' | 'balloon' | 'cannoneer' | 'archer' | 'dread' | 'captain' | 'legion' | 'ninja' | 'bomber' | 'magnet' | 'frost' | 'rider' | 'fatty' | 'punk' | 'shield' | 'toxic' | 'bat' | 'troll';
 interface EnemyDef { hp: number; speed: number; reward: number; skin: number; cloth: number; size: number; weapon: 'club' | 'dagger' | 'axe' | 'hammer' | 'staff' | 'twin' | 'none' | 'rifle' | 'rocket' | 'torch'; armor: number; flying?: boolean; lives: number; label: string }
 const ENEMY_DEFS: Record<EnemyType, EnemyDef> = {
   normal: { hp: 30, speed: 1.25, reward: 5, skin: 0x6abe4a, cloth: 0xd9433b, size: 0.55, weapon: 'club', armor: 0, lives: 1, label: 'Orc' },
@@ -83,6 +91,17 @@ const ENEMY_DEFS: Record<EnemyType, EnemyDef> = {
   dread: { hp: 400, speed: 0.58, reward: 60, skin: 0x262633, cloth: 0x15151f, size: 0.92, weapon: 'none', armor: 5, lives: 3, label: 'Ksatria Kelam' },
   captain: { hp: 360, speed: 0.82, reward: 55, skin: 0x5aa63f, cloth: 0xb91c1c, size: 0.9, weapon: 'none', armor: 4, lives: 2, label: 'Panglima Pasukan' },
   legion: { hp: 120, speed: 0.82, reward: 16, skin: 0x5aa63f, cloth: 0x3b4a6b, size: 0.62, weapon: 'none', armor: 3, lives: 1, label: 'Prajurit Legiun' },
+  ninja: { hp: 38, speed: 2.2, reward: 16, skin: 0x4a7c59, cloth: 0x1e293b, size: 0.52, weapon: 'dagger', armor: 0, lives: 1, label: 'Orc Ninja' },
+  bomber: { hp: 65, speed: 1.85, reward: 18, skin: 0x65a30d, cloth: 0xb91c1c, size: 0.56, weapon: 'torch', armor: 0, lives: 2, label: 'Orc Dinamit' },
+  magnet: { hp: 175, speed: 0.76, reward: 24, skin: 0x4b7c43, cloth: 0x1e3a8a, size: 0.72, weapon: 'hammer', armor: 5, lives: 2, label: 'Orc Magnet' },
+  frost: { hp: 85, speed: 0.92, reward: 22, skin: 0x6ee7b7, cloth: 0x0284c7, size: 0.58, weapon: 'staff', armor: 1, lives: 2, label: 'Dukun Es' },
+  rider: { hp: 280, speed: 1.15, reward: 35, skin: 0x4d7c0f, cloth: 0x475569, size: 0.86, weapon: 'axe', armor: 6, lives: 3, label: 'Penunggang Badak' },
+  fatty: { hp: 240, speed: 0.78, reward: 28, skin: 0x5a8c42, cloth: 0x9a3412, size: 0.94, weapon: 'club', armor: 4, lives: 2, label: 'Orc Gendut Tongkat' },
+  punk: { hp: 82, speed: 1.68, reward: 22, skin: 0x6da440, cloth: 0x18181b, size: 0.6, weapon: 'torch', armor: 1, lives: 2, label: 'Orc Punk Berapi' },
+  shield: { hp: 165, speed: 0.74, reward: 24, skin: 0x4f8a3c, cloth: 0x334155, size: 0.76, weapon: 'axe', armor: 6, lives: 2, label: 'Orc Perisai Baja' },
+  toxic: { hp: 92, speed: 1.05, reward: 22, skin: 0x65a30d, cloth: 0x14532d, size: 0.62, weapon: 'none', armor: 1, lives: 2, label: 'Orc Alkemis Racun' },
+  bat: { hp: 96, speed: 1.45, reward: 25, skin: 0x3b5249, cloth: 0x581c87, size: 0.66, weapon: 'none', armor: 1, flying: true, lives: 2, label: 'Orc Kelelawar' },
+  troll: { hp: 290, speed: 0.75, reward: 36, skin: 0x3f6232, cloth: 0x14532d, size: 0.96, weapon: 'none', armor: 3, lives: 3, label: 'Troll Rawa' },
 };
 const BLOOD = 0xc0262d;
 
@@ -129,6 +148,11 @@ interface Enemy {
   knockV?: number; hopT?: number; hopH?: number; blockT?: number;
   /** mind control: hallucinating (seconds left), who it is fighting, how hard it hits, swing timer, the spiral mark above its head, turned around to face a friend behind it */
   mindT?: number; mindLv?: number; mindTarget?: Enemy; mindPow?: number; mindAtkT?: number; mindMark?: THREE.Object3D; yawFlip?: boolean;
+  /** special abilities for 5 new orcs */
+  stealthT?: number; stealthCd?: number; freezeCd?: number; magPulseT?: number; sirenT?: number;
+  silenceT?: number; freezeT?: number; burnT?: number; burnDps?: number;
+  tetherSpikeId?: number; cycloneLiftT?: number;
+  slamCd?: number; spearThrowCd?: number; toxicDropCd?: number; batDrainCd?: number; trollRegenT?: number;
 }
 interface Tower {
   id: number; c: number; r: number; type: TowerType; level: number; cooldown: number; invested: number;
@@ -136,13 +160,22 @@ interface Tower {
   hp: number; hpBar?: THREE.Mesh; hpBarBg?: THREE.Mesh; shielded: boolean; dead?: boolean;
   arc?: Bolt; lockT?: number; lockId?: number; arcT?: number; idleYaw?: number; gaze?: Enemy | null;
   soldiers?: Soldier[]; posts?: THREE.Vector3[]; postYaw?: number[];
+  frozenT?: number; iceBlock?: THREE.Mesh;
+  orbitalTarget?: Enemy | null; orbitalLockT?: number; orbitalBeam?: THREE.Mesh; orbitalRings?: THREE.Mesh;
 }
 interface EnemyShot { pos: THREE.Vector3; vel: THREE.Vector3; target: Tower; mesh: THREE.Object3D; life: number; dmg: number; kind: 'bullet' | 'cannonball' | 'arrow'; start?: THREE.Vector3; goal?: THREE.Vector3; t?: number }
-interface Projectile { kind: 'tracer' | 'mortar' | 'glob' | 'needle' | 'bee' | 'heart'; seed?: number; pos: THREE.Vector3; start: THREE.Vector3; t: number; target: Enemy; speed: number; dmg: number; mesh: THREE.Object3D; splash?: number; arc?: number; level: number }
+interface Projectile { kind: 'tracer' | 'mortar' | 'glob' | 'needle' | 'bee' | 'heart' | 'fireball' | 'meteor'; seed?: number; pos: THREE.Vector3; start: THREE.Vector3; t: number; target: Enemy; speed: number; dmg: number; mesh: THREE.Object3D; splash?: number; arc?: number; level: number }
 interface Debris { obj: THREE.Object3D; vel: THREE.Vector3; ang: THREE.Vector3; life: number; max: number; floor: number; grav?: number }
 interface ArcFx { bolt: Bolt; style: BoltStyle; a: THREE.Vector3; b: THREE.Vector3; life: number; max: number; rs: number }
 interface Fx { mesh: THREE.Object3D; life: number; max: number; s0: number; s1: number; rise?: number; fixed?: boolean; uniform?: boolean }
 interface Puddle { mesh: THREE.Mesh; pos: THREE.Vector3; r: number; dps: number; life: number }
+interface Vortex { id: number; owner: number; pos: THREE.Vector3; s: number; r: number; dps: number; life: number; maxLife: number; mesh: THREE.Group }
+interface Meteor { id: number; owner: number; start: THREE.Vector3; goal: THREE.Vector3; pos: THREE.Vector3; t: number; dmg: number; mesh: THREE.Group }
+interface Ghost { id: number; mesh: THREE.Group; s: number; speed: number; dmg: number; life: number; maxLife: number; hit: Set<number> }
+interface Fissure { id: number; owner: number; s0: number; s1: number; dps: number; life: number; maxLife: number; meshes: THREE.Object3D[] }
+interface Cyclone { id: number; owner: number; s: number; dir: number; range: number; travelled: number; dps: number; life: number; maxLife: number; mesh: THREE.Group; level: number }
+interface SeismicSpike { id: number; owner: number; pos: THREE.Vector3; s: number; tethers: number[]; life: number; maxLife: number; mesh: THREE.Group; lineMeshes: THREE.Line[] }
+interface IceBarricade { id: number; owner: number; s: number; pos: THREE.Vector3; hp: number; maxHp: number; life: number; maxLife: number; mesh: THREE.Group; hpFg: THREE.Mesh; level: number }
 /** a little knight of the Barracks tower */
 interface Soldier {
   id: number; group: THREE.Group; rig: THREE.Group; limbs: Record<string, THREE.Group>; face: THREE.Object3D;
@@ -170,9 +203,9 @@ export const MINDC = {
   find: [3.4, 4.0, 4.4],   // how far the victim looks for a friend to fight
 };
 /** how much of a spear poke's push an enemy type gets (1 = fully flung back) */
-const KNOCK_RESIST: Record<string, number> = { boss: 0.25, dread: 0.3, captain: 0.55, log: 0.5, tank: 0.6, legion: 0.6, berserker: 0.8, cannoneer: 0.8 };
+const KNOCK_RESIST: Record<string, number> = { boss: 0.25, dread: 0.3, rider: 0.05, captain: 0.55, log: 0.5, magnet: 0.45, tank: 0.6, legion: 0.6, berserker: 0.8, cannoneer: 0.8, bomber: 0.9, ninja: 0.85, frost: 0.9, fatty: 0.35, punk: 0.8, shield: 0.2, toxic: 0.85, bat: 0.7, troll: 0.3 };
 /** how hard a hallucinating orc of this type hits its friends (multiplied by the current wave strength) */
-const MIND_POWER: Record<string, number> = { normal: 9, fast: 5, baby: 3, tank: 20, shaman: 6, berserker: 15, gunner: 9, archer: 8, jumper: 8, cannoneer: 13, log: 12, balloon: 6, dragon: 32, captain: 22, legion: 15, dread: 38, boss: 48 };
+const MIND_POWER: Record<string, number> = { normal: 9, fast: 5, baby: 3, tank: 20, shaman: 6, berserker: 15, gunner: 9, archer: 8, jumper: 8, cannoneer: 13, log: 12, balloon: 6, dragon: 32, captain: 22, legion: 15, dread: 38, boss: 48, ninja: 14, bomber: 20, magnet: 18, frost: 12, rider: 28, fatty: 26, punk: 18, shield: 16, toxic: 14, bat: 16, troll: 30 };
 const RINGT = new THREE.TorusGeometry(1, 0.07, 6, 28), OCT_FX = new THREE.OctahedronGeometry(1);
 interface Hook { owner: number; e: Enemy; phase: 'fly' | 'pull'; t: number; mesh: THREE.Object3D; line: THREE.Mesh; pullFrom: number; pullTo: number; dur: number; dmg: number; resist: number; pull: number }
 interface Roll { owner: number; mesh: THREE.Group; phase: 'fly' | 'roll'; t: number; from: THREE.Vector3; to: THREE.Vector3; s: number; travelled: number; maxDist: number; hit: Set<number>; dmg: number; strike: number; last: THREE.Vector3 }
@@ -305,8 +338,13 @@ export class Game {
     for (const d of this.debris) this.scene.remove(d.obj);
     for (const f of this.fx) this.scene.remove(f.mesh);
     for (const p of this.puddles) this.scene.remove(p.mesh);
+    for (const fs of this.fissures) for (const m of fs.meshes) this.scene.remove(m);
+    for (const cy of this.cyclones) this.scene.remove(cy.mesh);
+    for (const sp of this.spikes) { this.scene.remove(sp.mesh); for (const l of sp.lineMeshes) this.scene.remove(l); }
+    for (const w of this.iceWalls) this.scene.remove(w.mesh);
     for (const sh of this.enemyShots) this.scene.remove(sh.mesh);
     for (const z of this.arcs) this.releaseBolt(z.bolt);
+    this.fissures = []; this.cyclones = []; this.spikes = []; this.iceWalls = [];
     this.arcs = []; this.enemyShots = []; this.towers = []; this.enemies = []; this.projectiles = []; this.debris = []; this.fx = []; this.puddles = []; this.spawnQueue = []; this.selectedTowerId = null; this.selRing.visible = false;
     const layout = LAYOUTS[(this.state.level - 1) % LAYOUTS.length];
     this.tiles = new Array(W * H).fill('grass'); this.tileCenter = []; this.tileCarved = new Array(W * H).fill(false);
@@ -402,7 +440,7 @@ export class Game {
       const a = seen.get(t)!; let first = 0; for (let w = 1; w <= wpl; w++) if (a[w] * 2 >= SAMPLES) { first = w; break; }
       if (!first) for (let w = 1; w <= wpl; w++) if (a[w] > 0) { first = w; break; }
       const d = ENEMY_DEFS[t]; const info = ENEMY_INFO[t];
-      out.push({ type: t, name: d.label, icon: info.icon, note: info.note, bg: info.bg, count: Math.max(1, Math.round(sum / SAMPLES)), first, isNew: level > 1 && !earlier.has(t), flying: !!d.flying, armor: d.armor + Math.floor(level / 3), hp: Math.round(d.hp * Math.pow(1.4, level - 1)), boss: t === 'boss' || t === 'dread' || t === 'dragon' });
+      out.push({ type: t, name: d.label, icon: info.icon, note: info.note, bg: info.bg, count: Math.max(1, Math.round(sum / SAMPLES)), first, isNew: level > 1 && !earlier.has(t), flying: !!d.flying, armor: d.armor + Math.floor(level / 3), hp: Math.round(d.hp * Math.pow(1.4, level - 1)), boss: t === 'boss' || t === 'dread' || t === 'dragon' || t === 'troll' || t === 'fatty' });
     }
     out.sort((x, y) => x.first - y.first || x.hp - y.hp);
     this.rosterCache.set(level, out); return out;
@@ -447,6 +485,17 @@ export class Game {
     if (w >= 3 && (w % 2 === 1 || L >= 2)) { const nc = 1 + Math.floor(L / 4); for (let i = 0; i < nc; i++) q.splice(Math.floor(q.length * (0.25 + Math.random() * 0.5)), 0, 'captain', 'legion', 'legion', 'legion', 'legion'); } // a war captain marches in with his 4-man squad right behind him
     if ((L >= 2 && w >= 3) || L >= 3) { const sh = 1 + Math.floor(L / 3); for (let i = 0; i < sh; i++) q.splice(Math.floor(q.length / 2) + i * 3, 0, 'shaman'); }
     if ((L >= 2 && w >= 4) || (L >= 2 && w >= 2) || w >= 4) { const dr = Math.min(6, Math.floor((L - 1) / 2) + Math.floor(w / 3)); for (let i = 0; i < dr; i++) q.push('dragon'); }
+    if (w >= 2 || L >= 2) { const nn = Math.min(5, 1 + Math.floor((w + L - 1) / 3)); for (let i = 0; i < nn; i++) q.splice(Math.floor(Math.random() * q.length), 0, 'ninja'); }
+    if (w >= 3 || L >= 2) { const nbm = Math.min(4, 1 + Math.floor((w + L - 2) / 3)); for (let i = 0; i < nbm; i++) q.splice(Math.floor(Math.random() * q.length), 0, 'bomber'); }
+    if (w >= 3 && (w % 2 === 0 || L >= 2)) { const nmag = Math.min(3, 1 + Math.floor((w + L - 2) / 4)); for (let i = 0; i < nmag; i++) q.splice(Math.floor(q.length * 0.4), 0, 'magnet'); }
+    if ((w >= 3 && L >= 1) || L >= 2) { const nfr = Math.min(3, 1 + Math.floor((w + L - 2) / 4)); for (let i = 0; i < nfr; i++) q.splice(Math.floor(q.length * 0.6), 0, 'frost'); }
+    if (w >= 4 || (L >= 2 && w >= 3) || (last && L >= 2)) { const nrd = Math.min(3, 1 + Math.floor((w + L - 3) / 4)); for (let i = 0; i < nrd; i++) q.splice(Math.floor(q.length * 0.25), 0, 'rider'); }
+    if (w >= 3 || L >= 2) { const nfat = Math.min(3, 1 + Math.floor((w + L - 2) / 4)); for (let i = 0; i < nfat; i++) q.splice(Math.floor(q.length * 0.3), 0, 'fatty'); }
+    if (w >= 2 || L >= 2) { const npk = Math.min(4, 1 + Math.floor((w + L - 1) / 3)); for (let i = 0; i < npk; i++) q.splice(Math.floor(Math.random() * q.length), 0, 'punk'); }
+    if (w >= 3 || L >= 2) { const nsh = Math.min(3, 1 + Math.floor((w + L - 2) / 4)); for (let i = 0; i < nsh; i++) q.splice(Math.floor(q.length * 0.2), 0, 'shield'); }
+    if (w >= 3 || L >= 2) { const ntx = Math.min(3, 1 + Math.floor((w + L - 2) / 4)); for (let i = 0; i < ntx; i++) q.splice(Math.floor(Math.random() * q.length), 0, 'toxic'); }
+    if ((w >= 4 && L >= 1) || L >= 2) { const nbt = Math.min(4, Math.floor((w + L - 2) / 3)); for (let i = 0; i < nbt; i++) q.push('bat'); }
+    if (w >= 4 || (L >= 2 && w >= 3) || (last && L >= 2)) { const ntr = Math.min(3, 1 + Math.floor((w + L - 3) / 4)); for (let i = 0; i < ntr; i++) q.splice(Math.floor(q.length * 0.5), 0, 'troll'); }
     if (last) { const bosses = 1 + Math.floor((L - 1) / 2); for (let i = 0; i < bosses; i++) q.push('boss'); }
     return q;
   }
@@ -454,7 +503,7 @@ export class Game {
     const s = this.state; const w = s.wave + 1; if (w > s.wavesPerLevel) return '';
     const q = this.composeWave(s.level, w, w === s.wavesPerLevel); const cnt: Partial<Record<EnemyType, number>> = {};
     q.forEach(t => (cnt[t] = (cnt[t] || 0) + 1));
-    const ic: Record<EnemyType, string> = { normal: '👹', fast: '👺', tank: '🛡️', shaman: '🔮', berserker: '🔥', dragon: '🐉', boss: '👑', baby: '👶', gunner: '🔫', jumper: '🚀', log: '🪵', balloon: '🎈', cannoneer: '💣', archer: '🏹', dread: '⚔️', captain: '🚩', legion: '🪖' };
+    const ic: Record<EnemyType, string> = { normal: '👹', fast: '👺', tank: '🛡️', shaman: '🔮', berserker: '🔥', dragon: '🐉', boss: '👑', baby: '👶', gunner: '🔫', jumper: '🚀', log: '🪵', balloon: '🎈', cannoneer: '💣', archer: '🏹', dread: '⚔️', captain: '🚩', legion: '🪖', ninja: '🥷', bomber: '🧨', magnet: '🧲', frost: '❄️', rider: '🦏', fatty: '🧌', punk: '🧑‍🎤', shield: '🛡️', toxic: '🧪', bat: '🦇', troll: '🧟' };
     return (Object.keys(cnt) as EnemyType[]).map(t => `${ic[t]}${cnt[t]}`).join(' ');
   }
   startWave() {
@@ -501,7 +550,7 @@ export class Game {
     const sp = new THREE.Vector3(); this.posAt(at, sp);
     this.particles.emit(sp.setY(0.4), 0x9b5cff, 6, 1.5, 0.12, 0.5);
     if (type === 'legion') { this.legionLane = -this.legionLane; e.lane = this.legionLane * 0.36; } // soldiers march in two files either side of the road centre
-    if (type === 'boss' || type === 'dragon') this.sfx.roar(type); else if (type === 'dread') this.sfx.roar('boss'); else if (type === 'captain') this.sfx.warcry(); else this.sfx.spawn();
+    if (type === 'boss' || type === 'dragon') this.sfx.roar(type); else if (type === 'dread' || type === 'rider' || type === 'fatty' || type === 'troll') this.sfx.roar('boss'); else if (type === 'captain' || type === 'punk') this.sfx.warcry(); else this.sfx.spawn();
     return e;
   }
 
@@ -617,6 +666,7 @@ export class Game {
     if (this.selectedTowerId === t.id) this.selectTower(null); this.dirty = true;
   }
   mines: Mine[] = []; booms: Boom[] = []; hooks: Hook[] = []; rolls: Roll[] = []; curSrc: THREE.Vector3 | null = null; rag!: Ragdoll; legionLane = 1;
+  fissures: Fissure[] = []; cyclones: Cyclone[] = []; spikes: SeismicSpike[] = []; iceWalls: IceBarricade[] = [];
   placeTower(c: number, r: number) {
     const s = this.state; const def = TOWER_DEFS[s.selectedType]; const center = this.tileCenter[r * W + c];
     if (s.gold < def.cost) { this.sfx.deny(); this.float('Emas kurang!', center.clone().setY(0.5), '#f87171'); return; }
@@ -630,7 +680,7 @@ export class Game {
     this.ring(center.clone().setY(0.06), def.color, 0.3, 1.2, 0.4);
     this.sfx.build(); this.dirty = true;
   }
-  removeTowerMeshes(t: Tower, keepSoldiers = false) { if (!keepSoldiers) this.clearSoldiers(t); if (t.arc) { this.releaseBolt(t.arc); t.arc = undefined; } this.scene.remove(t.group); if (t.beam) this.scene.remove(t.beam); if (t.beamGlow) this.scene.remove(t.beamGlow); }
+  removeTowerMeshes(t: Tower, keepSoldiers = false) { if (t.iceBlock) { t.group.remove(t.iceBlock); t.iceBlock = undefined; } if (!keepSoldiers) this.clearSoldiers(t); if (t.arc) { this.releaseBolt(t.arc); t.arc = undefined; } this.scene.remove(t.group); if (t.beam) this.scene.remove(t.beam); if (t.beamGlow) this.scene.remove(t.beamGlow); }
   towerAt(c: number, r: number) { return this.towers.find(t => t.c === c && t.r === r); }
   selectTower(t: Tower | null) {
     this.selectedTowerId = t ? t.id : null;
@@ -782,8 +832,26 @@ export class Game {
   damage(e: Enemy, dmg: number, opts: { slow?: boolean; hitPos?: THREE.Vector3; pierce?: boolean; silent?: boolean; noFlash?: boolean } = {}) {
     if (e.dead) return;
     let real = Math.max(1, opts.pierce ? dmg : dmg - e.armor);
+    if (e.type === 'shield' && !opts.pierce) {
+      real = Math.max(1, Math.round(real * 0.25));
+    }
     if ((e.charmT ?? 0) > 0) real = Math.ceil(real * 1.4); // marked by Amor: +40% damage from EVERY source
+    if ((e.freezeT ?? 0) > 0) real = Math.ceil(real * 1.5); // SHATTER COMBO with Glacier: +50% damage!
     e.hp -= real; if (!opts.noFlash) e.flashT = 0.08; if (opts.slow) e.slowT = 1.6; if (!opts.silent) e.hurtT = 0.22;
+    if ((e.tetherSpikeId ?? 0) > 0 && !opts.silent) {
+      const sp = this.spikes.find(s => s.id === e.tetherSpikeId);
+      if (sp) {
+        for (const tid of sp.tethers) {
+          if (tid !== e.id) {
+            const oe = this.enemies.find(x => x.id === tid && !x.dead);
+            if (oe) {
+              this.damage(oe, real, { silent: true, pierce: true });
+              this.particles.emit(this.enemyCenter(oe), 0xf97316, 2, 1.2, 0.05, 0.25);
+            }
+          }
+        }
+      }
+    }
     if (!opts.silent) { e.lastDmg = real; if (this.curSrc) e.hitSrc = this.curSrc.clone(); } // remembered for the death ragdoll (which way to fly, how hard)
     if (!opts.silent) { const p = opts.hitPos ?? this.enemyCenter(e); this.particles.emit(p, BLOOD, 4, 1.6, 0.07, 0.5, 2); if (e.armor > 0 && !opts.pierce && dmg - e.armor < dmg * 0.6) this.particles.emit(p, 0xffe066, 3, 2, 0.05, 0.25, 1.5, 0); }
     if (e.hp <= 0) this.kill(e);
@@ -818,6 +886,12 @@ export class Game {
       for (const o of this.enemies) { if (o === e || o.dead || (o.charmT ?? 0) > 0) continue; const dd = o.group.position.distanceTo(e.group.position); if (dd < nd) { nd = dd; nb = o; } }
       if (nb) { this.bolt(center, this.enemyCenter(nb), 0xf9a8d4, 0.05, 0.3, 0.2); this.charm(nb, 4); }
     }
+    if ((e.sirenT ?? 0) > 0) {
+      const bonus = Math.max(3, Math.round(e.reward * 0.4)); this.state.gold += bonus;
+      this.float(`👻 ROH BEBAS! +${bonus}`, center.clone().setY(center.y + 1.2), '#67e8f9');
+      this.particles.emit(center, 0x22d3ee, 10, 2.2, 0.08, 0.7, 3);
+      for (const o of this.enemies) { if (!o.dead && o !== e && o.group.position.distanceTo(center) <= 2.2) this.damage(o, Math.round(e.maxHp * 0.25), { hitPos: this.enemyCenter(o) }); }
+    }
     this.float(`+${e.reward}`, center.clone().setY(center.y + 0.6), '#fde047');
     if (e.type === 'balloon') {
       // the envelope bursts: gas explosion + shockwaves + a storm of red/white/yellow fabric confetti; panels, basket and pilot fall apart
@@ -828,7 +902,25 @@ export class Game {
       this.flash(bp, 0xffa64d, 9, 8); this.shake = Math.max(this.shake, 0.45); this.float('PRAANG!', bp, '#fca5a5'); this.sfx.balloonPop();
     }
     if (e.type === 'boss' || e.type === 'dragon' || e.type === 'dread') { this.shake = 0.6; this.flash(center, e.type === 'dread' ? 0x5dff8c : 0xff5555, 6, 8); this.float(e.type === 'boss' ? 'BOSS KALAH!' : e.type === 'dragon' ? 'NAGA JATUH!' : 'KSATRIA KELAM TUMBANG!', center.clone().setY(2), '#f0abfc'); this.sfx.bossDie(); } else this.sfx.pop(e.type);
+    if (e.type === 'rider') { this.shake = Math.max(this.shake, 0.4); this.float('BADAK TUMBANG! 🦏', center.clone().setY(1.8), '#e2e8f0'); }
+    if (e.type === 'fatty') { this.shake = Math.max(this.shake, 0.35); this.float('SI GENDUT TUMBANG! 🧌', center.clone().setY(1.8), '#fdba74'); }
+    if (e.type === 'punk') { this.particles.emit(center, 0xef4444, 14, 2.2, 0.08, 0.5, 2.5); this.float('PUNK PADAM! 🔥', center.clone().setY(1.4), '#fca5a5'); }
+    if (e.type === 'toxic') {
+      const at = e.group.position.clone().setY(0.1);
+      this.ring(at, 0x22c55e, 0.2, 1.8, 0.6, RING, 0.85);
+      this.particles.emit(at, 0x22c55e, 16, 2.0, 0.09, 0.7, 2.5);
+      this.float('RACUN PECAH! 🧪', at.clone().setY(1.4), '#4ade80');
+      this.sfx.whoosh();
+    }
+    if (e.type === 'troll') { this.shake = Math.max(this.shake, 0.35); this.float('TROLL TUMBANG! 🧟', center.clone().setY(1.8), '#86efac'); }
     this.scene.remove(e.group); this.dirty = true;
+    if (e.type === 'bomber') {
+      const at = e.group.position.clone().setY(0.2);
+      this.fireball(at, 1.25); this.particles.emit(at, 0xef4444, 20, 3.2, 0.12, 0.8, 3.5); this.particles.emit(at, 0xfde047, 12, 2.4, 0.09, 0.6, 2.5);
+      this.ring(at.clone().setY(0.06), 0xf87171, 0.2, 2.2, 0.4, RING, 0.9); this.flash(at.clone().setY(0.6), 0xff4444, 6, 6); this.shake = Math.max(this.shake, 0.3); this.sfx.boom();
+      this.float('DINAMIT MELEDAK! 🧨', at.clone().setY(1.4), '#f87171');
+      for (const o of [...this.enemies]) if (!o.dead && !o.flying && o !== e && o.group.position.distanceTo(at) <= 1.6) this.damage(o, 35, { pierce: true });
+    }
     if (e.type === 'cannoneer') {
       const at = e.group.position.clone().addScaledVector(new THREE.Vector3(-Math.sin(e.group.rotation.y), 0, -Math.cos(e.group.rotation.y)), 0.95 * e.size).setY(0.3);
       this.fireball(at, 1.6); this.particles.emit(at, 0x5c3a1a, 16, 3.5, 0.12, 1, 4.5);
@@ -1497,8 +1589,226 @@ export class Game {
       }
       this.sfx.shoot('tesla'); return;
     }
+    if (t.type === 'naga') {
+      const start = this.muzzleWorld(t);
+      const dropS = Math.min(this.pathLen - 0.4, target.s + 0.5);
+      const s0 = Math.max(0, dropS - 2.0), s1 = Math.min(this.pathLen, dropS + 2.0);
+      const meshes: THREE.Object3D[] = [];
+      const pts = 5;
+      for (let i = 0; i < pts; i++) {
+        const sp = s0 + (s1 - s0) * (i / (pts - 1));
+        const p = new THREE.Vector3(); this.posAt(sp, p); p.y = (this.world?.heightAt(p.x, p.z) ?? 0) + 0.05;
+        const rock = mkBox(0.5, 0.04, 0.5, 0x1c1917);
+        rock.rotation.y = (i * 1.3) % 3.14;
+        rock.position.copy(p);
+        const lava = mkBox(0.4, 0.06, 0.18, 0xff5722);
+        lava.rotation.y = 0.5;
+        rock.add(lava);
+        this.scene.add(rock);
+        meshes.push(rock);
+      }
+      this.fissures.push({ id: this.nextId++, owner: t.id, s0, s1, dps: st.dmg * 0.9, life: 4.5 + t.level * 0.5, maxLife: 4.5 + t.level * 0.5, meshes });
+      this.kick(t, 1.2);
+      this.flash(start, 0xff7a1a, 5, 4);
+      this.bolt(start, goal, 0xff7a1a, 0.12, 0.35, 0.1);
+      this.particles.emit(start, 0xff7a1a, 10, 2.0, 0.08, 0.4, 2);
+      this.particles.emit(goal, 0xff5722, 16, 2.8, 0.1, 0.5, 2.5);
+      this.ring(goal.clone().setY(0.08), 0xff5722, 0.2, 1.8, 0.35, RING, 0.9);
+      this.float('RETAKAN LAHAR! 🔥', goal.clone().setY(goal.y + 0.8), '#ff7a1a');
+      this.sfx.dragonShot();
+      for (const e of this.enemies) {
+        if (e.dead || e.type === 'boss') continue;
+        if (e.group.position.distanceTo(tp) <= st.range * 0.6) {
+          e.s = Math.max(0, e.s - 0.4);
+        }
+      }
+      return;
+    }
+    if (t.type === 'storm') {
+      const cyGroup = new THREE.Group();
+      const ring1 = new THREE.Mesh(new THREE.TorusGeometry(0.35, 0.08, 6, 16), new THREE.MeshBasicMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.7 }));
+      ring1.rotation.x = Math.PI / 2; ring1.position.y = 0.2; cyGroup.add(ring1);
+      const ring2 = new THREE.Mesh(new THREE.TorusGeometry(0.55, 0.09, 6, 16), new THREE.MeshBasicMaterial({ color: 0x7dd3fc, transparent: true, opacity: 0.7 }));
+      ring2.rotation.x = Math.PI / 2; ring2.position.y = 0.6; cyGroup.add(ring2);
+      const ring3 = new THREE.Mesh(new THREE.TorusGeometry(0.75, 0.1, 6, 16), new THREE.MeshBasicMaterial({ color: 0xf0f9ff, transparent: true, opacity: 0.8 }));
+      ring3.rotation.x = Math.PI / 2; ring3.position.y = 1.1; cyGroup.add(ring3);
+      const startS = target.s;
+      const startP = new THREE.Vector3(); this.posAt(startS, startP);
+      cyGroup.position.copy(startP); this.scene.add(cyGroup);
+      this.cyclones.push({ id: this.nextId++, owner: t.id, s: startS, dir: -1, range: 5.5 + t.level, travelled: 0, dps: st.dmg * 0.85, life: 3.5, maxLife: 3.5, mesh: cyGroup, level: t.level });
+      this.kick(t, 1.1);
+      const start = this.muzzleWorld(t);
+      this.flash(start, 0x38bdf8, 4, 3);
+      this.particles.emit(start, 0x38bdf8, 12, 2.2, 0.08, 0.4, 2);
+      this.float('TORNADO BADAI! 🌪️', startP.clone().setY(startP.y + 1.4), '#38bdf8');
+      this.sfx.cyclone();
+      return;
+    }
+    if (t.type === 'quake') {
+      const dropP = new THREE.Vector3(); this.posAt(target.s, dropP); dropP.y = (this.world?.heightAt(dropP.x, dropP.z) ?? 0);
+      const spikeGroup = new THREE.Group();
+      spikeGroup.add(mkBox(0.24, 0.85, 0.24, 0x334155, 0, 0.42, 0));
+      spikeGroup.add(mkBox(0.32, 0.16, 0.32, 0xf97316, 0, 0.6, 0));
+      spikeGroup.add(mkSphere(0.12, 0xfbbf24, 0, 0.88, 0));
+      spikeGroup.position.copy(dropP); this.scene.add(spikeGroup);
+      const tethers: number[] = [];
+      const lineMeshes: THREE.Line[] = [];
+      for (const e of this.enemies) {
+        if (e.dead || e.flying) continue;
+        if (Math.hypot(e.group.position.x - dropP.x, e.group.position.z - dropP.z) <= 3.5) {
+          tethers.push(e.id);
+          e.tetherSpikeId = t.id;
+          if (e.armor > 0) e.armor = Math.max(0, e.armor - (2 + t.level));
+          const geom = new THREE.BufferGeometry().setFromPoints([dropP.clone().setY(dropP.y + 0.8), this.enemyCenter(e)]);
+          const line = new THREE.Line(geom, new THREE.LineBasicMaterial({ color: 0xf97316 }));
+          this.scene.add(line);
+          lineMeshes.push(line);
+          if (tethers.length >= 2 + t.level) break;
+        }
+      }
+      this.spikes.push({ id: this.nextId++, owner: t.id, pos: dropP.clone(), s: target.s, tethers, life: 4.2 + t.level * 0.5, maxLife: 4.2 + t.level * 0.5, mesh: spikeGroup, lineMeshes });
+      this.kick(t, 1.4);
+      this.shake = Math.max(this.shake, 0.24);
+      this.ring(dropP.clone().setY(0.08), 0xf97316, 0.3, 1.8, 0.4, RING, 0.9);
+      this.particles.emit(dropP, 0xf97316, 18, 2.5, 0.1, 0.6, 2.5);
+      this.float(`RANTAI JIWA! ⛓️ ×${tethers.length}`, dropP.clone().setY(dropP.y + 1.2), '#f97316');
+      this.sfx.tether();
+      return;
+    }
+    if (t.type === 'glacier') {
+      const wallS = Math.min(this.pathLen - 0.4, target.s + 0.7);
+      const wallPos = new THREE.Vector3(); this.posAt(wallS, wallPos); wallPos.y = (this.world?.heightAt(wallPos.x, wallPos.z) ?? 0);
+      const pNext = new THREE.Vector3(); this.posAt(wallS + 0.3, pNext);
+      const roadAngle = Math.atan2(pNext.x - wallPos.x, pNext.z - wallPos.z);
+      const wallGroup = new THREE.Group();
+      wallGroup.position.copy(wallPos);
+      wallGroup.rotation.y = roadAngle + Math.PI / 2;
+      wallGroup.add(mkBox(1.5, 0.8, 0.35, 0x38bdf8, 0, 0.4, 0));
+      wallGroup.add(mkBox(1.1, 0.45, 0.45, 0xa5f3fc, 0, 0.7, 0));
+      const shard1 = new THREE.Mesh(new THREE.OctahedronGeometry(0.25), mat(0xe0f2fe, 0x06b6d4, 0.4));
+      shard1.position.set(-0.4, 0.95, 0); wallGroup.add(shard1);
+      const shard2 = new THREE.Mesh(new THREE.OctahedronGeometry(0.3), mat(0xe0f2fe, 0x06b6d4, 0.4));
+      shard2.position.set(0.3, 1.05, 0); wallGroup.add(shard2);
+      const hpBg = mkBox(1.0, 0.08, 0.04, 0x1f2937, 0, 1.35, 0);
+      const hpFg = mkBox(0.96, 0.06, 0.05, 0x38bdf8, 0, 1.35, 0.01);
+      wallGroup.add(hpBg); wallGroup.add(hpFg);
+      this.scene.add(wallGroup);
+      const maxHp = 220 + 120 * (t.level - 1);
+      this.iceWalls.push({ id: this.nextId++, owner: t.id, s: wallS, pos: wallPos.clone(), hp: maxHp, maxHp, life: 5.5 + t.level * 0.5, maxLife: 5.5 + t.level * 0.5, mesh: wallGroup, hpFg, level: t.level });
+      this.kick(t, 1.1);
+      this.ring(wallPos.clone().setY(0.08), 0x06b6d4, 0.3, 1.8, 0.45, RING, 0.9);
+      this.particles.emit(wallPos, 0xa5f3fc, 18, 2.2, 0.1, 0.6, 2.5);
+      this.float('TEMBOK ES! 🧊', wallPos.clone().setY(wallPos.y + 1.5), '#7dd3fc');
+      this.sfx.iceWall();
+      return;
+    }
+    if (t.type === 'meteor') {
+      const start = this.muzzleWorld(t);
+      const shell = new THREE.Group();
+      shell.add(mkSphere(0.24, 0x292524, 0, 0, 0, 0xef4444));
+      const fl = makeFlame(0.4); fl.rotation.x = -Math.PI / 2; fl.position.z = -0.15; shell.add(fl);
+      shell.position.copy(start); this.scene.add(shell);
+      this.projectiles.push({ kind: 'meteor', pos: start.clone(), start, t: 0, target, speed: 1.1, dmg: st.dmg, mesh: shell, splash: 1.6, arc: 2.5 + Math.random() * 0.5, level: t.level });
+      this.kick(t, 1.3);
+      this.flash(start, 0xef4444, 4, 4);
+      this.particles.emit(start, 0xef4444, 10, 2.2, 0.1, 0.5, 3);
+      this.sfx.shoot('blaster');
+      return;
+    }
+    if (t.type === 'vortex') {
+      const center = this.enemyCenter(target);
+      const start = this.muzzleWorld(t);
+      this.bolt(start, center, 0x818cf8, 0.08, 0.35, 0.1);
+      this.ring(center.clone().setY(0.08), 0x818cf8, 0.3, 2.2, 0.6, RING, 0.9);
+      this.particles.emit(center, 0xc084fc, 16, 2.5, 0.08, 0.6, 2.5);
+      this.flash(center, 0x818cf8, 4, 3);
+      this.float('SINGULARITAS! 🌀', center.clone().setY(center.y + 0.8), '#a5b4fc');
+      this.sfx.whoosh();
+      for (const e of this.enemies) {
+        if (e.dead) continue;
+        const d = e.group.position.distanceTo(center);
+        if (d <= 2.2) {
+          e.s = Math.max(0, e.s - 0.5 * (1 - d / 2.2));
+          this.damage(e, st.dmg, { hitPos: this.enemyCenter(e), silent: true });
+        }
+      }
+      return;
+    }
+    if (t.type === 'orbital') {
+      const ec = this.enemyCenter(target);
+      const sky = ec.clone().setY(12);
+      this.bolt(sky, ec, 0xfacc15, 0.16, 0.4, 0);
+      this.bolt(sky, ec, 0xffffff, 0.08, 0.3, 0);
+      this.ring(ec.clone().setY(0.08), 0xfacc15, 0.2, 1.2, 0.3, RING, 0.95);
+      this.particles.emit(ec, 0xfacc15, 12, 2.8, 0.08, 0.4, 2.5);
+      this.flash(ec, 0xfacc15, 5, 5);
+      target.armor = Math.max(0, target.armor - 1);
+      this.damage(target, st.dmg, { pierce: true, hitPos: ec });
+      this.shake = Math.max(this.shake, 0.15);
+      this.sfx.zap();
+      return;
+    }
+    if (t.type === 'siren') {
+      const ec = this.enemyCenter(target);
+      const from = this.muzzleWorld(t);
+      this.ring(from, 0x22d3ee, 0.2, st.range * 0.9, 0.5, RING, 0.8);
+      this.particles.emit(ec, 0x67e8f9, 8, 2.0, 0.06, 0.4, 2);
+      this.flash(ec, 0x22d3ee, 3, 3);
+      this.sfx.heart();
+      for (const e of this.enemies) {
+        if (e.dead) continue;
+        if (e.group.position.distanceTo(tp) <= st.range) {
+          e.sirenT = 4.0;
+          this.damage(e, st.dmg, { hitPos: this.enemyCenter(e) });
+        }
+      }
+      return;
+    }
   }
   explode(at: THREE.Vector3, p: Projectile) {
+    if (p.kind === 'fireball') {
+      this.fireball(at, 1.25);
+      this.particles.emit(at, 0xff7a1a, 20, 3.2, 0.12, 0.7, 3.2);
+      this.particles.emit(at, 0xfde047, 14, 2.4, 0.09, 0.5, 2.6);
+      this.ring(at.clone().setY(0.07), 0xef4444, 0.2, p.splash! * 2.2, 0.35, RING, 0.9);
+      this.flash(at.clone().setY(0.6), 0xff4444, 7, 6);
+      this.shake = Math.max(this.shake, 0.22);
+      this.sfx.boom();
+      const r = p.splash! * 1.1;
+      const life = 3.5 + p.level;
+      const m = new THREE.Mesh(DISC, new THREE.MeshBasicMaterial({ color: 0xf97316, transparent: true, opacity: 0.7, depthWrite: false }));
+      m.position.copy(at).setY(0.05); m.scale.setScalar(r); this.scene.add(m);
+      this.puddles.push({ mesh: m, pos: at.clone(), r, dps: p.dmg * 0.45, life });
+      for (const e of [...this.enemies]) {
+        if (e.group.position.distanceTo(at) <= p.splash!) {
+          this.damage(e, e.flying ? Math.round(p.dmg * 1.25) : p.dmg, { hitPos: this.enemyCenter(e) });
+          e.burnT = 3.0; e.burnDps = Math.round(p.dmg * 0.35);
+        }
+      }
+      return;
+    }
+    if (p.kind === 'meteor') {
+      this.fireball(at, 1.8);
+      this.particles.emit(at, 0xef4444, 30, 4.2, 0.15, 0.9, 4.0);
+      this.particles.emit(at, 0xfacc15, 22, 3.5, 0.12, 0.7, 3.5);
+      this.ring(at.clone().setY(0.07), 0xb91c1c, 0.3, p.splash! * 2.4, 0.45, RING, 0.95);
+      this.flash(at.clone().setY(0.8), 0xff3b30, 10, 8);
+      this.shake = Math.max(this.shake, 0.4);
+      this.float('METEORIT! ☄️', at.clone().setY(1.5), '#f87171');
+      this.sfx.boom();
+      const r = p.splash! * 1.25;
+      const life = 4.0 + p.level;
+      const m = new THREE.Mesh(DISC, new THREE.MeshBasicMaterial({ color: 0xb91c1c, transparent: true, opacity: 0.75, depthWrite: false }));
+      m.position.copy(at).setY(0.05); m.scale.setScalar(r); this.scene.add(m);
+      this.puddles.push({ mesh: m, pos: at.clone(), r, dps: p.dmg * 0.5, life });
+      for (const e of [...this.enemies]) {
+        if (!e.flying && e.group.position.distanceTo(at) <= p.splash!) {
+          this.damage(e, p.dmg, { hitPos: this.enemyCenter(e), pierce: true });
+          if (!e.dead && e.type !== 'boss') e.stunT = Math.max(e.stunT, 1.0);
+        }
+      }
+      return;
+    }
     if (p.kind === 'glob') {
       this.particles.emit(at, 0xa3e635, 16, 2.2, 0.1, 0.6, 2.5); this.particles.emit(at, 0x4d7c0f, 8, 1.4, 0.12, 0.8, 1.5);
       this.ring(at.clone().setY(0.07), 0xa3e635, 0.2, p.splash! * 2, 0.35, RING, 0.9);
@@ -1591,6 +1901,14 @@ export class Game {
       if (ca0 && ca1) { const sw2 = Math.sin(this.time * 3 + t.id) * 0.12 + rc * 0.7; ca0.rotation.z = sw2; ca1.rotation.z = -sw2; }
       const flw = t.head.getObjectByName('flower'); if (flw) { flw.rotation.z = Math.sin(this.time * 2 + t.id) * 0.12; flw.rotation.y += dt * 0.8; }
       for (let i = 0; i < 2; i++) { const hw = t.head.getObjectByName('hWing' + i); if (hw) hw.rotation.z = (i ? 1 : -1) * (0.25 + Math.sin(this.time * 45 + i) * 0.35); }
+      for (let i = 0; i < 2; i++) {
+        const dw = t.head.getObjectByName('dWing' + i);
+        if (dw) dw.rotation.z = (i ? 1 : -1) * (0.25 + Math.sin(this.time * 10 + i) * 0.35 + rc * 0.5);
+      }
+      if (t.type === 'quake') {
+        const hm = t.head.getObjectByName('hammer');
+        if (hm) hm.position.y = 0.32 + Math.max(0, rc) * 0.25;
+      }
       const fL = t.head.getObjectByName('fistL'), fR = t.head.getObjectByName('fistR');
       if (fL && fR) { const up = t.pulseT > 0 ? 1 - t.pulseT / 0.22 : 0; const fy = 0.3 + up * 0.65 - rc * 0.08 + Math.sin(this.time * 2 + t.id) * 0.015; fL.position.y = fy; fR.position.y = fy; }
       const cmn = t.head.getObjectByName('clockMin'), chr = t.head.getObjectByName('clockHour'); if (cmn && chr) { cmn.rotation.z = -this.time * (2.2 + rc * 6); chr.rotation.z = -this.time * 0.18; }
@@ -1665,10 +1983,12 @@ export class Game {
         if (e.dead) continue;
         e.breathActive = false;
         let mult = e.slowT > 0 ? 0.5 : 1;
+        if (e.type === 'rider') { e.slowT = 0; mult = 1; }
         if ((e.shockT ?? 0) > 0) mult *= 0.75;
         if ((e.auraT ?? 0) > 0) { e.auraT! -= dt; mult *= e.auraK ?? 0.65; }
         if ((e.rallyT ?? 0) > 0) { e.rallyT! -= dt; mult *= 1.15; } // inside a war captain's rally
         if ((e.blockT ?? 0) > 0) { e.blockT! -= dt; mult *= 0.2; } // a knight is standing in its way
+        if ((e.tetherSpikeId ?? 0) > 0) mult *= 0.5; // tethered to a seismic spike
         if ((e.charmT ?? 0) > 0) { // Amor's heart mark floats over the orc's head (just above its HP bar)
           e.charmT! -= dt; const cm = e.charmMark;
           if (cm) { cm.scale.setScalar((0.4 + Math.sin(this.time * 6 + e.bobOff) * 0.04) / e.size); cm.position.set(0, (e.hpBg.position.y * Math.max(0.6, e.size) + 0.55) / e.size, 0); cm.rotation.y += dt * 2.4; }
@@ -1676,6 +1996,17 @@ export class Game {
         } // inside a Chrono clock's aura
         if (e.type === 'berserker') mult *= 1 + (1 - e.hp / e.maxHp) * 1.3;
         if (e.type === 'baby') mult *= 1 + Math.max(0, Math.sin(this.time * 4 + e.bobOff)) * 0.5;
+        if ((e.silenceT ?? 0) > 0) e.silenceT! -= dt;
+        if ((e.freezeT ?? 0) > 0) {
+          e.freezeT! -= dt; mult = 0;
+          if (Math.random() < 0.2) this.particles.emit(this.enemyCenter(e), 0xa5f3fc, 1, 0.4, 0.05, 0.3);
+        }
+        if ((e.burnT ?? 0) > 0) {
+          e.burnT! -= dt;
+          this.damage(e, (e.burnDps ?? 12) * dt, { silent: true, pierce: true });
+          if (Math.random() < 0.2) this.particles.emit(this.enemyCenter(e), 0xf97316, 1, 0.3, 0.05, 0.3);
+          if (e.dead) continue;
+        }
         if (e.stunT > 0) { e.stunT -= dt; mult = 0; if (Math.random() < 0.2) this.particles.emit(this.enemyCenter(e).setY(e.size * 1.5), 0xfde68a, 1, 0.5, 0.05, 0.4, 1, -1); }
         // MIND CONTROL: a hallucinating orc ignores its orders and fights its friends instead
         const dazed = (e.mindT ?? 0) > 0; if (dazed) mult *= this.mindAI(e, dt);
@@ -1760,6 +2091,202 @@ export class Game {
             if (e.cannonT > 1.1) { e.cannonPhase = 'walk'; e.cannonT = 2.5 + Math.random(); e.limbs.head.rotation.y = 0; cannon.position.z = -0.95; }
           }
         }
+        // ninja: smoke bomb camouflage & dash sprint
+        if (e.type === 'ninja') {
+          e.stealthCd = (e.stealthCd ?? (2.5 + Math.random() * 2)) - dt;
+          if ((e.stealthT ?? 0) > 0) {
+            e.stealthT! -= dt;
+            mult *= 1.65;
+            for (const m of e.skinMats) { m.transparent = true; m.opacity = 0.28; }
+            if (Math.random() < 0.25) this.particles.emit(e.group.position.clone().setY(0.2), 0x94a3b8, 1, 0.4, 0.05, 0.25);
+            if (e.stealthT! <= 0) {
+              for (const m of e.skinMats) { m.opacity = 1; m.transparent = false; }
+            }
+          } else if (e.stealthCd <= 0 && e.stunT <= 0 && !dazed && (e.silenceT ?? 0) <= 0 && e.s < this.pathLen - 2) {
+            e.stealthT = 1.6;
+            e.stealthCd = 4.5 + Math.random();
+            const p = e.group.position.clone();
+            this.particles.emit(p.clone().setY(0.3), 0x94a3b8, 12, 1.8, 0.12, 0.7, 2, -1);
+            this.ring(p.clone().setY(0.06), 0x64748b, 0.15, 1.2, 0.3, RING, 0.7);
+            this.float('ASAP! 🥷', p.clone().setY(1.3), '#cbd5e1');
+            this.sfx.whoosh();
+          }
+        }
+        // bomber: kamikaze run & explode near tower
+        if (e.type === 'bomber' && e.stunT <= 0 && !dazed) {
+          mult *= 1.15;
+          if (Math.random() < 0.35) {
+            const bp = e.group.position.clone().add(new THREE.Vector3(0, 0.7 * e.size, 0.25 * e.size));
+            this.particles.emit(bp, 0xff7a1a, 1, 0.3, 0.04, 0.2, 1, 0);
+          }
+          let nearTower: Tower | null = null;
+          for (const t of this.towers) {
+            if (t.dead) continue;
+            if (Math.hypot(t.group.position.x - e.group.position.x, t.group.position.z - e.group.position.z) <= 1.25) {
+              nearTower = t;
+              break;
+            }
+          }
+          if (nearTower) {
+            const at = e.group.position.clone();
+            this.hurtTower(nearTower, nearTower.group.position.clone(), 8);
+            this.fireball(at, 1.35);
+            this.particles.emit(at, 0xef4444, 22, 3, 0.12, 0.8, 3);
+            this.particles.emit(at, 0xfde047, 14, 2.5, 0.1, 0.6, 2.5);
+            this.ring(at.clone().setY(0.07), 0xef4444, 0.2, 2.4, 0.35, RING, 0.9);
+            this.flash(at.clone().setY(0.6), 0xff4444, 6, 6);
+            this.shake = Math.max(this.shake, 0.35);
+            this.float('JEGEER! 🧨 -8 HP', at.clone().setY(1.4), '#ef4444');
+            this.sfx.boom();
+            this.kill(e);
+            continue;
+          }
+        }
+        // magnet: magnetic pulses
+        if (e.type === 'magnet' && !dazed && e.stunT <= 0 && (e.silenceT ?? 0) <= 0) {
+          e.magPulseT = (e.magPulseT ?? (1.0 + Math.random())) - dt;
+          if (e.magPulseT <= 0) {
+            e.magPulseT = 2.2;
+            const mp = e.group.position.clone().setY(0.12);
+            this.ring(mp, 0x3b82f6, 0.2, 2.4, 0.45, RING, 0.75);
+            this.particles.emit(mp, 0x60a5fa, 6, 1.2, 0.06, 0.4);
+          }
+        }
+        // frost: freezes nearest tower
+        if (e.type === 'frost' && !dazed && e.stunT <= 0 && (e.silenceT ?? 0) <= 0) {
+          e.freezeCd = (e.freezeCd ?? (2.0 + Math.random())) - dt;
+          if (e.freezeCd <= 0) {
+            let targetTower: Tower | null = null, bd = 4.2;
+            for (const t of this.towers) {
+              if (t.dead || (t.frozenT ?? 0) > 0) continue;
+              const d = Math.hypot(t.group.position.x - e.group.position.x, t.group.position.z - e.group.position.z);
+              if (d < bd) { bd = d; targetTower = t; }
+            }
+            if (targetTower) {
+              e.freezeCd = 4.5 + Math.random();
+              const from = this.enemyCenter(e).setY(e.size * 1.2);
+              const to = targetTower.group.position.clone().setY(0.8);
+              this.bolt(from, to, 0x38bdf8, 0.08, 0.35, 0.15);
+              this.ring(to.clone().setY(0.1), 0x38bdf8, 0.2, 1.6, 0.5, RING, 0.8);
+              this.particles.emit(to, 0xbae6fd, 12, 2.0, 0.08, 0.5, 2);
+              targetTower.frozenT = 2.5;
+              this.float('BEKU! ❄️', to.clone().setY(1.5), '#7dd3fc');
+              this.sfx.freeze();
+            } else {
+              e.freezeCd = 1.0;
+            }
+          }
+        }
+        // rider: rhino mount heavy charge
+        if (e.type === 'rider') {
+          e.slowT = 0;
+          if (Math.random() < 0.2) {
+            this.particles.emit(e.group.position.clone().setY(0.05), 0x94a3b8, 1, 0.4, 0.06, 0.3, 0.5, 0);
+          }
+        }
+        // fatty: orc gendut dengan tongkat besar - hentakan tanah gempa
+        if (e.type === 'fatty' && !dazed && e.stunT <= 0 && (e.silenceT ?? 0) <= 0) {
+          e.slamCd = (e.slamCd ?? (2.0 + Math.random() * 2)) - dt;
+          if (e.slamCd <= 0) {
+            e.slamCd = 3.6 + Math.random();
+            const gp = e.group.position.clone();
+            this.ring(gp.clone().setY(0.08), 0xb45309, 0.3, 2.6, 0.5, RING, 0.85);
+            this.particles.emit(gp.clone().setY(0.2), 0xd97706, 14, 2.2, 0.09, 0.6, 2.8);
+            this.shake = Math.max(this.shake, 0.25);
+            this.float('HENTAKAN TONGKAT! 🧌', gp.clone().setY(1.8), '#fdba74');
+            this.sfx.boom();
+            for (const t of this.towers) {
+              if (t.dead) continue;
+              if (Math.hypot(t.group.position.x - gp.x, t.group.position.z - gp.z) <= 2.2) {
+                t.cooldown = Math.max(t.cooldown, 1.2);
+              }
+            }
+          }
+        }
+        // punk: orc rambut merah punk dengan tombak berapi - menusuk & membakar tower
+        if (e.type === 'punk' && !dazed && e.stunT <= 0 && (e.silenceT ?? 0) <= 0) {
+          e.spearThrowCd = (e.spearThrowCd ?? (1.8 + Math.random() * 1.5)) - dt;
+          if (e.spearThrowCd <= 0) {
+            let targetTower: Tower | null = null, bd = 3.2;
+            for (const t of this.towers) {
+              if (t.dead) continue;
+              const d = Math.hypot(t.group.position.x - e.group.position.x, t.group.position.z - e.group.position.z);
+              if (d < bd) { bd = d; targetTower = t; }
+            }
+            if (targetTower) {
+              e.spearThrowCd = 3.2 + Math.random();
+              const from = this.enemyCenter(e).setY(e.size * 1.1);
+              const to = targetTower.group.position.clone().setY(0.6);
+              this.bolt(from, to, 0xef4444, 0.09, 0.35, 0.12);
+              this.fireball(to, 0.55);
+              this.hurtTower(targetTower, to, 3);
+              this.float('BAKARR! 🧑‍🎤🔥 -3 HP', to.clone().setY(1.5), '#ef4444');
+              this.sfx.burn();
+            } else {
+              e.spearThrowCd = 1.0;
+            }
+          }
+        }
+        // shield: orc perisai baja - pertahanan barikade depan
+        if (e.type === 'shield' && !dazed && e.stunT <= 0) {
+          if (Math.random() < 0.15) {
+            this.particles.emit(e.group.position.clone().setY(0.4), 0x94a3b8, 1, 0.5, 0.05, 0.3, 0.5, 0);
+          }
+        }
+        // toxic: orc alkemis racun - tetesan uap asam & debuff tower
+        if (e.type === 'toxic' && !dazed && e.stunT <= 0 && (e.silenceT ?? 0) <= 0) {
+          e.toxicDropCd = (e.toxicDropCd ?? (1.5 + Math.random())) - dt;
+          if (e.toxicDropCd <= 0) {
+            e.toxicDropCd = 2.4;
+            const tp = e.group.position.clone().setY(0.06);
+            this.ring(tp, 0x22c55e, 0.15, 1.2, 0.4, RING, 0.6);
+            this.particles.emit(tp.clone().setY(0.2), 0x4ade80, 4, 0.8, 0.05, 0.3);
+            for (const t of this.towers) {
+              if (t.dead) continue;
+              if (Math.hypot(t.group.position.x - tp.x, t.group.position.z - tp.z) <= 1.9) {
+                t.cooldown = Math.max(t.cooldown, 0.8);
+              }
+            }
+          }
+        }
+        // bat: orc kelelawar malam - lifesteal hisap darah pulihkan HP
+        if (e.type === 'bat' && !dazed && e.stunT <= 0 && (e.silenceT ?? 0) <= 0) {
+          e.batDrainCd = (e.batDrainCd ?? (2.0 + Math.random())) - dt;
+          if (e.batDrainCd <= 0) {
+            let targetTower: Tower | null = null, bd = 3.0;
+            for (const t of this.towers) {
+              if (t.dead) continue;
+              const d = Math.hypot(t.group.position.x - e.group.position.x, t.group.position.z - e.group.position.z);
+              if (d < bd) { bd = d; targetTower = t; }
+            }
+            if (targetTower && e.hp < e.maxHp) {
+              e.batDrainCd = 3.0 + Math.random();
+              const from = targetTower.group.position.clone().setY(0.6);
+              const to = this.enemyCenter(e);
+              this.bolt(from, to, 0xa855f7, 0.06, 0.3, 0.2);
+              this.hurtTower(targetTower, from, 2);
+              const heal = Math.min(e.maxHp - e.hp, 14);
+              e.hp += heal;
+              this.float(`HISAP DARAH! 🦇 +${heal} HP`, to.clone().setY(1.4), '#d8b4fe');
+              this.sfx.pop('bat');
+            } else {
+              e.batDrainCd = 1.2;
+            }
+          }
+        }
+        // troll: troll rawa raksasa - regenerasi pasif alami konstan (kecuali dibakar/diracun)
+        if (e.type === 'troll' && !dazed && e.stunT <= 0) {
+          if ((e.burnT ?? 0) <= 0 && (e.poisonT ?? 0) <= 0 && e.hp < e.maxHp) {
+            e.hp = Math.min(e.maxHp, e.hp + dt * 12);
+            e.trollRegenT = (e.trollRegenT ?? 1.8) - dt;
+            if (e.trollRegenT <= 0) {
+              e.trollRegenT = 1.8;
+              const c = this.enemyCenter(e);
+              this.particles.emit(c, 0x22c55e, 5, 1.2, 0.06, 0.4);
+              this.float('REGEN! 🌿', c.clone().setY(1.8), '#86efac');
+            }
+          }
+        }
         // jumper: launch near finish
         if (e.type === 'jumper') {
           if (e.jumpState === 'idle' && e.s > 2.5 && e.stunT <= 0) {
@@ -1782,9 +2309,33 @@ export class Game {
         if (e.poisonT > 0) { e.poisonT -= dt; this.damage(e, e.poisonDps * dt, { silent: true, pierce: true }); if (e.dead) continue; if (Math.random() < 0.1) this.particles.emit(this.enemyCenter(e), 0xa3e635, 1, 0.3, 0.05, 0.5, 1, -0.5); }
         for (const p of this.puddles) if (!e.flying && e.group.position.distanceTo(p.pos) <= p.r) { this.damage(e, p.dps * dt, { silent: true, pierce: true }); break; }
         if (e.dead) continue;
-        if (e.type === 'shaman') { e.healT -= dt; if (e.healT <= 0) { e.healT = 2.5; let healed = false; for (const o of this.enemies) if (o !== e && !o.dead && o.hp < o.maxHp && o.group.position.distanceTo(e.group.position) < 2.2) { o.hp = Math.min(o.maxHp, o.hp + o.maxHp * 0.08); healed = true; this.particles.emit(this.enemyCenter(o), 0x6ee7b7, 4, 0.5, 0.06, 0.6, 1.5, -1); } if (healed) { this.ring(e.group.position.clone().setY(0.08), 0x6ee7b7, 0.2, 2.2, 0.6, RING, 0.7); this.sfx.heal(); } } }
+        if (e.type === 'shaman' && (e.silenceT ?? 0) <= 0) { e.healT -= dt; if (e.healT <= 0) { e.healT = 2.5; let healed = false; for (const o of this.enemies) if (o !== e && !o.dead && o.hp < o.maxHp && o.group.position.distanceTo(e.group.position) < 2.2) { o.hp = Math.min(o.maxHp, o.hp + o.maxHp * 0.08); healed = true; this.particles.emit(this.enemyCenter(o), 0x6ee7b7, 4, 0.5, 0.06, 0.6, 1.5, -1); } if (healed) { this.ring(e.group.position.clone().setY(0.08), 0x6ee7b7, 0.2, 2.2, 0.6, RING, 0.7); this.sfx.heal(); } } }
         if (e.knockV) { e.s = Math.max(0, e.s - e.knockV * dt); e.knockV *= Math.exp(-dt * 5.5); if (Math.abs(e.knockV) < 0.05) e.knockV = 0; } // flung along the road by a spear poke / a friend's blow
-        e.s += sp * dt;
+        let blockedByWall = false;
+        if (!e.flying) {
+          for (const wall of this.iceWalls) {
+            if (e.s < wall.s && e.s + sp * dt >= wall.s - 0.22) {
+              e.s = Math.min(e.s, wall.s - 0.22);
+              blockedByWall = true;
+              wall.hp -= dt * (18 + (e.type === 'boss' ? 45 : e.type === 'tank' ? 28 : 10));
+              if (Math.random() < 0.2) this.particles.emit(wall.pos.clone().setY(0.6), 0xa5f3fc, 2, 0.8, 0.05, 0.25);
+              break;
+            }
+          }
+          for (const fs of this.fissures) {
+            if (e.s >= fs.s0 && e.s <= fs.s1) {
+              this.damage(e, fs.dps * dt, { silent: true, pierce: true });
+              e.burnT = Math.max(e.burnT ?? 0, 1.5);
+              if (e.armor > 0 && Math.random() < dt * 1.5) {
+                e.armor = Math.max(0, e.armor - 1);
+                this.float('LELEH! 🔥', this.enemyCenter(e).setY(e.size + 0.5), '#ff7a1a');
+              }
+              if (Math.random() < 0.2) this.particles.emit(this.enemyCenter(e), 0xff5722, 1, 0.4, 0.05, 0.25);
+              break;
+            }
+          }
+        }
+        if (!blockedByWall) e.s += sp * dt;
         if (e.s >= this.pathLen) { this.leak(e); continue; }
         this.posAt(e.s, tmp); this.posAt(e.s + 0.3, tmp2);
         { // lane = sideways offset from the road centre: legion soldiers march in two files, the dread knight steps up beside the tower it is about to cut down
@@ -1826,6 +2377,11 @@ export class Game {
           if (e.type === 'cannoneer') { e.limbs.cannon.rotation.x = Math.sin(ph) * 0.03; e.limbs.cannon.position.z = -0.95; }
         }
         if (!(e.type === 'cannoneer' && e.cannonPhase !== 'walk') && !(isElite(e.type) && e.atkTarget && e.atkPhase && e.atkPhase !== 'walk')) e.group.rotation.y = Math.atan2(tmp2.x - tmp.x, tmp2.z - tmp.z) + ((e.mindT ?? 0) > 0 && e.yawFlip ? Math.PI : 0);
+        if ((e.cycloneLiftT ?? 0) > 0) {
+          e.cycloneLiftT! -= dt;
+          e.group.position.y += Math.sin(this.time * 12 + e.id) * 0.2 + 1.4;
+          e.group.rotation.y += dt * 16;
+        }
         if (!e.flying) { // hit by a spear or a friend's blow: hop and lean in the direction of the push
           const hp0 = Math.max(0, e.hopT ?? 0); if (hp0 > 0) e.hopT = hp0 - dt;
           if (hp0 > 0) e.group.position.y += Math.sin(Math.min(1, hp0 / 0.4) * Math.PI) * (e.hopH ?? 0.3);
@@ -1858,6 +2414,20 @@ export class Game {
       // safety net: a fire stream is only visible on a frame in which its dragon actually fed it
       for (const e of this.enemies) if (e.breathMesh && !e.breathActive) e.breathMesh.visible = false;
       for (const t of this.towers) {
+        if ((t.frozenT ?? 0) > 0) {
+          t.frozenT = (t.frozenT ?? 0) - dt;
+          if (!t.iceBlock) {
+            const ice = new THREE.Mesh(BOX, new THREE.MeshStandardMaterial({ color: 0x93c5fd, transparent: true, opacity: 0.5, roughness: 0.1, emissive: 0x38bdf8, emissiveIntensity: 0.2 }));
+            ice.scale.set(1.4, 1.8, 1.4); ice.position.set(0, 0.7, 0); ice.name = 'iceBlock';
+            t.group.add(ice); t.iceBlock = ice;
+          }
+          if (t.frozenT <= 0) {
+            if (t.iceBlock) { t.group.remove(t.iceBlock); t.iceBlock = undefined; }
+            this.particles.emit(tp.clone().setY(tp.y + 0.8), 0xbae6fd, 14, 2, 0.1, 0.6, 2);
+            this.sfx.splat();
+          }
+          continue;
+        }
         t.cooldown -= dt; t.recoil = Math.max(0, t.recoil - dt * 4);
         const def = TOWER_DEFS[t.type]; const st = this.towerStats(t.type, t.level, t.buff); const tp = t.group.position;
         const spin = t.head.getObjectByName('spin'); if (spin) { spin.rotation.y += dt * (t.target ? 8 : 2); }
@@ -1873,7 +2443,7 @@ export class Game {
         if (t.type === 'wind') { // Whirl: a constant gust that shoves every orc in range backwards along the road (bosses & heavies resist)
           const push = (0.9 + 0.5 * (t.level - 1)) * (1 + t.buff); let near: Enemy | null = null; let cnt = 0;
           for (const e of this.enemies) {
-            if (e.dead) continue; const dx = e.group.position.x - tp.x, dz = e.group.position.z - tp.z; if (dx * dx + dz * dz > st.range * st.range) continue;
+            if (e.dead || e.type === 'rider') continue; const dx = e.group.position.x - tp.x, dz = e.group.position.z - tp.z; if (dx * dx + dz * dz > st.range * st.range) continue;
             cnt++; if (!near) near = e;
             if (!(e.type === 'jumper' && e.jumpState === 'flying')) { const k = e.type === 'boss' ? 0.35 : e.type === 'log' ? 0.5 : e.type === 'tank' ? 0.7 : 1; e.s = Math.max(0, e.s - push * k * dt); }
             if (Math.random() < 0.2) this.particles.emit(this.enemyCenter(e), 0xe0e7ff, 1, 0.8, 0.05, 0.4, 0.6, 0);
@@ -1929,7 +2499,7 @@ export class Game {
           continue;
         }
         if (t.type === 'shield') { const dome = t.head.getObjectByName('dome') as THREE.Mesh | undefined; if (dome) (dome.material as THREE.MeshBasicMaterial).opacity = 0.14 + Math.sin(this.time * 3) * 0.04 + t.recoil * 0.3; t.recoil = Math.max(0, t.recoil - dt * 2); continue; }
-        const can = (e: Enemy) => (e.flying ? def.air : def.ground);
+        const can = (e: Enemy) => (e.flying ? def.air : def.ground) && ((e.stealthT ?? 0) <= 0);
         let target: Enemy | null = null;
         if (t.target && !t.target.dead && t.target.group.position.distanceTo(tp) <= st.range) target = t.target;
         else for (const e of this.enemies) { if (!can(e)) continue; const dx = e.group.position.x - tp.x, dz = e.group.position.z - tp.z; if (dx * dx + dz * dz <= st.range * st.range && (!target || e.s > target.s)) target = e; }
@@ -2033,6 +2603,106 @@ export class Game {
         }
         return true;
       });
+      // Naga fissures: active lava cracks on road
+      this.fissures = this.fissures.filter(fs => {
+        fs.life -= dt;
+        for (const m of fs.meshes) {
+          if (Math.random() < 0.25) this.particles.emit(m.position.clone().setY(0.08), 0xff5722, 1, 0.4, 0.05, 0.3, 1, -1);
+        }
+        if (fs.life <= 0) {
+          for (const m of fs.meshes) this.scene.remove(m);
+          return false;
+        }
+        return true;
+      });
+      // Storm cyclones: traveling 3D twisters
+      this.cyclones = this.cyclones.filter(cy => {
+        cy.travelled += dt * 2.8;
+        cy.s += cy.dir * dt * 2.8;
+        if (cy.s <= 0.2 || cy.travelled >= cy.range) {
+          this.scene.remove(cy.mesh);
+          this.ring(cy.mesh.position, 0x38bdf8, 0.2, 1.8, 0.4, RING, 0.8);
+          this.particles.emit(cy.mesh.position, 0xbae6fd, 14, 2.4, 0.08, 0.4, 2);
+          return false;
+        }
+        this.posAt(cy.s, cy.mesh.position);
+        cy.mesh.position.y = (this.world?.heightAt(cy.mesh.position.x, cy.mesh.position.z) ?? 0) + 0.1;
+        cy.mesh.rotation.y += dt * 18;
+        cy.mesh.rotation.z = Math.sin(this.time * 10) * 0.12;
+        if (Math.random() < 0.5) this.particles.emit(cy.mesh.position.clone().setY(0.8), 0x7dd3fc, 2, 1.2, 0.06, 0.3, 1.5, 0);
+        for (const e of this.enemies) {
+          if (e.dead) continue;
+          const dist = Math.hypot(e.group.position.x - cy.mesh.position.x, e.group.position.z - cy.mesh.position.z);
+          if (dist <= 1.4) {
+            e.cycloneLiftT = 0.4;
+            e.silenceT = Math.max(e.silenceT ?? 0, 2.5 + 0.5 * cy.level);
+            e.s = Math.max(0, e.s - dt * 1.5);
+            this.damage(e, cy.dps * dt, { silent: true });
+          }
+        }
+        return true;
+      });
+      // Quake spikes: soul tether chains
+      this.spikes = this.spikes.filter(sp => {
+        sp.life -= dt;
+        const validTethers: number[] = [];
+        const validLines: THREE.Line[] = [];
+        for (let i = 0; i < sp.tethers.length; i++) {
+          const tid = sp.tethers[i];
+          const line = sp.lineMeshes[i];
+          const target = this.enemies.find(x => x.id === tid && !x.dead);
+          if (target && target.group.position.distanceTo(sp.pos) <= 4.5) {
+            validTethers.push(tid);
+            validLines.push(line);
+            const tc = this.enemyCenter(target);
+            const posAttr = line.geometry.attributes.position as THREE.BufferAttribute;
+            posAttr.setXYZ(0, sp.pos.x, sp.pos.y + 0.8, sp.pos.z);
+            posAttr.setXYZ(1, tc.x, tc.y, tc.z);
+            posAttr.needsUpdate = true;
+            if (Math.random() < 0.15) this.particles.emit(tc, 0xf97316, 1, 0.8, 0.04, 0.2);
+          } else {
+            this.scene.remove(line);
+            if (target) target.tetherSpikeId = undefined;
+          }
+        }
+        sp.tethers = validTethers;
+        sp.lineMeshes = validLines;
+        if (sp.life <= 0) {
+          this.scene.remove(sp.mesh);
+          for (const l of sp.lineMeshes) this.scene.remove(l);
+          for (const tid of sp.tethers) {
+            const e = this.enemies.find(x => x.id === tid);
+            if (e) e.tetherSpikeId = undefined;
+          }
+          this.ring(sp.pos.clone().setY(0.08), 0xf97316, 0.2, 2.2, 0.4, RING, 0.9);
+          this.particles.emit(sp.pos, 0xf97316, 16, 2.4, 0.1, 0.5, 3);
+          this.sfx.quake();
+          return false;
+        }
+        return true;
+      });
+      // Glacier ice barricades: physical blockage
+      this.iceWalls = this.iceWalls.filter(w => {
+        w.life -= dt;
+        w.hpFg.scale.x = Math.max(0.001, w.hp / w.maxHp);
+        if (w.hp <= 0 || w.life <= 0) {
+          this.scene.remove(w.mesh);
+          this.ring(w.pos.clone().setY(0.08), 0x06b6d4, 0.3, 2.8, 0.5, RING, 0.95);
+          this.particles.emit(w.pos, 0xa5f3fc, 24, 3.0, 0.12, 0.7, 3);
+          this.sfx.shatter();
+          this.float('PECAHAN ES CRYO! ❄️', w.pos.clone().setY(1.4), '#a5f3fc');
+          for (const e of this.enemies) {
+            if (e.dead) continue;
+            if (e.group.position.distanceTo(w.pos) <= 2.8) {
+              this.damage(e, 40, { hitPos: this.enemyCenter(e) });
+              e.freezeT = 2.0;
+              e.silenceT = 2.0;
+            }
+          }
+          return false;
+        }
+        return true;
+      });
       // enemy bullets vs towers / shields
       this.enemyShots = this.enemyShots.filter(sh => {
         sh.life -= dt;
@@ -2083,6 +2753,15 @@ export class Game {
       });
       const dir = new THREE.Vector3();
       this.projectiles = this.projectiles.filter(p => {
+        if (p.target.type !== 'magnet') {
+          for (const m of this.enemies) {
+            if (m.type === 'magnet' && !m.dead && m.group.position.distanceTo(p.pos) <= 2.2) {
+              p.target = m;
+              this.particles.emit(p.pos, 0x60a5fa, 2, 0.8, 0.04, 0.2);
+              break;
+            }
+          }
+        }
         const goal = this.enemyCenter(p.target);
         this.curSrc = p.start; // where the blow came from (used by the death ragdoll)
         if (p.kind === 'needle' || p.kind === 'bee' || p.kind === 'heart') {
@@ -2108,11 +2787,14 @@ export class Game {
           } else if (Math.random() < 0.5) this.particles.emit(p.pos, p.kind === 'heart' ? 0xfbcfe8 : 0xbbf7d0, 1, 0.2, 0.03, 0.18, 0, 0);
           return true;
         }
-        if (p.kind === 'mortar' || p.kind === 'glob') {
+        if (p.kind === 'mortar' || p.kind === 'glob' || p.kind === 'fireball' || p.kind === 'meteor') {
           const total = Math.max(1.5, p.start.distanceTo(goal)); p.t += dt * p.speed * 4 / total;
           const prev = p.pos.clone(); p.pos.lerpVectors(p.start, goal, Math.min(1, p.t)); p.pos.y += Math.sin(Math.min(1, p.t) * Math.PI) * p.arc!;
           p.mesh.position.copy(p.pos); p.mesh.lookAt(p.pos.clone().add(p.pos.clone().sub(prev)));
-          if (p.kind === 'mortar') { this.particles.emit(p.pos, 0x9a9aa5, 1, 0.3, 0.09, 0.7, 0.4, -0.5); if (Math.random() < 0.6) this.particles.emit(p.pos, 0xffb347, 1, 0.5, 0.05, 0.25, 0.2, 0); }
+          if (p.kind === 'fireball' || p.kind === 'meteor') {
+            this.particles.emit(p.pos, 0xff7a1a, 1, 0.4, 0.08, 0.4, 0.3, 0);
+            if (Math.random() < 0.5) this.particles.emit(p.pos, 0xfde047, 1, 0.3, 0.05, 0.3, 0.2, 0);
+          } else if (p.kind === 'mortar') { this.particles.emit(p.pos, 0x9a9aa5, 1, 0.3, 0.09, 0.7, 0.4, -0.5); if (Math.random() < 0.6) this.particles.emit(p.pos, 0xffb347, 1, 0.5, 0.05, 0.25, 0.2, 0); }
           else if (Math.random() < 0.5) this.particles.emit(p.pos, 0xa3e635, 1, 0.2, 0.05, 0.4, 0.2, 0);
           if (p.t >= 1) { this.scene.remove(p.mesh); this.explode(goal.clone().setY(0.1), p); return false; }
           return true;

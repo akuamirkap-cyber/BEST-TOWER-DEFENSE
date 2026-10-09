@@ -24,6 +24,8 @@ export const MUZZLE: Record<TowerType, { y: number; f: number; x?: number }> = {
   cactus: { y: 0.6, f: 0.36 }, hive: { y: 0.2, f: 0.4 }, golem: { y: 0.5, f: 0 }, clock: { y: 0.5, f: 0 },
   prism: { y: 1.12, f: 0.18 }, cupid: { y: 0.42, f: 0.46, x: 0.42 }, hook: { y: 1.2, f: 0.62, x: 0.58 }, bowl: { y: 0.3, f: 0.2, x: 0.38 },
   barracks: { y: 0.5, f: 0.3 }, mind: { y: 0.8, f: 0.29 },
+  vortex: { y: 0.72, f: 0.42 }, meteor: { y: 1.05, f: 0.2 }, orbital: { y: 0.95, f: 0.5 }, siren: { y: 0.65, f: 0.35 },
+  naga: { y: 0.85, f: 0.52 }, storm: { y: 1.15, f: 0 }, quake: { y: 0.6, f: 0.4 }, glacier: { y: 1.05, f: 0 },
 };
 
 export interface TowerModel { group: THREE.Group; head: THREE.Group; muzzle?: THREE.Object3D; beam?: THREE.Mesh; beamGlow?: THREE.Mesh }
@@ -519,6 +521,152 @@ export function buildTowerModel(type: TowerType, level: number, def: { color: nu
     for (let i = 0; i < 8; i++) { const a = (i / 8) * Math.PI * 2; gear.add(B(0.06, 0.06, 0.05, 0x9ca3af, Math.cos(a) * 0.18, Math.sin(a) * 0.18, 0)); }
     head.add(gear);
     face = makeFace({ r: 0.115, gap: 0.15, iris: 0xbe123c, skin: def.color, mouth: 'smile', body: { R, cy, sy, y0: 0.45 } });
+  } else if (type === 'vortex') {
+    // "Vora": cosmic singularity wizard with star-spangled hat, swirling galaxy orb in front and orbiting nebula stars
+    const R = 0.36, cy = 0.38, sy = 0.95;
+    head.add(S(R, def.color, 0, cy, 0, { sy }));
+    head.add(S(0.2, 0xe0e7ff, 0, 0.22, 0.24, { sy: 0.85, sz: 0.45, ol: false }));
+    const hat = cone(0.35, 0.62, def.accent, 0, 0.72, -0.02, 14); hat.rotation.x = -0.15; head.add(hat);
+    head.add(C(0.42, 0.42, 0.05, 0x312e81, 0, 0.65, 0, 18));
+    head.add(S(0.06, 0xfde047, 0, 0.68, 0.36, { glow: 0.6, ol: true }));
+    const galaxy = S(0.13, 0x818cf8, 0, 0.45, 0.44, { glow: 0.9 }); galaxy.name = 'spin'; head.add(galaxy);
+    const disk = new THREE.Mesh(new THREE.TorusGeometry(0.22, 0.03, 8, 20), toon(0xc084fc, 0.3, 0.8)); disk.rotation.x = Math.PI / 2; galaxy.add(disk);
+    for (let i = 0; i < 3; i++) {
+      const st = shard(0.05, 0xa5b4fc, 1.0); st.name = 'orbit' + i; st.userData = { r: 0.58, y: 0.5, n: 3, spd: 2.2 }; head.add(st);
+    }
+    face = makeFace({ r: 0.12, gap: 0.15, iris: 0x4338ca, skin: def.color, mouth: 'smile', bias: 0.1, body: { R, cy, sy, y0: 0.42 } });
+  } else if (type === 'meteor') {
+    // "Magna": volcanic obsidian golem with magma horns, lava crater on head and glowing molten core
+    const R = 0.38, cy = 0.4, sy = 0.92;
+    head.add(S(R, 0x292524, 0, cy, 0, { sy }));
+    head.add(S(0.22, 0xef4444, 0, 0.24, 0.26, { sy: 0.8, sz: 0.45, glow: 0.7, ol: false }));
+    const crater = C(0.24, 0.18, 0.15, 0x1c1917, 0, 0.72, 0, 12, { ol: true }); head.add(crater);
+    const core = makeFlame(0.3); core.position.set(0, 0.8, 0); head.add(core); flames.push(core);
+    for (const sd of [-1, 1]) {
+      const horn = cone(0.09, 0.38, 0xf97316, sd * 0.36, 0.66, -0.05, 8); horn.rotation.z = -sd * 0.55; horn.rotation.x = -0.2; head.add(horn);
+      head.add(S(0.08, 0xfacc15, sd * 0.3, 0.42, 0.15, { glow: 0.5 }));
+    }
+    face = makeFace({ r: 0.12, gap: 0.16, iris: 0xf59e0b, skin: 0x292524, mouth: 'grin', bias: 0.35, body: { R, cy, sy, y0: 0.44 } });
+  } else if (type === 'orbital') {
+    // "Solaris": golden observatory with giant solar focus lens atop and solar collector dish
+    const R = 0.37, cy = 0.38, sy = 0.95;
+    head.add(S(R, def.color, 0, cy, 0, { sy }));
+    head.add(C(0.42, 0.44, 0.1, def.accent, 0, 0.62, 0, 18, { glow: 0.3 }));
+    const lensPiv = new THREE.Group(); lensPiv.name = 'spin'; lensPiv.position.set(0, 0.86, 0); head.add(lensPiv);
+    lensPiv.add(C(0.28, 0.28, 0.06, 0xfef08a, 0, 0, 0, 20, { glow: 0.6 }));
+    lensPiv.add(new THREE.Mesh(new THREE.TorusGeometry(0.28, 0.04, 8, 24), toon(0xd97706, 0.4, 0.5)));
+    for (let i = 0; i < 4; i++) {
+      const spk = cone(0.04, 0.14, 0xf59e0b, Math.cos(i * Math.PI / 2) * 0.32, 0, Math.sin(i * Math.PI / 2) * 0.32, 6); spk.rotation.z = Math.cos(i * Math.PI / 2) * 1.5; lensPiv.add(spk);
+    }
+    const dish = C(0.18, 0.08, 0.15, 0xca8a04, 0, 0.38, -0.38, 12); dish.rotation.x = -1.2; head.add(dish);
+    face = makeFace({ r: 0.115, gap: 0.15, iris: 0x0284c7, skin: def.color, mouth: 'smile', bias: 0.1, body: { R, cy, sy, y0: 0.4 } });
+  } else if (type === 'siren') {
+    // "Echo": aquatic sonic siren with glowing crystal headphones and resonant sound wave rings
+    const R = 0.36, cy = 0.38, sy = 0.95;
+    head.add(S(R, def.color, 0, cy, 0, { sy }));
+    head.add(S(0.18, 0xcffafe, 0, 0.22, 0.24, { sy: 0.8, sz: 0.45, ol: false }));
+    const band = new THREE.Mesh(new THREE.TorusGeometry(0.38, 0.04, 8, 22), toon(def.accent, 0.4, 0.3)); band.rotation.x = Math.PI / 2; band.position.set(0, 0.68, 0); head.add(band);
+    for (const sd of [-1, 1]) {
+      const ph = C(0.14, 0.14, 0.08, def.accent, sd * 0.38, 0.42, 0, 14, { glow: 0.4 }); ph.rotation.z = Math.PI / 2; head.add(ph);
+      head.add(S(0.07, 0x67e8f9, sd * 0.42, 0.42, 0, { glow: 0.8, ol: false }));
+    }
+    const harp = new THREE.Group(); harp.position.set(0, 0.34, 0.38);
+    harp.add(new THREE.Mesh(new THREE.TorusGeometry(0.16, 0.03, 6, 18, Math.PI), toon(0x0891b2, 0.4, 0.3)));
+    harp.add(B(0.03, 0.22, 0.03, 0xa5f3fc, 0, 0, 0, { lit: true })); harp.name = 'spin'; head.add(harp);
+    face = makeFace({ r: 0.12, gap: 0.14, iris: 0x0e7490, skin: def.color, mouth: 'smile', bias: 0.05, body: { R, cy, sy, y0: 0.42 } });
+  } else if (type === 'naga') {
+    // "Draco": cute fierce voxel baby wyvern / dragon with wings, horns, snout, and glowing maw
+    const R = 0.36, cy = 0.38, sy = 0.95;
+    head.add(S(R, def.color, 0, cy, 0, { sy }));
+    // dragon snout & lower jaw
+    head.add(B(0.26, 0.16, 0.28, def.color, 0, 0.32, 0.36, { ol: true }));
+    head.add(B(0.22, 0.08, 0.18, 0xf97316, 0, 0.22, 0.32));
+    // nostrils
+    head.add(S(0.035, 0x7f1d1d, -0.06, 0.38, 0.48));
+    head.add(S(0.035, 0x7f1d1d, 0.06, 0.38, 0.48));
+    // horns
+    for (const sd of [-1, 1]) {
+      const horn = cone(0.07, 0.32, 0xfacc15, sd * 0.24, 0.68, -0.08, 6);
+      horn.rotation.z = -sd * 0.45; horn.rotation.x = -0.3; head.add(horn);
+      const ear = cone(0.05, 0.18, def.accent, sd * 0.34, 0.46, 0.02, 5);
+      ear.rotation.z = -sd * 0.8; head.add(ear);
+    }
+    // dragon wings
+    for (const sd of [-1, 1]) {
+      const wing = new THREE.Group(); wing.name = 'dWing' + (sd === -1 ? '0' : '1');
+      wing.position.set(sd * 0.36, 0.42, -0.1);
+      wing.add(B(0.05, 0.28, 0.05, def.accent, 0, 0.12, 0));
+      wing.add(B(0.32, 0.22, 0.03, 0xfca5a5, sd * 0.16, 0.12, 0, { ol: true }));
+      wing.rotation.y = sd * 0.35; wing.rotation.z = -sd * 0.2;
+      head.add(wing);
+    }
+    // spine ridges
+    for (let i = 0; i < 3; i++) {
+      const spk = cone(0.04, 0.14, 0xfacc15, 0, 0.68 - i * 0.12, -0.26 - i * 0.08, 5);
+      spk.rotation.x = -0.5; head.add(spk);
+    }
+    face = makeFace({ r: 0.12, gap: 0.16, iris: 0xf59e0b, skin: def.color, mouth: 'smile', bias: 0.2, body: { R, cy, sy, y0: 0.4 } });
+  } else if (type === 'storm') {
+    // "Thorin": storm obelisk wizard with thundercloud ring, lightning obelisks and glowing core
+    const R = 0.36, cy = 0.38, sy = 0.95;
+    head.add(S(R, def.color, 0, cy, 0, { sy }));
+    // mystic storm cloud halo ring
+    const cloud = new THREE.Mesh(new THREE.TorusGeometry(0.36, 0.11, 8, 20), toon(0x334155, 0.6, 0.1));
+    cloud.rotation.x = Math.PI / 2; cloud.position.set(0, 0.72, 0); head.add(cloud);
+    // lightning rods on the cloud
+    for (let i = 0; i < 3; i++) {
+      const a = (i / 3) * Math.PI * 2;
+      const rod = cone(0.04, 0.24, 0x38bdf8, Math.cos(a) * 0.36, 0.82, Math.sin(a) * 0.36, 5);
+      head.add(rod);
+    }
+    // floating storm crystal in center that spins
+    const crys = shard(0.16, 0x67e8f9, 1.2); crys.name = 'spin';
+    crys.position.set(0, 0.88, 0); head.add(crys);
+    // orbiting electric spark orbs
+    for (let i = 0; i < 3; i++) {
+      const spk = S(0.06, 0x38bdf8, 0, 0, 0, { glow: 0.9, ol: true });
+      spk.name = 'orbit' + i; spk.userData = { r: 0.52, y: 0.55, n: 3, spd: 3.2 };
+      head.add(spk);
+    }
+    face = makeFace({ r: 0.115, gap: 0.15, iris: 0x0284c7, skin: def.color, mouth: 'smile', bias: 0.05, body: { R, cy, sy, y0: 0.4 } });
+  } else if (type === 'quake') {
+    // "Tectonic": industrial hydraulic pile-driver smith golem with massive forge hammer and steam chimneys
+    const R = 0.37, cy = 0.38, sy = 0.95;
+    head.add(S(R, def.color, 0, cy, 0, { sy }));
+    // bronze miner helmet & magma visor
+    head.add(C(0.42, 0.44, 0.12, 0x78716c, 0, 0.64, 0, 16, { ol: true }));
+    head.add(B(0.44, 0.1, 0.12, 0xf97316, 0, 0.54, 0.32, { lit: true }));
+    // twin exhaust steam pipes
+    for (const sd of [-1, 1]) {
+      const pipe = C(0.06, 0.06, 0.32, 0x57534e, sd * 0.24, 0.72, -0.22, 8);
+      pipe.rotation.x = -0.25; head.add(pipe);
+    }
+    // front hydraulic piston and hammer head
+    const piston = new THREE.Group(); piston.name = 'hammer'; piston.position.set(0, 0.32, 0.36);
+    piston.add(C(0.08, 0.08, 0.38, 0xd97706, 0, 0.1, 0, 8));
+    piston.add(B(0.38, 0.22, 0.32, 0x44403c, 0, 0.26, 0, { ol: true }));
+    piston.add(B(0.24, 0.06, 0.06, 0xf97316, 0, 0.26, 0.17, { lit: true }));
+    head.add(piston);
+    face = makeFace({ r: 0.11, gap: 0.16, iris: 0x7c2d12, skin: def.color, mouth: 'grin', bias: 0.3, body: { R, cy, sy, y0: 0.36 } });
+  } else if (type === 'glacier') {
+    // "Frostbite": crystalline cryogenic spire with floating diamond shards and glowing cryo core
+    const R = 0.36, cy = 0.38, sy = 0.95;
+    head.add(S(R, def.color, 0, cy, 0, { sy }));
+    // crown of crystal ice stalagmites
+    for (let i = 0; i < 5; i++) {
+      const a = (i / 5) * Math.PI * 2;
+      const spk = cone(0.065, 0.36 + (i % 2) * 0.12, 0xe0f2fe, Math.cos(a) * 0.28, 0.68, Math.sin(a) * 0.28, 5);
+      spk.rotation.z = Math.cos(a) * 0.25; spk.rotation.x = Math.sin(a) * 0.25; head.add(spk);
+    }
+    // floating cryogenic diamond core in apex that spins
+    const core = shard(0.2, 0x06b6d4, 1.4); core.name = 'spin'; core.position.set(0, 0.82, 0); head.add(core);
+    // orbiting ice crystal shards
+    for (let i = 0; i < 3; i++) {
+      const iceShard = shard(0.07, 0xe0f2fe, 0.8);
+      iceShard.name = 'orbit' + i; iceShard.userData = { r: 0.58, y: 0.5, n: 3, spd: 1.8 };
+      head.add(iceShard);
+    }
+    face = makeFace({ r: 0.115, gap: 0.14, iris: 0x0284c7, skin: def.color, mouth: 'smile', bias: 0.05, body: { R, cy, sy, y0: 0.4 } });
   } else {
     // "Sir Bubbo": knight with a blue helmet & red plume, three orbiting shield plates and a protective dome
     const R = 0.37, cy = 0.38, sy = 0.95;

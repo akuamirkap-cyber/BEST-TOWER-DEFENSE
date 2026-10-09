@@ -24,11 +24,11 @@ const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 function mulberry32(a: number) { return () => { a |= 0; a = (a + 0x6d2b79f5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
 
 /** how many figures to show of each type (the real counts are shown as ×N on the chips) */
-const CAP: Record<string, number> = { normal: 9, baby: 3, fast: 3, tank: 3, berserker: 3, legion: 4, captain: 1, dread: 2, archer: 3, gunner: 2, cannoneer: 2, jumper: 2, shaman: 2, boss: 1, log: 1, balloon: 2, dragon: 2, ninja: 2, bomber: 2, magnet: 2, frost: 2, rider: 2 };
+const CAP: Record<string, number> = { normal: 9, baby: 3, fast: 3, tank: 3, berserker: 3, legion: 4, captain: 1, dread: 2, archer: 3, gunner: 2, cannoneer: 2, jumper: 2, shaman: 2, boss: 1, log: 1, balloon: 2, dragon: 2, ninja: 2, bomber: 2, magnet: 2, frost: 2, rider: 2, fatty: 2, punk: 2, shield: 2, toxic: 2, bat: 2, troll: 2 };
 const DIV: Record<string, number> = { normal: 5, legion: 2 };
 const MAX_FIGS = 36;
-const CHEER = new Set(['normal', 'fast', 'baby', 'tank', 'berserker', 'captain', 'legion', 'boss', 'shaman', 'ninja', 'bomber', 'magnet', 'frost', 'rider']);
-const BOTH_ARMS = new Set(['normal', 'fast', 'baby', 'tank', 'berserker', 'ninja']);
+const CHEER = new Set(['normal', 'fast', 'baby', 'tank', 'berserker', 'captain', 'legion', 'boss', 'shaman', 'ninja', 'bomber', 'magnet', 'frost', 'rider', 'fatty', 'punk', 'shield', 'toxic', 'troll']);
+const BOTH_ARMS = new Set(['normal', 'fast', 'baby', 'tank', 'berserker', 'ninja', 'punk']);
 
 /** where each role stands: x = distance behind the front line (negative = further back, positive = out in front), z = sideways spread */
 interface Zone { x: [number, number]; z: [number, number]; flank?: boolean; y?: number }
@@ -36,16 +36,21 @@ const ZONES: Record<string, Zone> = {
   log: { x: [0.9, 1.6], z: [1.8, 3.4], flank: true },
   bomber: { x: [0.4, 1.4], z: [0.8, 3.4], flank: true },
   ninja: { x: [-0.4, 0.7], z: [0.8, 3.8] },
+  punk: { x: [-0.3, 0.8], z: [0.6, 3.8] },
   baby: { x: [-0.2, 1.0], z: [0, 4.2] },
   fast: { x: [-0.6, 0.4], z: [0, 4.2] },
+  shield: { x: [-0.6, 0.4], z: [1.0, 3.0] },
   dread: { x: [-0.3, -1.0], z: [2.3, 3.5], flank: true },
   captain: { x: [-0.4, -0.7], z: [0, 0.5] },
   legion: { x: [-1.6, -3.4], z: [0, 1.5] },
+  fatty: { x: [-1.2, -2.6], z: [1.2, 3.4], flank: true },
+  troll: { x: [-1.5, -3.2], z: [2.0, 4.2], flank: true },
   rider: { x: [-1.3, -2.8], z: [1.5, 3.6], flank: true },
   magnet: { x: [-1.0, -2.2], z: [1.3, 3.2], flank: true },
   tank: { x: [-0.8, -1.8], z: [1.3, 3.6], flank: true },
   berserker: { x: [-1.0, -2.0], z: [2.2, 4.1], flank: true },
   normal: { x: [-1.8, -4.8], z: [0, 4.0] },
+  toxic: { x: [-2.5, -4.5], z: [0.5, 3.2] },
   gunner: { x: [-3.8, -5.4], z: [0, 3.2] },
   jumper: { x: [-3.6, -5.2], z: [2.0, 3.8], flank: true },
   archer: { x: [-4.8, -6.2], z: [0, 3.4] },
@@ -53,6 +58,7 @@ const ZONES: Record<string, Zone> = {
   cannoneer: { x: [-4.6, -6.0], z: [1.3, 3.5], flank: true },
   shaman: { x: [-4.4, -5.8], z: [0.3, 1.8], flank: true },
   boss: { x: [-7.2, -7.2], z: [0, 0] },
+  bat: { x: [-2.0, -5.0], z: [1.8, 4.0], flank: true, y: 1.35 },
   balloon: { x: [-3.8, -6.2], z: [1.6, 3.9], flank: true, y: 1.45 },
   dragon: { x: [-2.4, -5.4], z: [2.6, 4.4], flank: true, y: 1.65 },
 };

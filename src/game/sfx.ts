@@ -283,6 +283,90 @@ export class Sfx {
   }
   /** Dread Knight: a low growl as it winds up */
   growl() { if (!this.gate('growl', 400)) return; this.tone({ f: 92, to: 66, dur: 0.55, type: 'sawtooth', vol: 0.07, lp: 520, attack: 0.07, rev: 0.3 }); this.noise({ dur: 0.4, vol: 0.04, f: 500, to: 200, attack: 0.1 }); }
+  /** Dukun Es: freeze sound effect */
+  freeze() {
+    if (!this.gate('freeze', 200)) return;
+    this.tone({ f: 880, to: 1400, dur: 0.22, type: 'triangle', vol: 0.06, rev: 0.4 });
+    this.noise({ dur: 0.16, vol: 0.05, f: 3500, to: 1200, type: 'bandpass', q: 1.2 });
+  }
+  /** Naga fireball launch */
+  dragonShot() {
+    if (!this.gate('dshot', 90)) return;
+    this.noise({ dur: 0.24, vol: 0.07, f: 1200, to: 300, type: 'bandpass', q: 0.8 });
+    this.tone({ f: 180, to: 75, dur: 0.28, type: 'sawtooth', vol: 0.06, lp: 600 });
+  }
+  /** Badai lightning thunderclap */
+  thunder() {
+    if (!this.gate('thunder', 80)) return;
+    this.noise({ dur: 0.08, vol: 0.15, f: 4500, type: 'highpass' });
+    this.tone({ f: 220, to: 45, dur: 0.42, type: 'sawtooth', vol: 0.12, lp: 1200 });
+    this.noise({ dur: 0.5, vol: 0.09, f: 1600, to: 120, type: 'bandpass', delay: 0.04, rev: 0.35 });
+  }
+  /** Gempa hydraulic seismic slam */
+  quake() {
+    if (!this.gate('quake', 100)) return;
+    this.noise({ dur: 0.45, vol: 0.18, f: 550, to: 60, rev: 0.35 });
+    this.tone({ f: 85, to: 28, dur: 0.5, type: 'sine', vol: 0.28 });
+    this.tone({ f: 160, to: 50, dur: 0.25, type: 'triangle', vol: 0.14 });
+  }
+  /** Gletser cryogenic freeze shatter */
+  shatter() {
+    if (!this.gate('shatter', 90)) return;
+    this.noise({ dur: 0.18, vol: 0.08, f: 6500, to: 2000, type: 'highpass' });
+    [1760, 2200, 2640, 3100].forEach((f, i) => this.tone({ f, dur: 0.22, type: 'sine', vol: 0.04, delay: i * 0.03, rev: 0.6 }));
+  }
+  /** Badai roaming cyclone */
+  cyclone() {
+    if (!this.gate('cyclone', 120)) return;
+    this.noise({ dur: 0.65, vol: 0.12, f: 800, to: 2800, type: 'bandpass', q: 1.5 });
+    this.tone({ f: 120, to: 240, dur: 0.5, type: 'triangle', vol: 0.06 });
+  }
+  /** Gempa seismic stake tether */
+  tether() {
+    if (!this.gate('tether', 110)) return;
+    this.tone({ f: 420, to: 160, dur: 0.25, type: 'sawtooth', vol: 0.08, lp: 800 });
+    this.noise({ dur: 0.3, vol: 0.1, f: 1400, to: 350, type: 'bandpass' });
+  }
+  /** Gletser physical ice barricade raised */
+  iceWall() {
+    if (!this.gate('icewall', 150)) return;
+    this.noise({ dur: 0.4, vol: 0.12, f: 4500, to: 900, type: 'bandpass', q: 0.9 });
+    this.tone({ f: 600, to: 1200, dur: 0.35, type: 'sine', vol: 0.08, rev: 0.5 });
+  }
+  /** Portal dimensional warp */
+  warpPortal() {
+    if (!this.gate('warp', 100)) return;
+    this.tone({ f: 300, to: 1200, dur: 0.35, type: 'sine', vol: 0.08, rev: 0.5 });
+    this.tone({ f: 800, to: 200, dur: 0.4, type: 'triangle', vol: 0.07, delay: 0.08, rev: 0.4 });
+    this.noise({ dur: 0.3, vol: 0.08, f: 3200, to: 800, type: 'bandpass' });
+  }
+  /** UFO alien tractor beam & meteor slam */
+  abduction() {
+    if (!this.gate('abduct', 120)) return;
+    this.tone({ f: 440, to: 880, dur: 0.4, type: 'sawtooth', vol: 0.06, lp: 2400 });
+    this.tone({ f: 880, to: 220, dur: 0.35, type: 'sine', vol: 0.09, delay: 0.2, rev: 0.3 });
+    this.noise({ dur: 0.25, vol: 0.1, f: 1200, to: 200, delay: 0.25 });
+  }
+  /** Cauldron potion splash & frog ribbit */
+  brewSplash() {
+    if (!this.gate('brew', 90)) return;
+    this.noise({ dur: 0.22, vol: 0.09, f: 1500, to: 400, type: 'bandpass', q: 1.2 });
+    this.tone({ f: 160, to: 320, dur: 0.12, type: 'sine', vol: 0.08 });
+    this.tone({ f: 220, to: 140, dur: 0.18, type: 'sawtooth', vol: 0.06, lp: 900, delay: 0.1 });
+  }
+  /** Voodoo totem curse & rattle */
+  voodooHex() {
+    if (!this.gate('voodoo', 100)) return;
+    for (let i = 0; i < 4; i++) this.noise({ dur: 0.04, vol: 0.05, f: 2800 + i * 400, type: 'bandpass', delay: i * 0.03 });
+    this.tone({ f: 380, to: 140, dur: 0.35, type: 'sawtooth', vol: 0.07, lp: 850, rev: 0.4 });
+  }
+  /** Phoenix dive-bomb screech & flame roar */
+  phoenixRoar() {
+    if (!this.gate('phoenix', 150)) return;
+    this.tone({ f: 600, to: 1600, dur: 0.35, type: 'sawtooth', vol: 0.08, lp: 3000, rev: 0.4 });
+    this.noise({ dur: 0.55, vol: 0.12, f: 800, to: 2400, type: 'bandpass', q: 0.8, delay: 0.05 });
+    this.tone({ f: 180, to: 90, dur: 0.4, type: 'sine', vol: 0.15, delay: 0.1 });
+  }
   /** Dread Knight slash: a sharp whoosh, a steel clang and the crash of a tower collapsing */
   slash() {
     this.noise({ dur: 0.22, vol: 0.12, f: 5000, to: 700, type: 'bandpass', q: 0.8, attack: 0.02 });

@@ -206,6 +206,82 @@ export const CARD_INFO: Record<TowerType, CardData> = {
     good: ['Barisan padat', 'Gerombolan'], weak: ['Musuh terbang'], tip: 'Taruh dekat jalan lurus yang panjang.',
     rateLabel: 'Lemparan / detik', extra: [{ label: 'Gelinding', vals: L3(l => `${f1(4.2 + 1.2 * (l - 1))} petak`) }],
   },
+  vortex: {
+    role: 'Singularitas gravitasi', bars: [{ label: 'Kekuatan', v: 3 }, { label: 'Jangkauan', v: 4 }, { label: 'Kontrol', v: 5 }],
+    skills: [
+      { icon: '🌀', title: 'Pusaran Singularitas', text: 'Membuka black hole miniatur di jalan yang menyedot dan menahan semua orc darat & udara ke satu titik pusat.' },
+      { icon: '💥', title: 'Tekanan Gravitasi', text: 'Memberikan damage terus-menerus pada semua musuh yang terperangkap di dalam pusaran.' },
+      { icon: '🤝', title: 'Sinergi Area Sempurna', text: 'Mengumpulkan musuh yang berceceran sehingga Mortir, Tesla, dan Bumerang bisa melibas mereka sekaligus.' },
+    ],
+    good: ['Gerombolan orc', 'Orc cepat & lincah', 'Musuh terbang'], weak: ['Musuh tunggal ber-HP raksasa'], tip: 'Taruh sebelum Mortir atau Tesla untuk membabat puluhan orc sekaligus dalam satu titik pusaran.',
+  },
+  meteor: {
+    role: 'Nuker kehancuran massal', bars: [{ label: 'Kekuatan', v: 5 }, { label: 'Jangkauan', v: 5 }, { label: 'Kecepatan', v: 1 }],
+    skills: [
+      { icon: '☄️', title: 'Hantaman Meteorit', text: 'Memanggil meteor api raksasa dari langit yang meledak dahsyat melumat kelompok orc terpadat.' },
+      { icon: '🌋', title: 'Kawah Magma Membara', text: 'Meninggalkan kawah lahar mendidih selama 4 detik yang membakar musuh darat yang melangkah di atasnya.' },
+      { icon: '💣', title: 'Ledakan Dahsyat', text: 'Damage ledakan sangat tinggi, mampu menghancurkan zirah tebal Tank dan Penunggang Badak.' },
+    ],
+    good: ['Kumpulan musuh tebal', 'Penunggang Badak', 'Tanker'], weak: ['Orc yang berlari sangat cepat sendirian', 'Kecepatan tembak lambat'], tip: 'Kombinasikan dengan Menara Es atau Jam pelambat agar meteor selalu mendarat tepat sasaran.',
+  },
+  orbital: {
+    role: 'Pelebur armor berkelanjutan', bars: [{ label: 'Kekuatan', v: 5 }, { label: 'Jangkauan', v: 4 }, { label: 'Kecepatan', v: 5 }],
+    skills: [
+      { icon: '☀️', title: 'Laser Surya Berfokus', text: 'Menembakkan sinar laser surya dari langit langsung ke target terkuat dalam jangkauan.' },
+      { icon: '🔥', title: 'Panas Berlipat Ganda', text: 'Makin lama laser mengunci musuh yang sama, damage berlipat ganda hingga ×4 lipat!' },
+      { icon: '🛡️', title: 'Melelehkan Armor', text: 'Sinar surya menembus dan melelehkan armor musuh tanpa ampun.' },
+    ],
+    good: ['Raja Orc', 'Penunggang Badak', 'Ksatria Kelam', 'Naga'], weak: ['Kerumunan orc kecil yang banyak'], tip: 'Senjata pamungkas melawan Bos dan musuh terkuat. Taruh di titik di mana musuh terkuat berjalan paling lama.',
+  },
+  siren: {
+    role: 'Gema sonik & pembangkits roh', bars: [{ label: 'Kekuatan', v: 3 }, { label: 'Jangkauan', v: 3 }, { label: 'Kecepatan', v: 3 }],
+    skills: [
+      { icon: '🎶', title: 'Gelombang Sonik Resonansi', text: 'Menembakkan riak gelombang suara harmonis yang melukai dan memikat musuh dalam radius.' },
+      { icon: '👻', title: 'Bangkitkan Klon Hantu', text: 'Ketika orc yang terpikat tewas, roh hantunya bangkit dan berjalan mundur menyerang orc musuh lainnya!' },
+      { icon: '🛡️', title: 'Tahanan Garis Depan', text: 'Klon hantu menahan dan menyodok musuh yang datang, membalikkan kekuatan lawan menjadi sekutu kita.' },
+    ],
+    good: ['Gelombang musuh beruntun', 'Orc ber-HP sedang', 'Darat & Udara'], weak: ['Musuh yang datang sendirian jarang'], tip: 'Taruh di awal atau tengah barisan agar roh musuh yang tumbang langsung menyambut musuh di belakangnya.',
+  },
+  naga: {
+    role: 'Penguasa Jalur Lahar & Semburan Naga', bars: [{ label: 'Kekuatan', v: 5 }, { label: 'Jangkauan', v: 4 }, { label: 'Area', v: 5 }],
+    skills: [
+      { icon: '🔥', title: 'Lidah Api Sinar Naga', text: 'Menyemburkan lidah api terkonsentrasi dari puncak menara langsung ke jalur jalan di depan gerombolan musuh.' },
+      { icon: '🌋', title: 'Retakan Lahar Membara (Fissure)', text: 'Menyulut rekahan lahar membara di atas jalan sepanjang 4 meter selama 4,5 detik. Orc yang melangkah terbakar terus-menerus dan kehilangan armor tiap detik!' },
+      { icon: '💨', title: 'Kepakan Sayap & Anti-Udara', text: 'Kepakan sayap naga meniup mundur orc kecil dan melibas musuh terbang seperti Balon & Naga lawan.' },
+    ],
+    good: ['Musuh terbang', 'Gerombolan orc', 'Zirah tebal'], weak: ['Musuh cepat yang lompat lewat udara'], tip: 'Taruh di tikungan jalan agar semburan naga membakar lahar tepat di titik terpadat musuh.',
+    extra: [{ label: 'Durasi Lahar', vals: ['4,5 detik', '5,5 detik', '6,5 detik'] }, { label: 'Lahar DoT', vals: ['18/dtk', '28/dtk', '40/dtk'] }],
+  },
+  storm: {
+    role: 'Pusaran Tornado Angin Badai Berjalan', bars: [{ label: 'Kekuatan', v: 4 }, { label: 'Jangkauan', v: 4 }, { label: 'Kontrol', v: 5 }],
+    skills: [
+      { icon: '🌪️', title: 'Tornado Berjalan (Roaming Twister)', text: 'Bukan sekadar petir biasa! Meluncurkan corong pusaran angin 3D yang meluncur menyusuri rute jalan sejauh 6 meter menyapu musuh.' },
+      { icon: '🌀', title: 'Sedot & Angkat Melayang (Airborne)', text: 'Musuh yang dilewati tornado terhisap dan melayang ke udara, berputar tak berdaya dan terdorong mundur.' },
+      { icon: '🤐', title: 'Bisu Total (Total Silence)', text: 'Menonaktifkan semua skill musuh: membatalkan stealth Ninja, mematikan aura Shaman & Dukun Es, serta menggagalkan dinamit!' },
+    ],
+    good: ['Orc Ninja', 'Dukun Es', 'Orc Dinamit', 'Orc Magnet', 'Gerombolan cepat'], weak: ['Bos raksasa berbobot ultra berat'], tip: 'Sangat ampuh ditaruh di jalur lurus agar tornado menyapu sepanjang lintasan musuh.',
+    extra: [{ label: 'Jarak Tempuh Tornado', vals: ['5 meter', '6,5 meter', '8 meter'] }, { label: 'Durasi Angkat & Bisu', vals: ['2,5 detik', '3,2 detik', '4,0 detik'] }],
+  },
+  quake: {
+    role: 'Pasak Seismik & Ikatan Rantai Jiwa', bars: [{ label: 'Kekuatan', v: 5 }, { label: 'Jangkauan', v: 3 }, { label: 'Sinergi Kombo', v: 5 }],
+    skills: [
+      { icon: '🔩', title: 'Pilar Pasak Seismik', text: 'Palu hidrolik menembakkan pasak baja seismik menghunjam ke tanah jalan dan mengunci hingga 4 musuh di sekitarnya.' },
+      { icon: '⛓️', title: 'Rantai Jiwa (100% Echo Damage Link)', text: 'MENGIKAT musuh dengan rantai energi! Ketika SATU musuh yang terikat diserang tower apa pun, 100% DAMAGE TERSEBUT OTOMATIS DISALURKAN KE SEMUA MUSUH LAIN YANG TERIKAT!' },
+      { icon: '🛡️', title: 'Pemberat Gerak & Zirah Rontok', text: 'Pasak memperlambat langkah musuh hingga 50% dan merontokkan zirah mereka sebesar -3 Armor.' },
+    ],
+    good: ['Penunggang Badak', 'Tanker', 'Ksatria Kelam', 'Kelompok orc berdekatan'], weak: ['Musuh terbang tinggi'], tip: 'KOMBO DAHSYAT: Ikatkan musuh dengan Pasak Quake, lalu tembak salah satu musuh dengan Sniper atau Meriam untuk membantai semuanya sekaligus!',
+    extra: [{ label: 'Maks Target Terikat', vals: ['3 musuh', '4 musuh', '5 musuh'] }, { label: 'Durasi Pasak', vals: ['4,0 detik', '5,0 detik', '6,0 detik'] }],
+  },
+  glacier: {
+    role: 'Barikade Tembok Es Fisik Penghadang Jalan', bars: [{ label: 'Kekuatan', v: 4 }, { label: 'Jangkauan', v: 3 }, { label: 'Pertahanan', v: 5 }],
+    skills: [
+      { icon: '🧊', title: 'Tembok Barikade Es Fisik', text: 'Membangkitkan dinding benteng es kristal 3D melintang menutup jalan! Musuh darat TERBLOKIR TOTAL dan terpaksa memukul tembok sampai hancur.' },
+      { icon: '👥', title: 'Penumpuk Gerombolan Orc', text: 'Menahan laju barisan orc agar mereka menumpuk berdesak-desakan di depan tembok, membuka peluang emas bagi tower area!' },
+      { icon: '💥', title: 'Ledakan Pecahan Cryo (Shatter)', text: 'Saat tembok es hancur atau mencair, ia meledak menjadi serpihan es tajam yang melukai dan membekukan musuh total selama 2 detik (+50% Rapuh)!' },
+    ],
+    good: ['Semua orc darat', 'Mencegah orc bocor ke benteng', 'Sinergi tower area'], weak: ['Orc terbang (bisa melompati tembok)'], tip: 'Pasang di dekat tower penghasil damage area (Naga, Mortir, Bowling) agar musuh yang tertahan langsung dihujani serangan!',
+    extra: [{ label: 'HP Barikade Es', vals: ['220 HP', '340 HP', '480 HP'] }, { label: 'Durasi Maksimal', vals: ['5,0 detik', '6,5 detik', '8,0 detik'] }],
+  },
 };
 
 /** the rows of the Lv1 / Lv2 / Lv3 table: damage, range, rate (or custom rows) + the upgrade costs */

@@ -25,6 +25,12 @@ export const ENEMY_INFO: Record<string, EnemyInfo> = {
   magnet: { icon: '🧲', note: 'Orc Magnet: Menyedot proyektil tower ke dirinya demi lindungi kawanan', bg: ['#bfdbfe', '#1d4ed8'] },
   frost: { icon: '❄️', note: 'Dukun Es: Membekukan tower 2.5 detik sehingga tak bisa menembak!', bg: ['#cffafe', '#0284c7'] },
   rider: { icon: '🦏', note: 'Penunggang Badak: Kebal slow & stun, zirah tebal menyeruduk garis depan!', bg: ['#e2e8f0', '#475569'] },
+  fatty: { icon: '🧌', note: 'Orc Gendut Tongkat: Perut tambun & tongkat purba raksasa, hentakan tanah memperlambat tower!', bg: ['#fed7aa', '#9a3412'] },
+  punk: { icon: '🧑‍🎤', note: 'Orc Punk Berapi: Rambut mohawk merah punk & tombak berapi menyala, membakar tower!', bg: ['#fecaca', '#dc2626'] },
+  shield: { icon: '🛡️', note: 'Orc Perisai Baja: Perisai menara kokoh, menangkis 75% damage serangan frontal!', bg: ['#e2e8f0', '#334155'] },
+  toxic: { icon: '🧪', note: 'Orc Alkemis Racun: Tabung asam korosif, melarutkan armor & melemahkan damage tower!', bg: ['#bbf7d0', '#16a34a'] },
+  bat: { icon: '🦇', note: 'Orc Kelelawar: Terbang melayang sayap membran, lifesteal menyedot HP lawan!', bg: ['#e9d5ff', '#7e22ce'] },
+  troll: { icon: '🧟', note: 'Troll Rawa Raksasa: Tubuh lumut kekar, regenerasi HP konstan kecuali jika dibakar!', bg: ['#dcfce7', '#15803d'] },
 };
 
 export interface RosterEntry {

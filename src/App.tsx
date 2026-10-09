@@ -117,7 +117,7 @@ export default function App() {
           )}
           {s.wave === 0 && !s.selectedTower && s.screen === 'playing' && (
             <div className="absolute left-0 right-0 text-center pointer-events-none px-4" style={{ bottom: 218 }}>
-              <span className="inline-block pill-pop text-[#281430] text-xs sm:text-sm font-bold px-4 py-2" style={{ background: 'linear-gradient(180deg,#fffbeb,#fde68a)' }}>👆 Ketuk rumput untuk bangun tower · 🐉🎈 Musuh terbang hanya ditembak tower DARAT+UDARA · 💣 Orc Meriam -10 HP tower · 🛡️ Perisai memblokir · 🔨 Tukang memperbaiki · 🐲 Naga membakar tower dalam 4 detik!</span>
+              <span className="inline-block pill-pop text-[#281430] text-xs sm:text-sm font-bold px-4 py-2" style={{ background: 'linear-gradient(180deg,#fffbeb,#fde68a)' }}>👆 Ketuk rumput untuk bangun tower · 🧌 Gendut Tongkat gempa · 🧑‍🎤 Punk Tombak Berapi · 🛡️ Perisai Baja tangkis peluru · 🧪 Alkemis Racun · 🦇 Kelelawar Lifesteal · 🧟 Troll Rawa Regen!</span>
             </div>
           )}
         </>
@@ -129,14 +129,14 @@ export default function App() {
         <Overlay>
           <div className="text-7xl mb-1 wiggle inline-block">🏰</div>
           <h1 className="font-display text-5xl sm:text-6xl text-white text-outline leading-none">VOXEL<span className="text-yellow-300">DEFENSE</span></h1>
-          <p className="text-white font-semibold mt-3 max-w-sm mx-auto text-sm drop-shadow">Bangun 26 tower (prajurit tombak, kendali pikiran, kaktus anti-udara, lebah, golem, jam pelambat, celengan...), hadapi 17 jenis musuh termasuk naga penunggang orc, orc pemanah, Ksatria Kelam bermata hijau & pasukan legiun: orc popok, sniper, pelontar, gelondongan, orc balon udara, orc meriam, naga & Raja Orc!</p>
+          <p className="text-white font-semibold mt-3 max-w-sm mx-auto text-sm drop-shadow">Bangun 34 tower pertahanan hebat (Naga Api 🐉, Badai Silence ⚡, Gempa Hancur Zirah 🌋, Gletser Beku 💎...), hadapi 28 jenis Orc termasuk Orc Gendut Tongkat Besar 🧌, Orc Punk Tombak Berapi 🧑‍🎤, Perisai Baja 🛡️, Alkemis Racun 🧪, Kelelawar 🦇, dan Troll Rawa 🧟!</p>
           <div className="mt-3 grid grid-cols-6 gap-1.5 max-w-sm mx-auto">
             {(Object.keys(TOWER_DEFS) as TowerType[]).map(t => (
               <div key={t} className="rounded-xl p-1 text-[#281430] text-[9px] font-bold border-2 border-[#281430] leading-tight" style={{ background: TOWER_BG[t] }}><div className="text-xl">{TOWER_DEFS[t].icon}</div>{TOWER_DEFS[t].name}</div>
             ))}
           </div>
           <div className="mt-2 flex flex-wrap justify-center gap-1 max-w-sm mx-auto text-[10px] font-bold text-[#281430]">
-            {[['👶', 'Popok sprint'], ['🔫', 'Sniper'], ['🚀', 'Pelontar'], ['🪵', 'Gelondongan'], ['🎈', 'Balon'], ['💣', 'Meriam'], ['🐉', 'Naga'], ['🔮', 'Dukun'], ['🏹', 'Pemanah'], ['⚔️', 'Ksatria Kelam'], ['🚩', 'Panglima']].map(([i, l]) => <span key={l} className="pill-pop px-2 py-0.5 bg-white/90">{i} {l}</span>)}
+            {[['🧌', 'Gendut Tongkat'], ['🧑‍🎤', 'Punk Berapi'], ['🛡️', 'Perisai Baja'], ['🧪', 'Alkemis'], ['🦇', 'Kelelawar'], ['🧟', 'Troll Rawa'], ['🥷', 'Ninja'], ['🧨', 'Dinamit'], ['🧲', 'Magnet'], ['❄️', 'Dukun Es'], ['🦏', 'Badak'], ['👶', 'Popok'], ['🔫', 'Sniper'], ['🚀', 'Pelontar'], ['🪵', 'Gelondongan'], ['🎈', 'Balon'], ['💣', 'Meriam'], ['🐉', 'Naga'], ['🔮', 'Dukun'], ['🏹', 'Pemanah'], ['⚔️', 'Ksatria Kelam'], ['🚩', 'Panglima'], ['👑', 'Raja Orc']].map(([i, l]) => <span key={l} className="pill-pop px-2 py-0.5 bg-white/90">{i} {l}</span>)}
           </div>
           <BigButton onClick={() => { g?.sfx.resume(); g?.startGame(); }}>MAIN!</BigButton>
           {s.best > 0 && <div className="text-white font-bold mt-3 text-sm drop-shadow">🏆 Skor terbaik: {s.best}</div>}

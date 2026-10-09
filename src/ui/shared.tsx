@@ -11,12 +11,16 @@ export const TOWER_COL: Record<TowerType, [string, string]> = {
   cactus: ['#bbf7d0', '#16a34a'], hive: ['#fde68a', '#d97706'], golem: ['#e7e5e4', '#78716c'], clock: ['#99f6e4', '#0d9488'],
   prism: ['#bfdbfe', '#2563eb'], cupid: ['#fbcfe8', '#db2777'], hook: ['#bbf7d0', '#15803d'], bowl: ['#fecaca', '#dc2626'],
   barracks: ['#bfdbfe', '#1d4ed8'], mind: ['#f0abfc', '#9333ea'],
+  vortex: ['#c7d2fe', '#4338ca'], meteor: ['#fecaca', '#dc2626'], orbital: ['#fef08a', '#d97706'], siren: ['#a5f3fc', '#0891b2'],
+  naga: ['#fca5a5', '#dc2626'], storm: ['#7dd3fc', '#0284c7'], quake: ['#fdba74', '#c2410c'], glacier: ['#a5f3fc', '#0891b2'],
 };
 export const TOWER_BG = Object.fromEntries((Object.keys(TOWER_COL) as TowerType[]).map(k => [k, `linear-gradient(180deg,${TOWER_COL[k][0]},${TOWER_COL[k][1]})`])) as Record<TowerType, string>;
 /** every tower is a "Penjaga Kristal" with its own nickname */
 export const NICK: Record<TowerType, string> = {
   cannon: 'Bolo', frost: 'Pingu', blaster: 'Boomy', tesla: 'Zappy', sniper: 'Hawk-eye', poison: 'Brewy',
   banner: 'Kiko', flame: 'Blaze', trap: 'Chompy', repair: 'Mender', shield: 'Sir Bubbo', plasma: 'Volta', piggy: 'Pinky', wind: 'Whirl', boomer: 'Bumi', mine: 'Moli', cactus: 'Spiky', hive: 'Buzzy', golem: 'Rocky', clock: 'Chrono', prism: 'Lumi', cupid: 'Amor', hook: 'Froggy', bowl: 'Pino', barracks: 'Barry', mind: 'Hipno',
+  vortex: 'Vora', meteor: 'Magna', orbital: 'Solaris', siren: 'Echo',
+  naga: 'Draco', storm: 'Thorin', quake: 'Tectonic', glacier: 'Frostbite',
 };
 export const portraitBg = (t: TowerType) => `radial-gradient(circle at 50% 62%, ${TOWER_COL[t][0]} 0%, ${TOWER_COL[t][1]} 85%)`;
 
