@@ -82,7 +82,7 @@ export const PIGGY = { pct: (l: number) => 0.06 + 0.03 * (l - 1), cap: (l: numbe
 
 type EnemyType = 'normal' | 'fast' | 'tank' | 'shaman' | 'berserker' | 'dragon' | 'boss' | 'baby' | 'gunner' | 'jumper' | 'log' | 'balloon' | 'cannoneer' | 'archer' | 'dread' | 'captain' | 'legion' | 'ninja' | 'bomber' | 'magnet' | 'frost' | 'rider' | 'fatty' | 'punk' | 'shield' | 'toxic' | 'bat' | 'troll';
 interface EnemyDef { hp: number; speed: number; reward: number; skin: number; cloth: number; size: number; weapon: 'club' | 'dagger' | 'axe' | 'hammer' | 'staff' | 'twin' | 'none' | 'rifle' | 'rocket' | 'torch'; armor: number; flying?: boolean; lives: number; label: string }
-const ENEMY_DEFS: Record<EnemyType, EnemyDef> = {
+export const ENEMY_DEFS: Record<EnemyType, EnemyDef> = {
   normal: { hp: 30, speed: 1.25, reward: 5, skin: 0x6abe4a, cloth: 0xd9433b, size: 0.55, weapon: 'club', armor: 0, lives: 1, label: 'Orc' },
   fast: { hp: 18, speed: 2.1, reward: 6, skin: 0xa8d65c, cloth: 0xf2c94c, size: 0.42, weapon: 'dagger', armor: 0, lives: 1, label: 'Goblin' },
   tank: { hp: 95, speed: 0.85, reward: 12, skin: 0x4f9a3e, cloth: 0x7a4bd6, size: 0.78, weapon: 'axe', armor: 4, lives: 1, label: 'Tank' },
