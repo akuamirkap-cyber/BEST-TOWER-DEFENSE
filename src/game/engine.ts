@@ -599,7 +599,9 @@ export class Game {
     const lx = (mz.x ?? 0) * hs; const gs = t.group.scale.x; // sideways offset: the tower's right-hand direction is (cos a, 0, -sin a); gs = the tower's current size
     return out.set(t.group.position.x + (Math.sin(a) * mz.f * hs + Math.cos(a) * lx) * gs, t.group.position.y + (0.3 + mz.y * hs) * gs, t.group.position.z + (Math.cos(a) * mz.f * hs - Math.sin(a) * lx) * gs);
   }
-  kick(t: Tower, s: number) { if (t.muzzle) t.muzzle.scale.setScalar(s); }
+  /** "kick" the muzzle flash on a shot. Only real effects carry userData.fx (see makeBlast), so a tower can never
+   *  lose a body part to this animation – the flash is scaled up and then faded back to zero. */
+  kick(t: Tower, s: number) { const m = t.muzzle; if (m && m.userData.fx) m.scale.setScalar(s); }
   /** Render a small 3/4-view portrait of every tower from its real voxel model (used by the UI cards). */
   makePortraits(): Partial<Record<TowerType, string>> {
     const out: Partial<Record<TowerType, string>> = {};
@@ -2197,7 +2199,7 @@ export class Game {
     this.levelGroup.children.forEach(ch => { if (ch.userData.cloud) { ch.position.x += ch.userData.speed * dt; if (ch.position.x > 24) ch.position.x = -24; } });
     for (const t of this.towers) {
       const tg = t.group.userData.target ?? 1; if (t.group.scale.x < tg) t.group.scale.setScalar(Math.min(tg, t.group.scale.x + dt * 4));
-      if (t.muzzle && t.muzzle.scale.x > 0) t.muzzle.scale.multiplyScalar(Math.max(0, 1 - dt * 14));
+      if (t.muzzle && t.muzzle.userData.fx && t.muzzle.scale.x > 0) t.muzzle.scale.multiplyScalar(Math.max(0, 1 - dt * 14)); // fade the muzzle flash back out
       const hd = t.head.userData as { sz?: number; focus?: number; squint?: number; face?: THREE.Object3D; flames?: THREE.Object3D[] };
       if (playing) this.gazeTower(t, dt); // every tower turns its head toward whatever passes by (or the road when it's quiet)
       // living body: breathing, little sway, squash when shooting
@@ -2777,6 +2779,7 @@ export class Game {
         const def = TOWER_DEFS[t.type]; const st = this.towerStats(t.type, t.level, t.buff);
         const shards = t.group.getObjectByName('shards'); if (shards) { shards.rotation.y += dt * 1.3; shards.children.forEach((c, i) => { c.position.y = Math.sin(this.time * 2.5 + i * 2) * 0.05; }); }
         const spin = t.head.getObjectByName('spin'); if (spin) { spin.rotation.y += dt * (t.target ? 8 : 2); }
+        if (t.type === 'chroma_v2') { const prism = t.head.getObjectByName('spin'); if (prism) prism.scale.setScalar(1 + t.recoil * 0.22); } // the pink crystal flares when it fires (it cannot use the muzzle flash – it IS the muzzle)
         const halo = t.head.getObjectByName('halo'); if (halo) { halo.rotation.z += dt * 0.9; halo.position.y = ((halo.userData.y0 as number | undefined) ?? (halo.userData.y0 = halo.position.y)) + Math.sin(this.time * 1.8 + t.id) * 0.04; }
         const sfl = t.head.getObjectByName('snowField');
         if (sfl) {

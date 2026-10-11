@@ -119,7 +119,18 @@ export function buildTowerModel(type: TowerType, level: number, def: { color: nu
     m.head.scale.setScalar(sz);
     m.head.userData.face = m.face;
     if (m.flame) m.head.userData.flames = [m.flame];
-    return { group: m.group, head: m.head, muzzle: m.muzzle };
+    // The muzzle is what the engine "kicks" on every shot and fades back to zero, so it must be a THROWAWAY flash
+    // (or nothing at all) – never a real body part. The joss builders return their head / sun / crystal there, which
+    // made those towers lose their head the moment they first fired.
+    let muzzle = m.muzzle;
+    if (!muzzle || !muzzle.userData.fx) {
+      const mz = MUZZLE[type];
+      muzzle = makeBlast(0.55, 0xfff3b0, def.accent, def.color);
+      muzzle.name = 'muzzleFlash';
+      muzzle.position.set(mz.x ?? 0, mz.y, mz.f);
+      m.head.add(muzzle);
+    }
+    return { group: m.group, head: m.head, muzzle };
   }
 
   const g = new THREE.Group();
