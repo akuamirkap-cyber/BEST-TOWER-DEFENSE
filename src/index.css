@@ -66,3 +66,90 @@ html, body, #root { height: 100%; margin: 0; overflow: hidden; font-family: 'Fre
 [data-drag-scroll] { cursor: grab; }
 [data-drag-scroll] button, [data-drag-scroll] [role="button"] { cursor: pointer; }
 [data-dragging="1"], [data-dragging="1"] * { cursor: grabbing !important; }
+
+/* ==========================================================================
+   Bloons TD Battles Style Menu (TowerMaster)
+   ========================================================================== */
+.btn-battles {
+  position: relative;
+  display: flex;
+  align-items: center;
+  border-radius: 9999px;
+  border: 3.5px solid #142232;
+  box-shadow: 0 6px 0 #0b1520, 0 10px 18px rgba(0, 0, 0, 0.4), inset 0 2px 0 rgba(255, 255, 255, 0.65);
+  background: linear-gradient(180deg, #dcf2fd 0%, #8ecbe8 38%, #50a3cc 55%, #2a7da6 100%);
+  transition: transform 0.08s ease, box-shadow 0.08s ease, filter 0.1s ease;
+  font-family: 'Lilita One', 'Fredoka', sans-serif;
+  user-select: none;
+}
+.btn-battles:hover {
+  filter: brightness(1.08);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 0 #0b1520, 0 14px 22px rgba(0, 0, 0, 0.45), inset 0 2px 0 rgba(255, 255, 255, 0.8);
+}
+.btn-battles:active {
+  transform: translateY(4px);
+  box-shadow: 0 2px 0 #0b1520, 0 5px 10px rgba(0, 0, 0, 0.4), inset 0 2px 0 rgba(255, 255, 255, 0.6);
+}
+
+.battles-medal {
+  width: 64px;
+  height: 64px;
+  border-radius: 9999px;
+  border: 4px solid #f59e0b;
+  outline: 3px solid #142232;
+  box-shadow: 0 4px 0 #78350f, 0 6px 12px rgba(0, 0, 0, 0.35), inset 0 2px 3px rgba(255, 255, 255, 0.85);
+  background: radial-gradient(circle at 35% 35%, #fffbeb 0%, #fde047 40%, #d97706 85%, #92400e 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  z-index: 2;
+}
+
+.battles-banner {
+  border: 4px solid #1a0f26;
+  border-radius: 1.6rem;
+  box-shadow: 0 8px 0 #120a1c, 0 16px 28px rgba(0, 0, 0, 0.5), inset 0 2px 0 rgba(255, 255, 255, 0.4);
+}
+
+.text-stroke-battles {
+  -webkit-text-stroke: 2px #0f172a;
+  paint-order: stroke fill;
+  text-shadow: 0 3px 0 #090e17;
+}
+
+.text-stroke-red {
+  -webkit-text-stroke: 2.5px #3a0808;
+  paint-order: stroke fill;
+  text-shadow: 0 4px 0 #280505;
+}
+
+.text-stroke-gold {
+  -webkit-text-stroke: 2px #451a03;
+  paint-order: stroke fill;
+  text-shadow: 0 3px 0 #290e02;
+}
+
+@keyframes cloudDriftSlow {
+  0% { transform: translateX(-15%); }
+  50% { transform: translateX(15%); }
+  100% { transform: translateX(-15%); }
+}
+.cloud-drift-slow { animation: cloudDriftSlow 32s ease-in-out infinite; }
+.cloud-drift-fast { animation: cloudDriftSlow 20s ease-in-out infinite reverse; }
+
+@keyframes gentleBob {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-7px) rotate(1.5deg); }
+}
+.gentle-bob { animation: gentleBob 3.5s ease-in-out infinite; }
+.gentle-bob-alt { animation: gentleBob 4.2s ease-in-out infinite reverse; }
+
+@keyframes balloonRise {
+  0% { transform: translateY(0) rotate(-2deg); }
+  50% { transform: translateY(-14px) rotate(3deg); }
+  100% { transform: translateY(0) rotate(-2deg); }
+}
+.balloon-float { animation: balloonRise 5s ease-in-out infinite; }
+

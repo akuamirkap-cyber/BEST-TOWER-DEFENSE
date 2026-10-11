@@ -36,7 +36,7 @@ export interface TowerModel { group: THREE.Group; head: THREE.Group; muzzle?: TH
 
 const toon = (color: number, rough = 0.5, glow = 0.1) => new THREE.MeshStandardMaterial({ color, roughness: rough, emissive: color, emissiveIntensity: glow });
 
-function tor(r: number, tube: number, color: number, x = 0, y = 0, z = 0, o: { rx?: number; ry?: number; rz?: number; ol?: boolean; glow?: number } = {}) {
+export function tor(r: number, tube: number, color: number, x = 0, y = 0, z = 0, o: { rx?: number; ry?: number; rz?: number; ol?: boolean; glow?: number } = {}) {
   const m = new THREE.Mesh(new THREE.TorusGeometry(r, tube, 8, 24), toon(color, 0.4, o.glow ?? 0.1));
   m.position.set(x, y, z);
   if (o.rx) m.rotation.x = o.rx;

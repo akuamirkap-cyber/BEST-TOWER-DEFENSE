@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { Game, GameState, FloatText, TOWER_DEFS, TowerType, TOWER_HP } from './game/engine';
 
-import { NICK, Portrait, TOWER_BG, TOWER_COL, TowerCard } from './ui/shared';
+import { NICK, Portrait, TOWER_COL, TowerCard } from './ui/shared';
 import Loadout from './ui/Loadout';
+import MainMenu from './ui/MainMenu';
 import { useDragScroll } from './ui/useDragScroll';
 
 export default function App() {
@@ -125,22 +126,8 @@ export default function App() {
 
       {s?.screen === 'select' && g && <Loadout s={s} g={g} portraits={portraits} enemyPortraits={enemyPortraits} />}
 
-      {s?.screen === 'menu' && (
-        <Overlay>
-          <div className="text-7xl mb-1 wiggle inline-block">🏰</div>
-          <h1 className="font-display text-5xl sm:text-6xl text-white text-outline leading-none">VOXEL<span className="text-yellow-300">DEFENSE</span></h1>
-          <p className="text-white font-semibold mt-3 max-w-sm mx-auto text-sm drop-shadow">Bangun 34 tower pertahanan hebat (Naga Api 🐉, Badai Silence ⚡, Gempa Hancur Zirah 🌋, Gletser Beku 💎...), hadapi 28 jenis Orc termasuk Orc Gendut Tongkat Besar 🧌, Orc Punk Tombak Berapi 🧑‍🎤, Perisai Baja 🛡️, Alkemis Racun 🧪, Kelelawar 🦇, dan Troll Rawa 🧟!</p>
-          <div className="mt-3 grid grid-cols-6 gap-1.5 max-w-sm mx-auto">
-            {(Object.keys(TOWER_DEFS) as TowerType[]).map(t => (
-              <div key={t} className="rounded-xl p-1 text-[#281430] text-[9px] font-bold border-2 border-[#281430] leading-tight" style={{ background: TOWER_BG[t] }}><div className="text-xl">{TOWER_DEFS[t].icon}</div>{TOWER_DEFS[t].name}</div>
-            ))}
-          </div>
-          <div className="mt-2 flex flex-wrap justify-center gap-1 max-w-sm mx-auto text-[10px] font-bold text-[#281430]">
-            {[['🧌', 'Gendut Tongkat'], ['🧑‍🎤', 'Punk Berapi'], ['🛡️', 'Perisai Baja'], ['🧪', 'Alkemis'], ['🦇', 'Kelelawar'], ['🧟', 'Troll Rawa'], ['🥷', 'Ninja'], ['🧨', 'Dinamit'], ['🧲', 'Magnet'], ['❄️', 'Dukun Es'], ['🦏', 'Badak'], ['👶', 'Popok'], ['🔫', 'Sniper'], ['🚀', 'Pelontar'], ['🪵', 'Gelondongan'], ['🎈', 'Balon'], ['💣', 'Meriam'], ['🐉', 'Naga'], ['🔮', 'Dukun'], ['🏹', 'Pemanah'], ['⚔️', 'Ksatria Kelam'], ['🚩', 'Panglima'], ['👑', 'Raja Orc']].map(([i, l]) => <span key={l} className="pill-pop px-2 py-0.5 bg-white/90">{i} {l}</span>)}
-          </div>
-          <BigButton onClick={() => { g?.sfx.resume(); g?.startGame(); }}>MAIN!</BigButton>
-          {s.best > 0 && <div className="text-white font-bold mt-3 text-sm drop-shadow">🏆 Skor terbaik: {s.best}</div>}
-        </Overlay>
+      {s?.screen === 'menu' && g && (
+        <MainMenu s={s} g={g} portraits={portraits} enemyPortraits={enemyPortraits} />
       )}
 
       {s?.screen === 'levelComplete' && (
