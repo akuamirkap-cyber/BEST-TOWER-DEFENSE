@@ -13,6 +13,9 @@ export const TOWER_COL: Record<TowerType, [string, string]> = {
   barracks: ['#bfdbfe', '#1d4ed8'], mind: ['#f0abfc', '#9333ea'],
   vortex: ['#c7d2fe', '#4338ca'], meteor: ['#fecaca', '#dc2626'], orbital: ['#fef08a', '#d97706'], siren: ['#a5f3fc', '#0891b2'],
   naga: ['#fca5a5', '#dc2626'], storm: ['#7dd3fc', '#0284c7'], quake: ['#fdba74', '#c2410c'], glacier: ['#a5f3fc', '#0891b2'],
+  cannon_v2: ['#7ab8ff', '#2f6fe0'], gravity: ['#c4b5fd', '#6d28d9'], tornado: ['#bae6fd', '#0ea5e9'],
+  meteor_v2: ['#fca5a5', '#dc2626'], midas: ['#fde68a', '#b45309'], draco_v2: ['#fca5a5', '#b91c1c'],
+  sol: ['#fde68a', '#d97706'], chroma_v2: ['#f0abfc', '#c026d3'], frostbite_v2: ['#bae6fd', '#0284c7'],
 };
 export const TOWER_BG = Object.fromEntries((Object.keys(TOWER_COL) as TowerType[]).map(k => [k, `linear-gradient(180deg,${TOWER_COL[k][0]},${TOWER_COL[k][1]})`])) as Record<TowerType, string>;
 /** every tower is a "Penjaga Kristal" with its own nickname */
@@ -21,6 +24,8 @@ export const NICK: Record<TowerType, string> = {
   banner: 'Kiko', flame: 'Blaze', trap: 'Chompy', repair: 'Mender', shield: 'Sir Bubbo', plasma: 'Volta', piggy: 'Pinky', wind: 'Whirl', boomer: 'Bumi', mine: 'Moli', cactus: 'Spiky', hive: 'Buzzy', golem: 'Rocky', clock: 'Chrono', prism: 'Lumi', cupid: 'Amor', hook: 'Froggy', bowl: 'Pino', barracks: 'Barry', mind: 'Hipno',
   vortex: 'Vora', meteor: 'Magna', orbital: 'Solaris', siren: 'Echo',
   naga: 'Draco', storm: 'Thorin', quake: 'Tectonic', glacier: 'Frostbite',
+  cannon_v2: 'Bolo V2', gravity: 'Gav', tornado: 'Twisty', meteor_v2: 'Comet V2',
+  midas: 'Midas', draco_v2: 'Draco V2', sol: 'Sol V2', chroma_v2: 'Chroma V2', frostbite_v2: 'Frostbite V2',
 };
 export const portraitBg = (t: TowerType) => `radial-gradient(circle at 50% 62%, ${TOWER_COL[t][0]} 0%, ${TOWER_COL[t][1]} 85%)`;
 

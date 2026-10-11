@@ -282,6 +282,78 @@ export const CARD_INFO: Record<TowerType, CardData> = {
     good: ['Semua orc darat', 'Mencegah orc bocor ke benteng', 'Sinergi tower area'], weak: ['Orc terbang (bisa melompati tembok)'], tip: 'Pasang di dekat tower penghasil damage area (Naga, Mortir, Bowling) agar musuh yang tertahan langsung dihujani serangan!',
     extra: [{ label: 'HP Barikade Es', vals: ['220 HP', '340 HP', '480 HP'] }, { label: 'Durasi Maksimal', vals: ['5,0 detik', '6,5 detik', '8,0 detik'] }],
   },
+  cannon_v2: {
+    role: 'Meriam Cepat & Ledakan Area Lv2-3', bars: [{ label: 'Kecepatan', v: 5 }, { label: 'Kekuatan', v: 3 }, { label: 'Area Ledakan', v: 3 }],
+    skills: [
+      { icon: '🔵', title: 'Tembakan Balistik Cepat', text: 'Menembak cepat secara beruntun dengan biaya terjangkau. Sangat efektif untuk mengatasi gelombang orc di awal permainan.' },
+      { icon: '💥', title: 'Ledakan Area (Lv 2 & 3)', text: 'Mulai dari Level 2 dan 3, pelurunya meledak dan melukai seluruh orc di sekitar titik benturan!' },
+    ],
+    good: ['Orc biasa', 'Orc cepat', 'Gerombolan awal'], weak: ['Musuh terbang', 'Armor ultra tebal'], tip: 'Tingkatkan segera ke Level 2 agar tembakan memiliki efek ledakan area.',
+  },
+  gravity: {
+    role: 'Kontrol Gravitasi & Hantam Banting Orc', bars: [{ label: 'Kontrol', v: 5 }, { label: 'Area', v: 4 }, { label: 'Kekuatan', v: 4 }],
+    skills: [
+      { icon: '🕳️', title: 'Medan Gravitasi Menarik', text: 'Bola gravitasi menarik SEMUA orc di jangkauannya mendekat dan menghentak mereka ke tanah.' },
+      { icon: '⬆️', title: 'Angkat Melayang & Banting Maut', text: 'Mengangkat gerombolan orc ke udara lalu MEMBANTINGNYA keras ke tanah dengan 2.5x damage maut!' },
+    ],
+    good: ['Semua gerombolan orc', 'Darat + Udara', 'Menumpuk musuh'], weak: ['Orc yang kebal kontrol'], tip: 'Sangat bagus dipasang di depan barisan tower area supaya orc menumpuk padat.',
+  },
+  tornado: {
+    role: 'Pusaran Awan Berjalan Sepanjang Lintasan', bars: [{ label: 'Kontrol', v: 5 }, { label: 'Jangkauan', v: 4 }, { label: 'Kekuatan', v: 3 }],
+    skills: [
+      { icon: '🌪️', title: 'Pusaran Angin Menelusuri Jalan', text: 'Melempar corong pusaran awan yang bergerak menyusuri lintasan jalan sejauh beberapa meter.' },
+      { icon: '🌀', title: 'Angkat Orc & Terpaku di Udara', text: 'Orc yang terseret terangkat ke udara selama 2,5 detik, terpaku tak berdaya sambil terus terluka.' },
+    ],
+    good: ['Orc darat berbaris', 'Orc cepat', 'Gerombolan padat'], weak: ['Orc terbang tinggi'], tip: 'Sangat ampuh ditaruh di jalur lurus panjang agar pusaran angin menyapu sepanjang lintasan.',
+  },
+  meteor_v2: {
+    role: 'Hujan Komet Langit & Kobaran Api Bertahan', bars: [{ label: 'Kekuatan', v: 5 }, { label: 'Area Ledakan', v: 5 }, { label: 'DoT Api', v: 4 }],
+    skills: [
+      { icon: '🌠', title: 'Panggilan Komet Langit', text: 'Mendeteksi titik paling padat musuh dalam jangkauan dan memanggil komet raksasa menghujam dari langit.' },
+      { icon: '🔥', title: 'Kobaran Api Membakar (4 Detik)', text: 'Meninggalkan kawah kobaran api yang terus membakar setiap orc yang melintas selama 4 detik penuh.' },
+    ],
+    good: ['Kelompok orc besar', 'Darat + Udara', 'Musuh berarmor'], weak: ['Musuh cepat yang gesit'], tip: 'Otomatis mengincar titik terpadat musuh dalam jangkauannya.',
+  },
+  midas: {
+    role: 'Eksekusi HP Rendah Menjadi Koin Emas', bars: [{ label: 'Eksekusi', v: 5 }, { label: 'Ekonomi', v: 5 }, { label: 'Jangkauan', v: 3 }],
+    skills: [
+      { icon: '💰', title: 'Sinar Alkimia Emas', text: 'Menembakkan sinar emas ke orc yang paling terluka di dalam jangkauan menara.' },
+      { icon: '🪙', title: 'Transmutasi Jadi Emas Murni (<30% HP)', text: 'Kalau HP musuh di bawah 30%, orc itu LANGSUNG MATI menjadi patung emas dan memberi bonus emas berlipat ganda!' },
+    ],
+    good: ['Orc ber-HP tebal yang sekarat', 'Menimbun pundi emas'], weak: ['Musuh dengan HP penuh', 'Bos utama'], tip: 'Pasangkan dengan tower pembantai area agar orc cepat sekarat dan langsung diubah jadi koin emas!',
+  },
+  draco_v2: {
+    role: 'Semburan Api Naga Kerucut Beruntun', bars: [{ label: 'Kecepatan Semburan', v: 5 }, { label: 'DoT Membakar', v: 4 }, { label: 'Area Kerucut', v: 4 }],
+    skills: [
+      { icon: '🐉', title: 'Naga Merah Penjaga', text: 'Naga merah gagah yang bertengger di atas menara dengan sayap membentang dan ekor melingkar.' },
+      { icon: '🔥', title: 'Semburan Api Kerucut Tiada Henti', text: 'Menyemburkan semburan api kerucut seperti penyembur api ke seluruh orc yang berdiri di hadapannya.' },
+    ],
+    good: ['Gerombolan orc darat', 'Menyapu barisan depan'], weak: ['Musuh terbang'], tip: 'Letakkan di tikungan jalan menghadap lurus ke arah datangnya barisan orc.',
+  },
+  sol: {
+    role: 'Nova Sinar Surya Wajah Tembus Lurus', bars: [{ label: 'Kekuatan', v: 5 }, { label: 'Tembus Lurus', v: 5 }, { label: 'Darat + Udara', v: 5 }],
+    skills: [
+      { icon: '☀️', title: 'Matahari Senyum Bercahaya', text: 'Matahari kecil yang tersenyum ramah dengan 12 sinar berputar dan halo hangat melayang.' },
+      { icon: '⚡', title: 'Sinar Surya Hanguskan Garis Lurus', text: 'Meledakkan sinar laser surya masif yang MENEMBUS SELURUH musuh dalam garis lurus sekaligus!' },
+    ],
+    good: ['Barisan lurus musuh', 'Darat + Udara', 'Armor tebal'], weak: ['Musuh menyebar melebar'], tip: 'Posisikan di ujung lintasan lurus untuk memaksimalkan jumlah musuh yang terpanggang sinar surya.',
+  },
+  chroma_v2: {
+    role: 'Prisma Pantulan Berantai Antar Musuh', bars: [{ label: 'Pantulan', v: 5 }, { label: 'Jangkauan', v: 4 }, { label: 'Kekuatan', v: 4 }],
+    skills: [
+      { icon: '💎', title: 'Kristal Prisma Merah Muda', text: 'Kristal permata octahedron yang berputar anggun di atas dudukan emas.' },
+      { icon: '✨', title: 'Balok Cahaya Memantul', text: 'Balok cahayanya MEMANTUL dari satu musuh ke musuh berikutnya hingga 4 pantulan di Level 3!' },
+    ],
+    good: ['Musuh bergerombol maupun berjarak', 'Darat + Udara'], weak: ['Target tunggal ber-HP tebal'], tip: 'Pantulan cahaya mengejar musuh terdekat secara otomatis tanpa meleset.',
+  },
+  frostbite_v2: {
+    role: 'Semburan Salju & Kurung Balok Es Membeku', bars: [{ label: 'Pembekuan', v: 5 }, { label: 'Perlambatan', v: 5 }, { label: 'Kekuatan', v: 3 }],
+    skills: [
+      { icon: '❄️', title: 'Semburan Salju Dingin Arktik', text: 'Menyemprotkan aliran kabut salju lebat ke musuh terdepan, memperlambat langkahnya drastis.' },
+      { icon: '🧊', title: 'Kurung Balok Es Solid', text: 'Setelah terpapar semburan salju, orc TERKURUNG TOTAL di dalam balok es kristal dan membeku kaku!' },
+    ],
+    good: ['Musuh berkecepatan tinggi', 'Darat + Udara', 'Mengunci musuh berbahaya'], weak: ['Menghabisi bos sendirian'], tip: 'Kombinasikan dengan tower perusak berat untuk memukul musuh yang sedang beku kaku.',
+  },
 };
 
 /** the rows of the Lv1 / Lv2 / Lv3 table: damage, range, rate (or custom rows) + the upgrade costs */

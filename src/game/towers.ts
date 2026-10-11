@@ -3,6 +3,7 @@ import type { TowerType } from './engine';
 import { BOX, SPH, RING, OUTLINE_MAT, makeFace, makeFlame, makeBlast } from './voxel';
 import { Bolt, MINI_STYLE } from './lightning';
 import { makeHeart, makeBowlingBall } from './critters';
+import { buildJossTower, JossTowerKind } from './jossTowers';
 
 export interface IdleArc { bolt: Bolt; a: THREE.Vector3; b: THREE.Vector3; t: number }
 
@@ -26,11 +27,24 @@ export const MUZZLE: Record<TowerType, { y: number; f: number; x?: number }> = {
   barracks: { y: 0.5, f: 0.3 }, mind: { y: 0.8, f: 0.29 },
   vortex: { y: 0.72, f: 0.42 }, meteor: { y: 1.05, f: 0.2 }, orbital: { y: 0.95, f: 0.5 }, siren: { y: 0.65, f: 0.35 },
   naga: { y: 0.85, f: 0.52 }, storm: { y: 1.15, f: 0 }, quake: { y: 0.6, f: 0.4 }, glacier: { y: 1.05, f: 0 },
+  cannon_v2: { y: 0.26, f: 0.86 }, gravity: { y: 0.92, f: 0 }, tornado: { y: 0.72, f: 0.12 },
+  meteor_v2: { y: 1.0, f: 0.2 }, midas: { y: 0.45, f: 0.9 }, draco_v2: { y: 0.83, f: 0.72 },
+  sol: { y: 0.95, f: 0 }, chroma_v2: { y: 1.02, f: 0 }, frostbite_v2: { y: 1.5, f: 0 },
 };
 
 export interface TowerModel { group: THREE.Group; head: THREE.Group; muzzle?: THREE.Object3D; beam?: THREE.Mesh; beamGlow?: THREE.Mesh }
 
 const toon = (color: number, rough = 0.5, glow = 0.1) => new THREE.MeshStandardMaterial({ color, roughness: rough, emissive: color, emissiveIntensity: glow });
+
+function tor(r: number, tube: number, color: number, x = 0, y = 0, z = 0, o: { rx?: number; ry?: number; rz?: number; ol?: boolean; glow?: number } = {}) {
+  const m = new THREE.Mesh(new THREE.TorusGeometry(r, tube, 8, 24), toon(color, 0.4, o.glow ?? 0.1));
+  m.position.set(x, y, z);
+  if (o.rx) m.rotation.x = o.rx;
+  if (o.ry) m.rotation.y = o.ry;
+  if (o.rz) m.rotation.z = o.rz;
+  m.castShadow = true;
+  return m;
+}
 
 function S(r: number, color: number, x = 0, y = 0, z = 0, o: { sx?: number; sy?: number; sz?: number; ol?: boolean; glow?: number } = {}) {
   const m = new THREE.Mesh(SPH, toon(color, 0.45, o.glow ?? 0.1));
@@ -86,6 +100,28 @@ export function makeBoomerang(color: number, accent: number) {
 }
 
 export function buildTowerModel(type: TowerType, level: number, def: { color: number; accent: number }): TowerModel {
+  const JOSS_MAP: Partial<Record<TowerType, JossTowerKind>> = {
+    cannon_v2: 'cannon',
+    gravity: 'gravity',
+    tornado: 'tornado',
+    meteor_v2: 'meteor',
+    midas: 'midas',
+    draco_v2: 'draco',
+    sol: 'sol',
+    chroma_v2: 'chroma',
+    frostbite_v2: 'frostbite',
+  };
+  const jossKind = JOSS_MAP[type];
+  if (jossKind) {
+    const sz = 1 + (level - 1) * 0.12;
+    const m = buildJossTower(jossKind, level);
+    m.head.userData.sz = sz;
+    m.head.scale.setScalar(sz);
+    m.head.userData.face = m.face;
+    if (m.flame) m.head.userData.flames = [m.flame];
+    return { group: m.group, head: m.head, muzzle: m.muzzle };
+  }
+
   const g = new THREE.Group();
 
   // ----- signature podium: stone + glowing rune ring -----
