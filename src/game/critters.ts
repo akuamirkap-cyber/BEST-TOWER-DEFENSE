@@ -92,3 +92,53 @@ export function makeHook() {
   g.scale.setScalar(1.3);
   return g;
 }
+
+/** a chunky voxel snowball with embedded glowing ice shards and soft frost aura */
+export function makeSnowball() {
+  const g = new THREE.Group();
+  const snowMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.7, emissive: 0xe0f2fe, emissiveIntensity: 0.35 });
+  const iceMat = new THREE.MeshStandardMaterial({ color: 0x93c5fd, roughness: 0.2, emissive: 0x38bdf8, emissiveIntensity: 0.75 });
+
+  // central snowball body
+  const core = new THREE.Mesh(SPH, snowMat);
+  core.scale.setScalar(0.18);
+  g.add(core);
+
+  // outline on core
+  const ol = new THREE.Mesh(SPH, OUTLINE_MAT);
+  ol.scale.setScalar(0.198);
+  g.add(ol);
+
+  // lumpy packed snow clumps around the core
+  const offsets = [
+    [0.08, 0.06, 0.05, 0.1],
+    [-0.07, -0.05, 0.06, 0.09],
+    [0.05, -0.07, -0.06, 0.095],
+    [-0.06, 0.07, -0.05, 0.085],
+    [0.0, 0.1, 0.0, 0.08],
+  ];
+  for (const [x, y, z, r] of offsets) {
+    const clump = new THREE.Mesh(SPH, snowMat);
+    clump.scale.setScalar(r);
+    clump.position.set(x, y, z);
+    g.add(clump);
+  }
+
+  // embedded sparkling ice octahedron crystal shards
+  const shardGeo = new THREE.OctahedronGeometry(0.06);
+  for (const [x, y, z, rx, ry] of [[0.11, 0.03, -0.04, 0.4, 0.8], [-0.09, 0.07, 0.05, -0.5, 0.3], [0.02, -0.1, 0.08, 0.8, -0.4]]) {
+    const sh = new THREE.Mesh(shardGeo, iceMat);
+    sh.position.set(x, y, z);
+    sh.rotation.set(rx, ry, 0);
+    g.add(sh);
+  }
+
+  // soft outer frost glow sphere
+  const glowMat = new THREE.MeshBasicMaterial({ color: 0xbbf2f6, transparent: true, opacity: 0.3, depthWrite: false });
+  const glow = new THREE.Mesh(SPH, glowMat);
+  glow.scale.setScalar(0.26);
+  g.add(glow);
+
+  return g;
+}
+

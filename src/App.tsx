@@ -118,7 +118,7 @@ export default function App() {
           )}
           {s.wave === 0 && !s.selectedTower && s.screen === 'playing' && (
             <div className="absolute left-0 right-0 text-center pointer-events-none px-4" style={{ bottom: 218 }}>
-              <span className="inline-block pill-pop text-[#281430] text-xs sm:text-sm font-bold px-4 py-2" style={{ background: 'linear-gradient(180deg,#fffbeb,#fde68a)' }}>👆 Ketuk rumput untuk bangun tower · 🧌 Gendut Tongkat gempa · 🧑‍🎤 Punk Tombak Berapi · 🛡️ Perisai Baja tangkis peluru · 🧪 Alkemis Racun · 🦇 Kelelawar Lifesteal · 🧟 Troll Rawa Regen!</span>
+              <span className="inline-block pill-pop text-[#281430] text-xs sm:text-sm font-bold px-4 py-2" style={{ background: 'linear-gradient(180deg,#fffbeb,#fde68a)' }}>👆 Ketuk rumput untuk bangun tower · 🧑‍🎤 Punk Tombak Berapi · 🛡️ Perisai Baja tangkis peluru · 🧪 Alkemis Racun · 🦇 Kelelawar Lifesteal · 🧟 Troll Rawa Regen!</span>
             </div>
           )}
         </>

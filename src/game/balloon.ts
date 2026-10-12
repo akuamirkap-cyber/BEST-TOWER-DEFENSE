@@ -14,26 +14,29 @@ export interface BalloonBuild {
 
 const PANELS = 10;
 const PANEL_COLORS = [0xef4444, 0xfff7ed, 0xef4444, 0xfde047];
-/** balloon envelope scale (1.6x bigger as requested) */
-const BAL_SCALE = 1.6;
-/** height of the balloon centre above the basket – keeps the skirt at y ≈ 1.95 above the pilot's head */
-const BAL_Y = 1.95 + 1.05 * BAL_SCALE;
 
-/** teardrop silhouette of a real hot-air balloon (radius, height), scaled 1.6x */
+/** balloon envelope width scale (2.0x lebar ke samping) */
+const BAL_W_SCALE = 2.0;
+/** balloon envelope height scale (tetap kompak, tidak ditinggikan) */
+const BAL_H_SCALE = 1.35;
+/** height of the balloon centre above the basket – keeps the skirt at y ≈ 1.95 above the pilot's head */
+const BAL_Y = 1.95 + 1.05 * BAL_H_SCALE;
+
+/** teardrop silhouette of a wide, plump hot-air balloon (radius x width scale, height x height scale) */
 function profile() {
   const ctrl = [
-    [0.32, -1.0],
-    [0.4, -0.82],
-    [0.62, -0.46],
-    [0.84, -0.04],
-    [0.95, 0.4],
-    [0.93, 0.8],
-    [0.76, 1.15],
-    [0.48, 1.42],
+    [0.34, -1.0],
+    [0.46, -0.8],
+    [0.74, -0.42],
+    [0.96, -0.02],
+    [1.03, 0.4],
+    [0.99, 0.8],
+    [0.82, 1.15],
+    [0.52, 1.42],
     [0.18, 1.58],
     [0.0, 1.62],
-  ].map(([x, y]) => new THREE.Vector2(x * BAL_SCALE, y * BAL_SCALE));
-  return new THREE.SplineCurve(ctrl).getPoints(28).map(p => new THREE.Vector2(Math.max(0, p.x), p.y));
+  ].map(([x, y]) => new THREE.Vector2(x * BAL_W_SCALE, y * BAL_H_SCALE));
+  return new THREE.SplineCurve(ctrl).getPoints(30).map(p => new THREE.Vector2(Math.max(0, p.x), p.y));
 }
 
 function rope(a: THREE.Vector3, b: THREE.Vector3) {
@@ -51,17 +54,17 @@ function starGeometry() {
   const sh = new THREE.Shape();
   for (let i = 0; i < 10; i++) {
     const a = (i / 10) * Math.PI * 2 + Math.PI / 2;
-    const r = (i % 2 ? 0.17 : 0.4) * BAL_SCALE;
+    const r = i % 2 ? 0.26 : 0.62;
     const x = Math.cos(a) * r, y = Math.sin(a) * r;
     if (i === 0) sh.moveTo(x, y);
     else sh.lineTo(x, y);
   }
   sh.closePath();
   const g = new THREE.ExtrudeGeometry(sh, {
-    depth: 0.06 * BAL_SCALE,
+    depth: 0.1,
     bevelEnabled: true,
-    bevelSize: 0.02 * BAL_SCALE,
-    bevelThickness: 0.02 * BAL_SCALE,
+    bevelSize: 0.03,
+    bevelThickness: 0.03,
     bevelSegments: 1,
   });
   g.center();
@@ -69,8 +72,8 @@ function starGeometry() {
 }
 
 /**
- * Orc hot-air balloon: 10 striped gore panels (1.6x bigger envelope) with a golden star badge,
- * long ropes, wicker basket with sandbags + gas tank, a cute goggled pilot orc and a swiveling rifle.
+ * Orc hot-air balloon: wide chubby gore envelope, golden star badge,
+ * wide ropes, wicker basket with sandbags + gas tank, a cute goggled pilot orc and a swiveling rifle.
  */
 export function buildBalloon(def: { skin: number; cloth: number }): BalloonBuild {
   const debris: THREE.Object3D[] = [];
@@ -121,7 +124,7 @@ export function buildBalloon(def: { skin: number; cloth: number }): BalloonBuild
   armR.position.set(0.3, 0.76, 0.1);
   armR.rotation.x = -1.2;
 
-  // ---------- envelope (10 separate gore panels, 1.6x larger) ----------
+  // ---------- envelope (10 separate gore panels, wide & chubby) ----------
   const bal = new THREE.Group();
   bal.name = 'balloon';
   bal.position.y = BAL_Y;
@@ -139,44 +142,44 @@ export function buildBalloon(def: { skin: number; cloth: number }): BalloonBuild
     bal.add(m);
     debris.push(m);
   }
-  // a golden star badge on the front – just a badge, no face
+  // a golden star badge on the front belly
   const star = new THREE.Mesh(
     starGeometry(),
     new THREE.MeshStandardMaterial({ color: 0xfbbf24, emissive: 0xf59e0b, emissiveIntensity: 0.45, roughness: 0.35 })
   );
-  star.position.set(0, 0.55 * BAL_SCALE, 0.97 * BAL_SCALE);
+  star.position.set(0, 0.4 * BAL_H_SCALE, 1.02 * BAL_W_SCALE);
   star.castShadow = true;
   star.userData.light = true;
   bal.add(star);
   debris.push(star);
 
   // skirt, burner, pennant
-  const skirt = mkCyl(0.34 * BAL_SCALE, 0.3 * BAL_SCALE, 0.1 * BAL_SCALE, 0x7f1d1d, 0, -1.04 * BAL_SCALE, 0, 14);
+  const skirt = mkCyl(0.36 * BAL_W_SCALE, 0.32 * BAL_W_SCALE, 0.1 * BAL_H_SCALE, 0x7f1d1d, 0, -1.04 * BAL_H_SCALE, 0, 14);
   skirt.userData.light = true;
   bal.add(skirt);
   debris.push(skirt);
-  bal.add(mkCyl(0.1 * BAL_SCALE, 0.12 * BAL_SCALE, 0.1 * BAL_SCALE, 0x374151, 0, -1.2 * BAL_SCALE, 0, 8));
-  const burner = makeFlame(0.36 * BAL_SCALE);
+  bal.add(mkCyl(0.12 * BAL_W_SCALE, 0.14 * BAL_W_SCALE, 0.1 * BAL_H_SCALE, 0x374151, 0, -1.18 * BAL_H_SCALE, 0, 8));
+  const burner = makeFlame(0.42 * BAL_H_SCALE);
   burner.name = 'burner';
-  burner.position.set(0, -1.28 * BAL_SCALE, 0);
+  burner.position.set(0, -1.26 * BAL_H_SCALE, 0);
   bal.add(burner);
 
   const pennant = new THREE.Group();
   pennant.userData.light = true;
-  pennant.add(mkCyl(0.018 * BAL_SCALE, 0.018 * BAL_SCALE, 0.5 * BAL_SCALE, 0xe7e5e4, 0, 1.85 * BAL_SCALE, 0, 6));
-  pennant.add(mkBox(0.34 * BAL_SCALE, 0.2 * BAL_SCALE, 0.025 * BAL_SCALE, 0xef4444, 0.19 * BAL_SCALE, 1.98 * BAL_SCALE, 0));
+  pennant.add(mkCyl(0.032, 0.032, 0.48 * BAL_H_SCALE, 0xe7e5e4, 0, 1.82 * BAL_H_SCALE, 0, 6));
+  pennant.add(mkBox(0.65, 0.24 * BAL_H_SCALE, 0.03, 0xef4444, 0.35, 1.94 * BAL_H_SCALE, 0));
   bal.add(pennant);
   debris.push(pennant);
 
-  // ---------- ropes: from the basket corners up to the skirt of the 1.6x envelope ----------
+  // ---------- ropes: from basket corners up to the wide skirt of the envelope ----------
   const ropes: THREE.Object3D[] = [];
-  const top = BAL_Y - 1.05 * BAL_SCALE;
+  const top = BAL_Y - 1.05 * BAL_H_SCALE;
   for (const sx of [-1, 1]) {
     for (const sz of [-1, 1]) {
       ropes.push(
         rope(
           new THREE.Vector3(sx * 0.35, 0.55, sz * 0.35),
-          new THREE.Vector3(sx * 0.23 * BAL_SCALE, top, sz * 0.23 * BAL_SCALE)
+          new THREE.Vector3(sx * 0.25 * BAL_W_SCALE, top, sz * 0.25 * BAL_W_SCALE)
         )
       );
     }
@@ -190,6 +193,6 @@ export function buildBalloon(def: { skin: number; cloth: number }): BalloonBuild
     debris,
     skinMats,
     limbs: { head, armL, armR, legL: new THREE.Group(), legR: new THREE.Group(), balloon: bal, gun, face: ph.face },
-    hpY: BAL_Y + 2.05 * BAL_SCALE,
+    hpY: BAL_Y + 1.85 * BAL_H_SCALE,
   };
 }

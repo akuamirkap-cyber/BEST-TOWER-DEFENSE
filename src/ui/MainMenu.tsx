@@ -89,13 +89,13 @@ export default function MainMenu({ s, g, portraits, enemyPortraits }: MainMenuPr
           </>
         )}
 
-        {/* Red Pirate/Orc Blimp Airship in upper-left sky (rendered from game 3D assets, 1.6x larger) */}
+        {/* Red Pirate/Orc Blimp Airship in upper-left sky (rendered from game 3D assets, larger) */}
         {art?.airship && (
           <img
             src={art.airship}
             alt=""
             draggable={false}
-            className="menu-float pointer-events-none absolute left-[4%] top-[10%] w-[28vmin] min-w-[175px] max-w-[390px] drop-shadow-[0_16px_16px_rgba(0,0,0,0.34)] sm:left-[7%] sm:top-[11%]"
+            className="menu-float pointer-events-none absolute left-[3%] top-[9%] w-[35vmin] min-w-[215px] max-w-[460px] drop-shadow-[0_18px_18px_rgba(0,0,0,0.38)] sm:left-[6%] sm:top-[10%]"
             style={{ animationDuration: '6s' }}
           />
         )}

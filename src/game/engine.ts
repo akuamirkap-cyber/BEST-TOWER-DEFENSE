@@ -4,7 +4,7 @@ import type { MusicMode } from './sfx';
 import { BOX, RING, DISC, mat, mkBox, mkSphere, makeFlame, flickerFlame, updateFace, OUTLINE_MAT } from './voxel';
 import { buildTowerModel, MUZZLE, makeBoomerang, spiralTexture } from './towers';
 import { makeKnight, poseKnight } from './knights';
-import { makeBee, makeNeedle, makeHeart, makeHeartArrow, makeBowlingBall, makeHook } from './critters';
+import { makeBee, makeNeedle, makeHeart, makeHeartArrow, makeBowlingBall, makeHook, makeSnowball } from './critters';
 import { buildElite, isElite, poseElite, poseDread, setBowDraw, makeArrow } from './elites';
 import { Ragdoll } from './ragdoll';
 import { buildDragon } from './dragon';
@@ -27,7 +27,7 @@ export interface TowerDef {
 }
 export const TOWER_DEFS: Record<TowerType, TowerDef> = {
   cannon: { name: 'Meriam', cost: 50, dmg: 12, range: 2.8, rate: 0.5, color: 0x4f8cff, accent: 0x2b5fd9, desc: 'Cepat, murah', icon: '🔵', air: false, ground: true, tag: 'Darat' },
-  frost: { name: 'Es', cost: 70, dmg: 5, range: 2.6, rate: 0.35, color: 0x8ff0ff, accent: 0x3fc9e8, desc: 'Sinar pelambat', icon: '❄️', air: true, ground: true, tag: 'Slow' },
+  frost: { name: 'Es', cost: 70, dmg: 5, range: 2.6, rate: 0.35, color: 0x8ff0ff, accent: 0x3fc9e8, desc: 'Tembakan salju pelambat & damage', icon: '❄️', air: true, ground: true, tag: 'Salju·Slow' },
   blaster: { name: 'Mortir', cost: 110, dmg: 34, range: 3.6, rate: 1.6, color: 0xff8a4c, accent: 0xe8552b, desc: 'Ledakan area', icon: '💥', air: false, ground: true, tag: 'Darat·Area' },
   tesla: { name: 'Tesla', cost: 120, dmg: 14, range: 2.6, rate: 0.9, color: 0xc084fc, accent: 0x7c3aed, desc: 'Petir berantai', icon: '⚡', air: true, ground: true, tag: 'Rantai' },
   sniper: { name: 'Sniper', cost: 140, dmg: 60, range: 5.2, rate: 2.2, color: 0x34d399, accent: 0x0f766e, desc: 'Jauh, tembus armor', icon: '🎯', air: true, ground: true, tag: 'Anti-Armor' },
@@ -80,7 +80,7 @@ export const upgradeCostOf = (type: TowerType, level: number): number | null => 
 /** Piggy bank: interest paid when a wave ends (a % of your gold, capped per piggy) and the bonus coins dropped by every orc that dies inside its range */
 export const PIGGY = { pct: (l: number) => 0.06 + 0.03 * (l - 1), cap: (l: number) => 25 + 20 * (l - 1), bounty: (l: number) => l };
 
-type EnemyType = 'normal' | 'fast' | 'tank' | 'shaman' | 'berserker' | 'dragon' | 'boss' | 'baby' | 'gunner' | 'jumper' | 'log' | 'balloon' | 'cannoneer' | 'archer' | 'dread' | 'captain' | 'legion' | 'ninja' | 'bomber' | 'magnet' | 'frost' | 'rider' | 'fatty' | 'punk' | 'shield' | 'toxic' | 'bat' | 'troll';
+type EnemyType = 'normal' | 'fast' | 'tank' | 'shaman' | 'berserker' | 'dragon' | 'boss' | 'baby' | 'gunner' | 'jumper' | 'log' | 'balloon' | 'cannoneer' | 'archer' | 'dread' | 'captain' | 'legion' | 'ninja' | 'bomber' | 'magnet' | 'frost' | 'rider' | 'punk' | 'shield' | 'toxic' | 'bat' | 'troll';
 interface EnemyDef { hp: number; speed: number; reward: number; skin: number; cloth: number; size: number; weapon: 'club' | 'dagger' | 'axe' | 'hammer' | 'staff' | 'twin' | 'none' | 'rifle' | 'rocket' | 'torch'; armor: number; flying?: boolean; lives: number; label: string }
 export const ENEMY_DEFS: Record<EnemyType, EnemyDef> = {
   normal: { hp: 30, speed: 1.25, reward: 5, skin: 0x6abe4a, cloth: 0xd9433b, size: 0.55, weapon: 'club', armor: 0, lives: 1, label: 'Orc' },
@@ -94,7 +94,7 @@ export const ENEMY_DEFS: Record<EnemyType, EnemyDef> = {
   gunner: { hp: 55, speed: 0.95, reward: 14, skin: 0x5fa84a, cloth: 0x374151, size: 0.58, weapon: 'rifle', armor: 0, lives: 1, label: 'Orc Sniper' },
   jumper: { hp: 40, speed: 1.1, reward: 13, skin: 0x7bc95c, cloth: 0x0ea5e9, size: 0.55, weapon: 'rocket', armor: 0, lives: 1, label: 'Orc Pelontar' },
   log: { hp: 160, speed: 0.6, reward: 10, skin: 0x8b5a2b, cloth: 0x5c3a1a, size: 0.9, weapon: 'none', armor: 3, lives: 5, label: 'Gelondongan' },
-  balloon: { hp: 110, speed: 0.75, reward: 22, skin: 0x6abe4a, cloth: 0xef4444, size: 0.6, weapon: 'none', armor: 0, flying: true, lives: 2, label: 'Orc Balon' },
+  balloon: { hp: 130, speed: 0.72, reward: 24, skin: 0x6abe4a, cloth: 0xef4444, size: 0.85, weapon: 'none', armor: 0, flying: true, lives: 2, label: 'Orc Balon' },
   cannoneer: { hp: 90, speed: 0.8, reward: 20, skin: 0x5a9e45, cloth: 0x1e293b, size: 0.62, weapon: 'torch', armor: 2, lives: 2, label: 'Orc Meriam' },
   archer: { hp: 52, speed: 1.0, reward: 15, skin: 0x77c25a, cloth: 0x2f7d4f, size: 0.56, weapon: 'none', armor: 0, lives: 1, label: 'Orc Pemanah' },
   dread: { hp: 400, speed: 0.58, reward: 60, skin: 0x262633, cloth: 0x15151f, size: 0.92, weapon: 'none', armor: 5, lives: 3, label: 'Ksatria Kelam' },
@@ -104,8 +104,7 @@ export const ENEMY_DEFS: Record<EnemyType, EnemyDef> = {
   bomber: { hp: 65, speed: 1.85, reward: 18, skin: 0x65a30d, cloth: 0xb91c1c, size: 0.56, weapon: 'torch', armor: 0, lives: 2, label: 'Orc Dinamit' },
   magnet: { hp: 175, speed: 0.76, reward: 24, skin: 0x4b7c43, cloth: 0x1e3a8a, size: 0.72, weapon: 'hammer', armor: 5, lives: 2, label: 'Orc Magnet' },
   frost: { hp: 85, speed: 0.92, reward: 22, skin: 0x6ee7b7, cloth: 0x0284c7, size: 0.58, weapon: 'staff', armor: 1, lives: 2, label: 'Dukun Es' },
-  rider: { hp: 280, speed: 1.15, reward: 35, skin: 0x4d7c0f, cloth: 0x475569, size: 0.86, weapon: 'axe', armor: 6, lives: 3, label: 'Penunggang Badak' },
-  fatty: { hp: 240, speed: 0.78, reward: 28, skin: 0x5a8c42, cloth: 0x9a3412, size: 0.94, weapon: 'club', armor: 4, lives: 2, label: 'Orc Gendut Tongkat' },
+  rider: { hp: 280, speed: 1.8, reward: 35, skin: 0x4d7c0f, cloth: 0x475569, size: 0.86, weapon: 'axe', armor: 6, lives: 3, label: 'Penunggang Badak' },
   punk: { hp: 82, speed: 1.68, reward: 22, skin: 0x6da440, cloth: 0x18181b, size: 0.6, weapon: 'torch', armor: 1, lives: 2, label: 'Orc Punk Berapi' },
   shield: { hp: 165, speed: 0.74, reward: 24, skin: 0x4f8a3c, cloth: 0x334155, size: 0.76, weapon: 'axe', armor: 6, lives: 2, label: 'Orc Perisai Baja' },
   toxic: { hp: 92, speed: 1.05, reward: 22, skin: 0x65a30d, cloth: 0x14532d, size: 0.62, weapon: 'none', armor: 1, lives: 2, label: 'Orc Alkemis Racun' },
@@ -175,7 +174,7 @@ interface Tower {
   gravStage?: number;
 }
 interface EnemyShot { pos: THREE.Vector3; vel: THREE.Vector3; target: Tower; mesh: THREE.Object3D; life: number; dmg: number; kind: 'bullet' | 'cannonball' | 'arrow'; start?: THREE.Vector3; goal?: THREE.Vector3; t?: number }
-interface Projectile { kind: 'tracer' | 'mortar' | 'glob' | 'needle' | 'bee' | 'heart' | 'fireball' | 'meteor' | 'cannon_v2'; seed?: number; pos: THREE.Vector3; start: THREE.Vector3; t: number; target: Enemy; speed: number; dmg: number; mesh: THREE.Object3D; splash?: number; arc?: number; level: number }
+interface Projectile { kind: 'tracer' | 'mortar' | 'glob' | 'needle' | 'bee' | 'heart' | 'fireball' | 'meteor' | 'cannon_v2' | 'snowball'; seed?: number; pos: THREE.Vector3; start: THREE.Vector3; t: number; target: Enemy; speed: number; dmg: number; mesh: THREE.Object3D; splash?: number; arc?: number; level: number }
 interface TornadoFx { obj: THREE.Group; s: number; life: number; dmg: number; radius: number; spin: number }
 interface BurnFx { mesh: THREE.Mesh; pos: THREE.Vector3; r: number; dps: number; life: number; max: number }
 interface MeteorV2Fx { obj: THREE.Object3D; pos: THREE.Vector3; to: THREE.Vector3; t: number; dmg: number; splash: number }
@@ -217,9 +216,9 @@ export const MINDC = {
   find: [3.4, 4.0, 4.4],   // how far the victim looks for a friend to fight
 };
 /** how much of a spear poke's push an enemy type gets (1 = fully flung back) */
-const KNOCK_RESIST: Record<string, number> = { boss: 0.25, dread: 0.3, rider: 0.05, captain: 0.55, log: 0.5, magnet: 0.45, tank: 0.6, legion: 0.6, berserker: 0.8, cannoneer: 0.8, bomber: 0.9, ninja: 0.85, frost: 0.9, fatty: 0.35, punk: 0.8, shield: 0.2, toxic: 0.85, bat: 0.7, troll: 0.3 };
+const KNOCK_RESIST: Record<string, number> = { boss: 0.25, dread: 0.3, rider: 0.05, captain: 0.55, log: 0.5, magnet: 0.45, tank: 0.6, legion: 0.6, berserker: 0.8, cannoneer: 0.8, bomber: 0.9, ninja: 0.85, frost: 0.9, punk: 0.8, shield: 0.2, toxic: 0.85, bat: 0.7, troll: 0.3 };
 /** how hard a hallucinating orc of this type hits its friends (multiplied by the current wave strength) */
-const MIND_POWER: Record<string, number> = { normal: 9, fast: 5, baby: 3, tank: 20, shaman: 6, berserker: 15, gunner: 9, archer: 8, jumper: 8, cannoneer: 13, log: 12, balloon: 6, dragon: 32, captain: 22, legion: 15, dread: 38, boss: 48, ninja: 14, bomber: 20, magnet: 18, frost: 12, rider: 28, fatty: 26, punk: 18, shield: 16, toxic: 14, bat: 16, troll: 30 };
+const MIND_POWER: Record<string, number> = { normal: 9, fast: 5, baby: 3, tank: 20, shaman: 6, berserker: 15, gunner: 9, archer: 8, jumper: 8, cannoneer: 13, log: 12, balloon: 6, dragon: 32, captain: 22, legion: 15, dread: 38, boss: 48, ninja: 14, bomber: 20, magnet: 18, frost: 12, rider: 28, punk: 18, shield: 16, toxic: 14, bat: 16, troll: 30 };
 const RINGT = new THREE.TorusGeometry(1, 0.07, 6, 28), OCT_FX = new THREE.OctahedronGeometry(1);
 interface Hook { owner: number; e: Enemy; phase: 'fly' | 'pull'; t: number; mesh: THREE.Object3D; line: THREE.Mesh; pullFrom: number; pullTo: number; dur: number; dmg: number; resist: number; pull: number }
 interface Roll { owner: number; mesh: THREE.Group; phase: 'fly' | 'roll'; t: number; from: THREE.Vector3; to: THREE.Vector3; s: number; travelled: number; maxDist: number; hit: Set<number>; dmg: number; strike: number; last: THREE.Vector3 }
@@ -458,7 +457,7 @@ export class Game {
       const a = seen.get(t)!; let first = 0; for (let w = 1; w <= wpl; w++) if (a[w] * 2 >= SAMPLES) { first = w; break; }
       if (!first) for (let w = 1; w <= wpl; w++) if (a[w] > 0) { first = w; break; }
       const d = ENEMY_DEFS[t]; const info = ENEMY_INFO[t];
-      out.push({ type: t, name: d.label, icon: info.icon, note: info.note, bg: info.bg, count: Math.max(1, Math.round(sum / SAMPLES)), first, isNew: level > 1 && !earlier.has(t), flying: !!d.flying, armor: d.armor + Math.floor(level / 3), hp: Math.round(d.hp * Math.pow(1.4, level - 1)), boss: t === 'boss' || t === 'dread' || t === 'dragon' || t === 'troll' || t === 'fatty' });
+      out.push({ type: t, name: d.label, icon: info.icon, note: info.note, bg: info.bg, count: Math.max(1, Math.round(sum / SAMPLES)), first, isNew: level > 1 && !earlier.has(t), flying: !!d.flying, armor: d.armor + Math.floor(level / 3), hp: Math.round(d.hp * Math.pow(1.4, level - 1)), boss: t === 'boss' || t === 'dread' || t === 'dragon' || t === 'troll' });
     }
     out.sort((x, y) => x.first - y.first || x.hp - y.hp);
     this.rosterCache.set(level, out); return out;
@@ -508,7 +507,6 @@ export class Game {
     if (w >= 3 && (w % 2 === 0 || L >= 2)) { const nmag = Math.min(3, 1 + Math.floor((w + L - 2) / 4)); for (let i = 0; i < nmag; i++) q.splice(Math.floor(q.length * 0.4), 0, 'magnet'); }
     if ((w >= 3 && L >= 1) || L >= 2) { const nfr = Math.min(3, 1 + Math.floor((w + L - 2) / 4)); for (let i = 0; i < nfr; i++) q.splice(Math.floor(q.length * 0.6), 0, 'frost'); }
     if (w >= 4 || (L >= 2 && w >= 3) || (last && L >= 2)) { const nrd = Math.min(3, 1 + Math.floor((w + L - 3) / 4)); for (let i = 0; i < nrd; i++) q.splice(Math.floor(q.length * 0.25), 0, 'rider'); }
-    if (w >= 3 || L >= 2) { const nfat = Math.min(3, 1 + Math.floor((w + L - 2) / 4)); for (let i = 0; i < nfat; i++) q.splice(Math.floor(q.length * 0.3), 0, 'fatty'); }
     if (w >= 2 || L >= 2) { const npk = Math.min(4, 1 + Math.floor((w + L - 1) / 3)); for (let i = 0; i < npk; i++) q.splice(Math.floor(Math.random() * q.length), 0, 'punk'); }
     if (w >= 3 || L >= 2) { const nsh = Math.min(3, 1 + Math.floor((w + L - 2) / 4)); for (let i = 0; i < nsh; i++) q.splice(Math.floor(q.length * 0.2), 0, 'shield'); }
     if (w >= 3 || L >= 2) { const ntx = Math.min(3, 1 + Math.floor((w + L - 2) / 4)); for (let i = 0; i < ntx; i++) q.splice(Math.floor(Math.random() * q.length), 0, 'toxic'); }
@@ -521,7 +519,7 @@ export class Game {
     const s = this.state; const w = s.wave + 1; if (w > s.wavesPerLevel) return '';
     const q = this.composeWave(s.level, w, w === s.wavesPerLevel); const cnt: Partial<Record<EnemyType, number>> = {};
     q.forEach(t => (cnt[t] = (cnt[t] || 0) + 1));
-    const ic: Record<EnemyType, string> = { normal: '👹', fast: '👺', tank: '🛡️', shaman: '🔮', berserker: '🔥', dragon: '🐉', boss: '👑', baby: '👶', gunner: '🔫', jumper: '🚀', log: '🪵', balloon: '🎈', cannoneer: '💣', archer: '🏹', dread: '⚔️', captain: '🚩', legion: '🪖', ninja: '🥷', bomber: '🧨', magnet: '🧲', frost: '❄️', rider: '🦏', fatty: '🧌', punk: '🧑‍🎤', shield: '🛡️', toxic: '🧪', bat: '🦇', troll: '🧟' };
+    const ic: Record<EnemyType, string> = { normal: '👹', fast: '👺', tank: '🛡️', shaman: '🔮', berserker: '🔥', dragon: '🐉', boss: '👑', baby: '👶', gunner: '🔫', jumper: '🚀', log: '🪵', balloon: '🎈', cannoneer: '💣', archer: '🏹', dread: '⚔️', captain: '🚩', legion: '🪖', ninja: '🥷', bomber: '🧨', magnet: '🧲', frost: '❄️', rider: '🦏', punk: '🧑‍🎤', shield: '🛡️', toxic: '🧪', bat: '🦇', troll: '🧟' };
     return (Object.keys(cnt) as EnemyType[]).map(t => `${ic[t]}${cnt[t]}`).join(' ');
   }
   startWave() {
@@ -568,7 +566,7 @@ export class Game {
     const sp = new THREE.Vector3(); this.posAt(at, sp);
     this.particles.emit(sp.setY(0.4), 0x9b5cff, 6, 1.5, 0.12, 0.5);
     if (type === 'legion') { this.legionLane = -this.legionLane; e.lane = this.legionLane * 0.36; } // soldiers march in two files either side of the road centre
-    if (type === 'boss' || type === 'dragon') this.sfx.roar(type); else if (type === 'dread' || type === 'rider' || type === 'fatty' || type === 'troll') this.sfx.roar('boss'); else if (type === 'captain' || type === 'punk') this.sfx.warcry(); else this.sfx.spawn();
+    if (type === 'boss' || type === 'dragon') this.sfx.roar(type); else if (type === 'dread' || type === 'rider' || type === 'troll') this.sfx.roar('boss'); else if (type === 'captain' || type === 'punk') this.sfx.warcry(); else this.sfx.spawn();
     return e;
   }
 
@@ -1094,7 +1092,6 @@ export class Game {
     }
     if (e.type === 'boss' || e.type === 'dragon' || e.type === 'dread') { this.shake = 0.6; this.flash(center, e.type === 'dread' ? 0x5dff8c : 0xff5555, 6, 8); this.float(e.type === 'boss' ? 'BOSS KALAH!' : e.type === 'dragon' ? 'NAGA JATUH!' : 'KSATRIA KELAM TUMBANG!', center.clone().setY(2), '#f0abfc'); this.sfx.bossDie(); } else this.sfx.pop(e.type);
     if (e.type === 'rider') { this.shake = Math.max(this.shake, 0.4); this.float('BADAK TUMBANG! 🦏', center.clone().setY(1.8), '#e2e8f0'); }
-    if (e.type === 'fatty') { this.shake = Math.max(this.shake, 0.35); this.float('SI GENDUT TUMBANG! 🧌', center.clone().setY(1.8), '#fdba74'); }
     if (e.type === 'punk') { this.particles.emit(center, 0xef4444, 14, 2.2, 0.08, 0.5, 2.5); this.float('PUNK PADAM! 🔥', center.clone().setY(1.4), '#fca5a5'); }
     if (e.type === 'toxic') {
       const at = e.group.position.clone().setY(0.1);
@@ -1729,11 +1726,26 @@ export class Game {
       this.shake = Math.max(this.shake, 0.1); this.sfx.trap(); return;
     }
     if (t.type === 'frost') {
-      this.damage(target, st.dmg, { slow: true, hitPos: goal });
-      this.particles.emit(goal, 0xcffcff, 4, 1.2, 0.08, 0.5, 1.5, 4);
-      const shard = new THREE.Mesh(new THREE.OctahedronGeometry(0.08), mat(0xbff7ff, 0x3fc9e8, 0.3)); shard.position.copy(goal); this.scene.add(shard);
-      this.addDebris(shard, new THREE.Vector3((Math.random() - 0.5) * 2, 2 + Math.random() * 2, (Math.random() - 0.5) * 2), 0.9);
-      this.sfx.shoot('frost'); return;
+      const start = this.muzzleWorld(t);
+      const snowball = makeSnowball();
+      snowball.position.copy(start);
+      this.scene.add(snowball);
+      this.projectiles.push({
+        kind: 'snowball',
+        pos: start.clone(),
+        start,
+        t: 0,
+        target,
+        speed: 8.5,
+        dmg: st.dmg,
+        mesh: snowball,
+        level: t.level
+      });
+      this.kick(t, 1.0);
+      this.particles.emit(start, 0xffffff, 6, 1.4, 0.06, 0.35, 1.5, 0);
+      this.particles.emit(start, 0x7dd3fc, 3, 1.0, 0.05, 0.3, 1.2, 0);
+      this.sfx.shoot('frost');
+      return;
     }
     if (t.type === 'cannon') {
       const start = this.muzzleWorld(t);
@@ -2523,30 +2535,12 @@ export class Game {
             }
           }
         }
-        // rider: rhino mount heavy charge
+        // rider: rhino mount heavy charge (rapid gallop, immune to slow/stun, kick up charge dust)
         if (e.type === 'rider') {
           e.slowT = 0;
-          if (Math.random() < 0.2) {
-            this.particles.emit(e.group.position.clone().setY(0.05), 0x94a3b8, 1, 0.4, 0.06, 0.3, 0.5, 0);
-          }
-        }
-        // fatty: orc gendut dengan tongkat besar - hentakan tanah gempa
-        if (e.type === 'fatty' && !dazed && e.stunT <= 0 && (e.silenceT ?? 0) <= 0) {
-          e.slamCd = (e.slamCd ?? (2.0 + Math.random() * 2)) - dt;
-          if (e.slamCd <= 0) {
-            e.slamCd = 3.6 + Math.random();
-            const gp = e.group.position.clone();
-            this.ring(gp.clone().setY(0.08), 0xb45309, 0.3, 2.6, 0.5, RING, 0.85);
-            this.particles.emit(gp.clone().setY(0.2), 0xd97706, 14, 2.2, 0.09, 0.6, 2.8);
-            this.shake = Math.max(this.shake, 0.25);
-            this.float('HENTAKAN TONGKAT! 🧌', gp.clone().setY(1.8), '#fdba74');
-            this.sfx.boom();
-            for (const t of this.towers) {
-              if (t.dead) continue;
-              if (Math.hypot(t.group.position.x - gp.x, t.group.position.z - gp.z) <= 2.2) {
-                t.cooldown = Math.max(t.cooldown, 1.2);
-              }
-            }
+          e.stunT = 0;
+          if (Math.random() < 0.35) {
+            this.particles.emit(e.group.position.clone().setY(0.05), 0x94a3b8, 2, 0.6, 0.07, 0.35, 0.8, 0);
           }
         }
         // punk: orc rambut merah punk dengan tombak berapi - menusuk & membakar tower
@@ -2644,7 +2638,10 @@ export class Game {
             e.jumpT += dt * 0.55; const k = Math.min(1, e.jumpT);
             const p = e.jumpFrom.clone().lerp(e.jumpTo, k); p.y = Math.sin(k * Math.PI) * 4;
             e.group.position.copy(p); e.group.rotation.y = Math.atan2(e.jumpTo.x - e.jumpFrom.x, e.jumpTo.z - e.jumpFrom.z); e.group.rotation.x = (k - 0.5) * 1.2;
-            e.limbs.armL.rotation.x = -2.5; e.limbs.armR.rotation.x = -2.5; e.limbs.legL.rotation.x = 0.3; e.limbs.legR.rotation.x = -0.3;
+            if (e.limbs.armL) e.limbs.armL.rotation.x = -2.5;
+            if (e.limbs.armR) e.limbs.armR.rotation.x = -2.5;
+            if (e.limbs.legL) e.limbs.legL.rotation.x = 0.3;
+            if (e.limbs.legR) e.limbs.legR.rotation.x = -0.3;
             if (e.limbs.jet) { e.limbs.jet.visible = true; e.limbs.jet.children.forEach(f => flickerFlame(f, this.time * 1.6 + e.bobOff)); }
             this.particles.emit(p.clone().add(new THREE.Vector3(0, -0.1, 0)), 0xd1d5db, 2, 0.3, 0.08, 0.6, -0.5, -1); if (Math.random() < 0.6) this.particles.emit(p, 0xf59e0b, 1, 0.3, 0.06, 0.2, 0, 0);
             if (k >= 1) { if (e.limbs.jet) e.limbs.jet.visible = false; e.jumpState = 'done'; e.s = e.jumpS; e.group.rotation.x = 0; e.stunT = 0.6; this.particles.emit(e.jumpTo.clone().setY(0.1), 0xcdb98a, 14, 2.5, 0.1, 0.6, 3); this.ring(e.jumpTo.clone().setY(0.07), 0xffffff, 0.2, 1.4, 0.3); this.shake = Math.max(this.shake, 0.12); }
@@ -2699,28 +2696,50 @@ export class Game {
           const rt = Math.max(0, e.hp / e.maxHp);
           e.group.position.set(tmp.x, 1.3 + Math.sin(this.time * 1.5 + e.bobOff) * 0.2 - (1 - rt) * 0.3, tmp.z);
           const jig = 1 + Math.max(0, e.flashT) * 0.9;
-          e.limbs.balloon.scale.set(jig, jig * (0.8 + 0.2 * rt), jig);
-          e.limbs.balloon.rotation.z = Math.sin(this.time * 1.2 + e.bobOff) * (0.04 + (1 - rt) * 0.05); e.limbs.balloon.rotation.x = Math.sin(this.time * 0.9 + e.bobOff) * 0.03;
+          if (e.limbs.balloon) {
+            e.limbs.balloon.scale.set(jig, jig * (0.8 + 0.2 * rt), jig);
+            e.limbs.balloon.rotation.z = Math.sin(this.time * 1.2 + e.bobOff) * (0.04 + (1 - rt) * 0.05);
+            e.limbs.balloon.rotation.x = Math.sin(this.time * 0.9 + e.bobOff) * 0.03;
+          }
           if (rt < 0.5 && Math.random() < 0.2) this.particles.emit(e.group.position.clone().add(new THREE.Vector3((Math.random() - 0.5) * 0.5, 4.1 * e.size, (Math.random() - 0.5) * 0.5)), 0x9ca3af, 1, 0.4, 0.1, 0.8, 1.2, -0.5);
-          const burner = e.limbs.balloon.getObjectByName('burner');
+          const burner = e.limbs.balloon?.getObjectByName('burner');
           if (burner) { const on = Math.sin(this.time * 2 + e.bobOff) > 0.3; flickerFlame(burner, this.time + e.bobOff, on ? 1.15 : 0.3); if (on && Math.random() < 0.3) this.particles.emit(e.group.position.clone().add(new THREE.Vector3(0, 1.72 * e.size, 0)), 0xffb020, 1, 0.3, 0.05, 0.3, 2, -2); }
-          if (aimAt) { const wa = Math.atan2(aimAt.group.position.x - tmp.x, aimAt.group.position.z - tmp.z); e.limbs.gun.rotation.y = wa - e.group.rotation.y; e.limbs.gun.rotation.x = 0.5; e.limbs.head.rotation.y = e.limbs.gun.rotation.y; }
-          else { e.limbs.gun.rotation.x = 0; e.limbs.head.rotation.y = 0; }
+          if (aimAt) {
+            const wa = Math.atan2(aimAt.group.position.x - tmp.x, aimAt.group.position.z - tmp.z);
+            if (e.limbs.gun) { e.limbs.gun.rotation.y = wa - e.group.rotation.y; e.limbs.gun.rotation.x = 0.5; }
+            if (e.limbs.head) e.limbs.head.rotation.y = e.limbs.gun ? e.limbs.gun.rotation.y : 0;
+          } else {
+            if (e.limbs.gun) e.limbs.gun.rotation.x = 0;
+            if (e.limbs.head) e.limbs.head.rotation.y = 0;
+          }
         } else if (e.flying) {
           e.group.position.set(tmp.x, 1.5 + Math.sin(this.time * 3 + e.bobOff) * 0.15, tmp.z);
-          const fl = Math.sin(this.time * 9 + e.bobOff) * 0.6; e.limbs.wingL.rotation.z = fl; e.limbs.wingR.rotation.z = -fl; e.limbs.tail.rotation.y = Math.sin(this.time * 4) * 0.3; e.limbs.head.rotation.x = Math.sin(this.time * 2) * 0.1;
+          const fl = Math.sin(this.time * 9 + e.bobOff) * 0.6;
+          if (e.limbs.wingL) e.limbs.wingL.rotation.z = fl;
+          if (e.limbs.wingR) e.limbs.wingR.rotation.z = -fl;
+          if (e.limbs.tail) e.limbs.tail.rotation.y = Math.sin(this.time * 4) * 0.3;
+          if (e.limbs.head) e.limbs.head.rotation.x = Math.sin(this.time * 2) * 0.1;
+          if (e.type === 'bat') poseOrc('bat', e.limbs, ph);
           e.group.rotation.z = Math.sin(this.time * 2 + e.bobOff) * 0.08;
         } else if (e.type === 'cannoneer' && e.cannonPhase !== 'walk') {
-          e.group.position.set(tmp.x, 0, tmp.z); e.limbs.legL.rotation.x = 0; e.limbs.legR.rotation.x = 0;
+          e.group.position.set(tmp.x, 0, tmp.z);
+          if (e.limbs.legL) e.limbs.legL.rotation.x = 0;
+          if (e.limbs.legR) e.limbs.legR.rotation.x = 0;
         } else if (e.type === 'log') {
-          e.group.position.set(tmp.x, 0, tmp.z); e.limbs.roll.rotation.x += sp * dt / (0.5 * e.size);
+          e.group.position.set(tmp.x, 0, tmp.z);
+          if (e.limbs.roll) e.limbs.roll.rotation.x += sp * dt / (0.5 * e.size);
           if (sp > 0 && Math.random() < 0.3) this.particles.emit(tmp.clone().setY(0.05), 0xcdb98a, 1, 0.8, 0.07, 0.6, 1.2);
         } else {
           // cute hop-waddle: bouncy steps, swaying body, swinging arms, flapping ears (see poseOrc)
           e.group.position.set(tmp.x, Math.abs(Math.sin(ph)) * (e.type === 'baby' ? 0.14 : 0.08), tmp.z); e.group.rotation.z = Math.sin(ph) * 0.06;
           if (isElite(e.type)) { poseElite(e.type, e.limbs, ph, this.time); this.eliteAttackPose(e, dt); } else poseOrc(e.type as OrcKind, e.limbs, ph);
-          if (e.type === 'gunner') { if (aimAt) { const wa = Math.atan2(aimAt.group.position.x - tmp.x, aimAt.group.position.z - tmp.z); e.limbs.head.rotation.y = Math.atan2(Math.sin(wa - e.group.rotation.y), Math.cos(wa - e.group.rotation.y)) * 0.8; } else e.limbs.head.rotation.y = 0; }
-          if (e.type === 'cannoneer') { e.limbs.cannon.rotation.x = Math.sin(ph) * 0.03; e.limbs.cannon.position.z = -0.95; }
+          if (e.type === 'gunner') {
+            if (aimAt) {
+              const wa = Math.atan2(aimAt.group.position.x - tmp.x, aimAt.group.position.z - tmp.z);
+              if (e.limbs.head) e.limbs.head.rotation.y = Math.atan2(Math.sin(wa - e.group.rotation.y), Math.cos(wa - e.group.rotation.y)) * 0.8;
+            } else if (e.limbs.head) e.limbs.head.rotation.y = 0;
+          }
+          if (e.type === 'cannoneer' && e.limbs.cannon) { e.limbs.cannon.rotation.x = Math.sin(ph) * 0.03; e.limbs.cannon.position.z = -0.95; }
         }
         if (!(e.type === 'cannoneer' && e.cannonPhase !== 'walk') && !(isElite(e.type) && e.atkTarget && e.atkPhase && e.atkPhase !== 'walk')) e.group.rotation.y = Math.atan2(tmp2.x - tmp.x, tmp2.z - tmp.z) + ((e.mindT ?? 0) > 0 && e.yawFlip ? Math.PI : 0);
         if ((e.cycloneLiftT ?? 0) > 0) {
@@ -3134,6 +3153,40 @@ export class Game {
         }
         const goal = this.enemyCenter(p.target);
         this.curSrc = p.start; // where the blow came from (used by the death ragdoll)
+        if (p.kind === 'snowball') {
+          if (p.target.dead) {
+            let best: Enemy | null = null, bd = 3.5;
+            for (const e of this.enemies) { if (e.dead) continue; const d = e.group.position.distanceTo(p.pos); if (d < bd) { bd = d; best = e; } }
+            if (!best) { this.scene.remove(p.mesh); this.particles.emit(p.pos, 0xffffff, 4, 1.0, 0.05, 0.3, 1); return false; }
+            p.target = best;
+          }
+          const gl = this.enemyCenter(p.target); dir.subVectors(gl, p.pos); const dist2 = dir.length(); const step2 = p.speed * dt;
+          if (dist2 <= step2 + 0.22) {
+            this.scene.remove(p.mesh);
+            this.particles.emit(gl, 0xffffff, 14, 2.2, 0.08, 0.45, 2.4, 0);
+            this.particles.emit(gl, 0xbae6fd, 8, 1.8, 0.07, 0.4, 2.0, 0);
+            this.particles.emit(gl, 0x38bdf8, 5, 1.4, 0.06, 0.35, 1.5, 0);
+            this.ring(gl.clone().setY(Math.max(0.08, gl.y - 0.2)), 0x38bdf8, 0.15, 0.9, 0.25, RING, 0.9);
+            this.damage(p.target, p.dmg, { slow: true, hitPos: gl });
+            if (!p.target.dead && p.target.type !== 'rider') {
+              p.target.slowT = Math.max(p.target.slowT, 2.5 + 0.5 * p.level);
+              this.float(`❄️ SLOW! -${p.dmg}`, gl.clone().setY(gl.y + 0.6), '#7dd3fc');
+            } else if (!p.target.dead) {
+              this.float(`❄️ -${p.dmg}`, gl.clone().setY(gl.y + 0.6), '#7dd3fc');
+            }
+            const shard = new THREE.Mesh(new THREE.OctahedronGeometry(0.08), mat(0xbff7ff, 0x3fc9e8, 0.3));
+            shard.position.copy(gl); this.scene.add(shard);
+            this.addDebris(shard, new THREE.Vector3((Math.random() - 0.5) * 2, 2 + Math.random() * 2, (Math.random() - 0.5) * 2), 0.9);
+            this.sfx.freeze();
+            return false;
+          }
+          p.pos.addScaledVector(dir.normalize(), step2);
+          p.mesh.position.copy(p.pos);
+          p.mesh.lookAt(gl);
+          p.mesh.rotation.z += dt * 9;
+          if (Math.random() < 0.65) this.particles.emit(p.pos, 0xffffff, 1, 0.35, 0.045, 0.25, 0.4, 0);
+          return true;
+        }
         if (p.kind === 'needle' || p.kind === 'bee' || p.kind === 'heart') {
           if (p.target.dead) { // bees look for a new victim nearby, needles just vanish
             let best: Enemy | null = null, bd = 3.5;

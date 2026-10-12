@@ -596,19 +596,19 @@ function buildMenuAirship(): { group: THREE.Group; size: number } {
   const steel = M(0x94a3b8, 0.18, 0.35);
   const gold = M(0xfbbf24, 0.25, 0.35);
 
-  // Blimp envelope (oriented along X axis, flying toward the right/center, scaled 1.6x)
+  // Blimp envelope (oriented along X axis, flying toward the right/center, widened horizontally)
   const env = new THREE.Group();
   env.position.y = 1.65;
-  env.scale.setScalar(1.6);
-  env.add(S(0.95, red, 0, 0, 0, { sx: 1.65, sy: 0.96, sz: 0.96, ol: true, cast: true }));
+  env.scale.setScalar(2.0);
+  env.add(S(0.95, red, 0, 0, 0, { sx: 1.65, sy: 0.9, sz: 1.42, ol: true, cast: true }));
   // Cream nose cap & tail stripe
-  env.add(S(0.55, cream, 1.18, 0, 0, { sx: 0.85, sy: 0.74, sz: 0.74, ol: true }));
-  env.add(cyl(0.68, 0.54, 0.32, cream, -1.05, 0, 0, { rz: Math.PI / 2, seg: 20, ol: true }));
+  env.add(S(0.55, cream, 1.18, 0, 0, { sx: 0.85, sy: 0.7, sz: 1.1, ol: true }));
+  env.add(cyl(0.72, 0.54, 0.32, cream, -1.05, 0, 0, { rz: Math.PI / 2, seg: 20, ol: true }));
   env.add(S(0.14, gold, 1.62, 0, 0, { ol: true }));
 
   // White skull emblem on the side of the red envelope
   const skull = new THREE.Group();
-  skull.position.set(0.22, 0.04, 0.88);
+  skull.position.set(0.22, 0.04, 1.25);
   skull.rotation.y = 0.12;
   skull.add(S(0.28, cream, 0, 0.06, 0, { sx: 1.05, sy: 1.0, sz: 0.28, ol: true }));
   skull.add(box(0.26, 0.16, 0.08, cream, 0, -0.16, 0, { ol: true }));
@@ -632,9 +632,9 @@ function buildMenuAirship(): { group: THREE.Group; size: number } {
   env.add(box(0.48, 0.42, 0.08, darkRed, -1.22, 0.62, 0, { rz: 0.35, ol: true }));
   root.add(env);
 
-  // Suspension ropes connecting 1.6x envelope to wooden ship gondola
+  // Suspension ropes connecting envelope to wooden ship gondola
   for (const rx of [-0.75, 0, 0.75]) {
-    for (const rz of [-0.36, 0.36]) {
+    for (const rz of [-0.48, 0.48]) {
       root.add(box(0.042, 1.35, 0.042, darkWood, rx, 0.45, rz, { rz: rx * -0.18 }));
     }
   }

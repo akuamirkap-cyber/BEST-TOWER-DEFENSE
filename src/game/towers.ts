@@ -18,8 +18,8 @@ export interface IdleArc { bolt: Bolt; a: THREE.Vector3; b: THREE.Vector3; t: nu
 /** muzzle position in head-local space (y = height, f = forward distance) – used for projectiles / beams */
 /** x = sideways offset (+ = the tower's right) for weapons held to one side (Amor's bow, Froggy's rod, Pino's ball) */
 export const MUZZLE: Record<TowerType, { y: number; f: number; x?: number }> = {
-  cannon: { y: 0.26, f: 0.84 }, frost: { y: 1.08, f: 0 }, blaster: { y: 1.19, f: 0.34 }, tesla: { y: 1.36, f: 0 },
-  sniper: { y: 0.42, f: 1.16 }, poison: { y: 0.74, f: 0.04 }, banner: { y: 0.6, f: 0 }, flame: { y: 0.23, f: 0.8 },
+  cannon: { y: 0.26, f: 0.84 }, frost: { y: 1.08, f: 0.2 }, blaster: { y: 1.19, f: 0.34 }, tesla: { y: 1.36, f: 0 },
+  sniper: { y: 0.42, f: 1.16 }, poison: { y: 0.74, f: 0.04 }, banner: { y: 0.6, f: 0 }, flame: { y: 0.22, f: 0.88 },
   trap: { y: 0.2, f: 0 }, repair: { y: 0.6, f: 0 }, shield: { y: 0.5, f: 0 }, plasma: { y: 0.2, f: 0.88 },
   piggy: { y: 0.6, f: 0 }, wind: { y: 0.4, f: 0 }, boomer: { y: 1.0, f: 0 }, mine: { y: 0.3, f: 0 },
   cactus: { y: 0.6, f: 0.36 }, hive: { y: 0.2, f: 0.4 }, golem: { y: 0.5, f: 0 }, clock: { y: 0.5, f: 0 },
@@ -184,8 +184,7 @@ export function buildTowerModel(type: TowerType, level: number, def: { color: nu
     const crystal = shard(0.17, def.color, 0.7); crystal.scale.set(0.8, 1.45, 0.8); crystal.position.y = 1.08; crystal.name = 'spin'; head.add(crystal);
     for (let i = 0; i < 4; i++) { const s = shard(0.06, 0xe0ffff, 0.8); s.name = 'orbit' + i; s.userData = { r: 0.3, y: 1.08, n: 4, spd: 2.2 }; head.add(s); }
     face = makeFace({ r: 0.1, gap: 0.1, iris: 0x0ea5e9, skin: 0xf6fdff, mouth: 'none', body: { R: R2, cy: c2, y0: 0.72 } });
-    beam = new THREE.Mesh(BOX, new THREE.MeshBasicMaterial({ color: 0xe0ffff, transparent: true, opacity: 0.9 })); beam.visible = false;
-    beamGlow = new THREE.Mesh(BOX, new THREE.MeshBasicMaterial({ color: 0x3fc9e8, transparent: true, opacity: 0.3 })); beamGlow.visible = false;
+    muzzle = makeBlast(0.48, 0xffffff, 0xbbf2f6, 0x38bdf8); muzzle.position.set(0, 1.08, 0.2); head.add(muzzle);
   } else if (type === 'blaster') {
     // "Boomy": squat orange bomb-buddy wearing a belt, mortar tube as a chimney hat with a lit fuse
     const R = 0.42, cy = 0.38, sy = 0.88;
@@ -530,18 +529,76 @@ export function buildTowerModel(type: TowerType, level: number, def: { color: nu
     for (let i = 0; i < 3; i++) { const st = shard(0.055, 0xfde047, 1.0); st.name = 'orbit' + i; st.userData = { r: 0.58, y: 0.55, n: 3, spd: 1.8 }; head.add(st); }
     face = makeFace({ r: 0.125, gap: 0.15, iris: 0xc026d3, skin: def.color, mouth: 'smile', bias: 0.15, body: { R, cy, y0: 0.46 } });
   } else if (type === 'flame') {
-    // "Blaze": fiery imp with a flame mohawk, permanently determined eyes and a flamethrower snout
+    // "Blaze": fiery imp with flame mohawk, twin fuel canisters on back, and an authentic flamethrower nozzle snout
     const R = 0.37, cy = 0.38;
     head.add(S(R, def.color, 0, cy, 0));
     head.add(S(0.2, 0xfde68a, 0, 0.22, 0.27, { sy: 0.8, sz: 0.5, ol: false }));
     const tuft = makeFlame(0.42); tuft.position.set(0, 0.72, -0.02); head.add(tuft); flames.push(tuft);
     for (const sd of [-1, 1]) { const t2 = makeFlame(0.24); t2.position.set(sd * 0.15, 0.7, -0.04); head.add(t2); flames.push(t2); }
-    head.add(C(0.085, 0.13, 0.42, 0x374151, 0, 0.22, 0.5, 12).rotateX(Math.PI / 2));
-    head.add(C(0.16, 0.16, 0.06, 0x9a3412, 0, 0.22, 0.72, 12).rotateX(Math.PI / 2));
-    const pilot = makeFlame(0.1); pilot.position.set(0, 0.3, 0.74); pilot.name = 'pilot'; head.add(pilot); flames.push(pilot);
     const tail = cone(0.1, 0.34, def.accent, 0, 0.2, -0.45); tail.rotation.x = -Math.PI / 2; head.add(tail);
+
+    // Twin pressurized fuel canisters strapped to the imp's back
+    const canisterCol = 0xdc2626;
+    for (const sd of [-1, 1]) {
+      head.add(C(0.09, 0.09, 0.36, canisterCol, sd * 0.13, 0.38, -0.36, 12, { ol: true }));
+      head.add(C(0.045, 0.045, 0.06, 0xd97706, sd * 0.13, 0.57, -0.36, 8)); // brass valve cap
+      head.add(B(0.03, 0.07, 0.02, 0x475569, sd * 0.13, 0.61, -0.36)); // valve tap key
+    }
+    // harness bracket & pressure gauge
+    head.add(B(0.36, 0.06, 0.06, 0x1e293b, 0, 0.38, -0.34, { ol: true }));
+    const gauge = C(0.05, 0.05, 0.025, 0xfffbeb, 0, 0.5, -0.38, 12, { ol: true });
+    gauge.rotation.x = Math.PI / 2; head.add(gauge);
+    head.add(B(0.012, 0.035, 0.01, 0xef4444, 0, 0.51, -0.395)); // red meter needle
+
+    // --- Flamethrower Nozzle Assembly ("Moncong Flamethrower") ---
+    // 1. Heavy receiver collar & mounting manifold
+    head.add(C(0.13, 0.145, 0.14, 0x1f242d, 0, 0.22, 0.36, 14).rotateX(Math.PI / 2));
+    head.add(C(0.148, 0.148, 0.04, 0xd97706, 0, 0.22, 0.42, 14, { glow: 0.2 }).rotateX(Math.PI / 2));
+
+    // 2. Main inner flame combustion tube
+    head.add(C(0.08, 0.088, 0.54, 0x1f242d, 0, 0.22, 0.62, 14).rotateX(Math.PI / 2));
+
+    // 3. Perforated ventilated heat shroud (barrel cooling jacket)
+    head.add(C(0.115, 0.115, 0.32, 0x334155, 0, 0.22, 0.57, 14, { glow: 0.06 }).rotateX(Math.PI / 2));
+    // Cooling collar rings with dark metal fittings
+    head.add(C(0.125, 0.125, 0.03, 0x0f172a, 0, 0.22, 0.45, 14).rotateX(Math.PI / 2));
+    head.add(C(0.125, 0.125, 0.03, 0x0f172a, 0, 0.22, 0.69, 14).rotateX(Math.PI / 2));
+    // Longitudinal ventilation slots/perforations along the shroud
+    for (let k = 0; k < 4; k++) {
+      const a = (k * Math.PI) / 2;
+      const vx = Math.cos(a) * 0.116, vy = 0.22 + Math.sin(a) * 0.116;
+      const vent = B(0.026, 0.026, 0.22, 0x090d16, vx, vy, 0.57);
+      vent.rotation.z = a;
+      head.add(vent);
+    }
+
+    // 4. Flared conical burner nozzle (moncong corong pemancar api)
+    head.add(C(0.145, 0.105, 0.12, 0x1e293b, 0, 0.22, 0.77, 14).rotateX(Math.PI / 2));
+    // Heavy heat-scorched brass muzzle crown ring
+    head.add(C(0.155, 0.155, 0.04, 0xb45309, 0, 0.22, 0.83, 14, { glow: 0.25 }).rotateX(Math.PI / 2));
+    // Inner burner cavity orifice
+    head.add(C(0.085, 0.085, 0.02, 0x09090b, 0, 0.22, 0.852, 14, { ol: false }).rotateX(Math.PI / 2));
+    // Scorched burner lip glow ring
+    head.add(tor(0.138, 0.016, 0xf97316, 0, 0.22, 0.84, { glow: 0.45 }));
+
+    // 5. Over-barrel pilot igniter pipe & flickering pilot light
+    head.add(C(0.022, 0.022, 0.44, 0xd97706, 0, 0.335, 0.63, 8).rotateX(Math.PI / 2));
+    // Igniter mounting brackets
+    head.add(B(0.04, 0.09, 0.035, 0x475569, 0, 0.28, 0.49));
+    head.add(B(0.04, 0.09, 0.035, 0x475569, 0, 0.28, 0.71));
+    // Pilot burner cup & spark electrode
+    head.add(C(0.038, 0.024, 0.06, 0x9a3412, 0, 0.335, 0.84, 8).rotateX(Math.PI / 2));
+    head.add(B(0.014, 0.035, 0.014, 0xfacc15, 0, 0.365, 0.85, { lit: true }));
+    const pilot = makeFlame(0.12); pilot.position.set(0, 0.365, 0.86); pilot.name = 'pilot'; head.add(pilot); flames.push(pilot);
+
+    // 6. Fuel feeder pipe & valve tap
+    head.add(C(0.026, 0.026, 0.22, 0xd97706, 0, 0.13, 0.46, 8)); // pipe from below
+    const valve = C(0.048, 0.048, 0.024, 0xdc2626, 0.14, 0.22, 0.46, 8); // red valve wheel on side
+    valve.rotation.z = Math.PI / 2; head.add(valve);
+    head.add(B(0.024, 0.075, 0.02, 0xffffff, 0.155, 0.22, 0.46)); // valve bar
+
     face = makeFace({ r: 0.125, gap: 0.15, iris: 0x7c2d12, skin: def.color, mouth: 'grin', bias: 0.4, body: { R, cy, y0: 0.52 } });
-    muzzle = makeBlast(0.6, 0xfff3b0, 0xff9a1f, 0xff4a14); muzzle.position.set(0, 0.23, 0.78); head.add(muzzle);
+    muzzle = makeBlast(0.65, 0xfff3b0, 0xff9a1f, 0xff4a14); muzzle.position.set(0, 0.22, 0.88); head.add(muzzle);
   } else if (type === 'trap') {
     // "Chompy": toothy flytrap monster – googly eyes on stalks peek between jaws; jaws slam shut on orcs
     head.add(C(0.42, 0.46, 0.08, 0x57534e, 0, 0.04, 0, 14));

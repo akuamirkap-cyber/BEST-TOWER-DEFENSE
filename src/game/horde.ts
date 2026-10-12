@@ -24,10 +24,10 @@ const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 function mulberry32(a: number) { return () => { a |= 0; a = (a + 0x6d2b79f5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
 
 /** how many figures to show of each type (the real counts are shown as ×N on the chips) */
-const CAP: Record<string, number> = { normal: 9, baby: 3, fast: 3, tank: 3, berserker: 3, legion: 4, captain: 1, dread: 2, archer: 3, gunner: 2, cannoneer: 2, jumper: 2, shaman: 2, boss: 1, log: 1, balloon: 2, dragon: 2, ninja: 2, bomber: 2, magnet: 2, frost: 2, rider: 2, fatty: 2, punk: 2, shield: 2, toxic: 2, bat: 2, troll: 2 };
+const CAP: Record<string, number> = { normal: 9, baby: 3, fast: 3, tank: 3, berserker: 3, legion: 4, captain: 1, dread: 2, archer: 3, gunner: 2, cannoneer: 2, jumper: 2, shaman: 2, boss: 1, log: 1, balloon: 2, dragon: 2, ninja: 2, bomber: 2, magnet: 2, frost: 2, rider: 2, punk: 2, shield: 2, toxic: 2, bat: 2, troll: 2 };
 const DIV: Record<string, number> = { normal: 5, legion: 2 };
 const MAX_FIGS = 36;
-const CHEER = new Set(['normal', 'fast', 'baby', 'tank', 'berserker', 'captain', 'legion', 'boss', 'shaman', 'ninja', 'bomber', 'magnet', 'frost', 'rider', 'fatty', 'punk', 'shield', 'toxic', 'troll']);
+const CHEER = new Set(['normal', 'fast', 'baby', 'tank', 'berserker', 'captain', 'legion', 'boss', 'shaman', 'ninja', 'bomber', 'magnet', 'frost', 'rider', 'punk', 'shield', 'toxic', 'troll']);
 const BOTH_ARMS = new Set(['normal', 'fast', 'baby', 'tank', 'berserker', 'ninja', 'punk']);
 
 /** where each role stands: x = distance behind the front line (negative = further back, positive = out in front), z = sideways spread */
@@ -43,7 +43,6 @@ const ZONES: Record<string, Zone> = {
   dread: { x: [-0.3, -1.0], z: [2.3, 3.5], flank: true },
   captain: { x: [-0.4, -0.7], z: [0, 0.5] },
   legion: { x: [-1.6, -3.4], z: [0, 1.5] },
-  fatty: { x: [-1.2, -2.6], z: [1.2, 3.4], flank: true },
   troll: { x: [-1.5, -3.2], z: [2.0, 4.2], flank: true },
   rider: { x: [-1.3, -2.8], z: [1.5, 3.6], flank: true },
   magnet: { x: [-1.0, -2.2], z: [1.3, 3.2], flank: true },
@@ -59,7 +58,7 @@ const ZONES: Record<string, Zone> = {
   shaman: { x: [-4.4, -5.8], z: [0.3, 1.8], flank: true },
   boss: { x: [-7.2, -7.2], z: [0, 0] },
   bat: { x: [-2.0, -5.0], z: [1.8, 4.0], flank: true, y: 1.35 },
-  balloon: { x: [-3.8, -6.2], z: [1.6, 3.9], flank: true, y: 1.45 },
+  balloon: { x: [-3.8, -6.2], z: [1.6, 3.9], flank: true, y: 1.6 },
   dragon: { x: [-2.4, -5.4], z: [2.6, 4.4], flank: true, y: 1.65 },
 };
 
@@ -152,7 +151,7 @@ export class HordeView {
       let model: PreviewModel; try { model = build(r.type); } catch { continue; }
       const root = new THREE.Group(); root.add(model.group); root.userData.etype = r.type; this.scene.add(root);
       const fly = model.flying; const size = model.size;
-      const rad = fly ? (r.type === 'dragon' ? 1.15 : 0.9) : r.type === 'log' ? 0.85 : 0.28 + size * 0.42;
+      const rad = fly ? (r.type === 'dragon' ? 1.15 : r.type === 'balloon' ? 1.2 : 0.9) : r.type === 'log' ? 0.85 : 0.28 + size * 0.42;
       const shadow = new THREE.Mesh(this.shadowGeo, this.shadowMat); shadow.scale.setScalar(rad * (fly ? 1.0 : 1.25)); shadow.renderOrder = -1; this.scene.add(shadow);
       const ring = new THREE.Mesh(this.ringGeo, this.ringMat); ring.scale.setScalar(rad * 2.1); ring.renderOrder = -1; ring.visible = false; this.scene.add(ring);
       this.figs.push({ type: r.type, model, root, shadow, ring, r: rad, fly, seed: srand() * 50, headY0: model.limbs.head ? model.limbs.head.position.y : 0, tx: 0, tz: 0, x: 0, z: 0, y: 0, yaw: 0 });

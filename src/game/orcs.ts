@@ -6,7 +6,7 @@ import { BOX, SPH, OUTLINE_MAT, makeFace, makeFlame, makeBlast } from './voxel';
  * thick dark outline, big floppy ears, little tusks – and the SAME glossy blinking eyes as the towers.
  * No red eyes anywhere: every orc has its own warm/cool iris colour.
  */
-export type OrcKind = 'normal' | 'fast' | 'tank' | 'shaman' | 'berserker' | 'boss' | 'baby' | 'gunner' | 'jumper' | 'cannoneer' | 'ninja' | 'bomber' | 'magnet' | 'frost' | 'rider' | 'fatty' | 'punk' | 'shield' | 'toxic' | 'bat' | 'troll';
+export type OrcKind = 'normal' | 'fast' | 'tank' | 'shaman' | 'berserker' | 'boss' | 'baby' | 'gunner' | 'jumper' | 'cannoneer' | 'ninja' | 'bomber' | 'magnet' | 'frost' | 'rider' | 'punk' | 'shield' | 'toxic' | 'bat' | 'troll';
 type Limbs = Record<string, THREE.Group>;
 interface Def { skin: number; cloth: number }
 export interface OrcBuild { parts: THREE.Object3D[]; limbs: Limbs; skinMats: THREE.MeshStandardMaterial[]; hpY: number }
@@ -92,7 +92,6 @@ const CFG: Record<OrcKind, Cfg> = {
   magnet: { ...N, bodyS: 1.28, bodyY: 0.65, headY: 1.15, armX: 0.42, armY: 0.8, eye: 0.118, iris: 0x3b82f6, bias: 0.35, ears: 0.9, tusk: 1.3, brows: 0x1e293b, hpY: 2.25 },
   frost: { ...N, legH: 0.3, bodyS: 0.95, bodyY: 0.55, headY: 1.02, armX: 0.29, armY: 0.68, eye: 0.13, iris: 0x06b6d4, ears: 1.1, tusk: 0.7, brows: 0x0e7490, hpY: 2.05 },
   rider: { ...N, bodyS: 1.25, bodyY: 0.75, headY: 1.3, armX: 0.4, armY: 0.92, eye: 0.12, iris: 0xeab308, bias: 0.3, ears: 1.0, tusk: 1.4, brows: 0x334155, hpY: 2.45 },
-  fatty: { ...N, legH: 0.32, bodyS: 1.45, bodyY: 0.68, headS: 1.15, headY: 1.22, armX: 0.46, armY: 0.82, eye: 0.12, iris: 0xb45309, bias: 0.3, ears: 1.1, tusk: 1.3, brows: 0x451a03, hpY: 2.45 },
   punk: { ...N, bodyS: 0.94, bodyY: 0.58, headS: 1.0, headY: 1.06, armX: 0.3, armY: 0.72, eye: 0.13, iris: 0xdc2626, bias: 0.5, ears: 1.3, tusk: 1.1, brows: 0x991b1b, hpY: 2.15 },
   shield: { ...N, bodyS: 1.24, bodyY: 0.64, headY: 1.14, armX: 0.42, armY: 0.8, eye: 0.118, iris: 0x64748b, bias: 0.25, ears: 0.9, tusk: 1.1, brows: 0x1e293b, hpY: 2.25 },
   toxic: { ...N, bodyS: 0.96, bodyY: 0.57, headY: 1.05, armX: 0.3, armY: 0.72, eye: 0.13, iris: 0x16a34a, bias: 0.45, ears: 1.0, tusk: 0.8, brows: 0x14532d, hpY: 2.05 },
@@ -199,12 +198,6 @@ function orcHead(kind: OrcKind, def: Def, skinMat: THREE.MeshStandardMaterial, m
         head.add(domeMesh(M(0x475569), 0.45, 0.35, 0.43, 0, 0.27, 0));
         head.add(tor(0.44, 0.035, gold, 0, 0.27, 0, { rx: Math.PI / 2 }));
         for (const sd of [-1, 1]) head.add(cone(0.08, 0.34, M(0xf1f5f9), sd * 0.38, 0.38, 0, { rz: -sd * 0.8, ol: true }));
-        break;
-      case 'fatty': // tribal leather skull band with beast teeth & big cheeks
-        head.add(tor(0.35, 0.045, M(0x78350f), 0, 0.3, 0, { rx: Math.PI / 2 }));
-        for (let i = -2; i <= 2; i++) head.add(cone(0.035, 0.12, M(0xfff7ed), i * 0.1, 0.36, 0.34, { rx: 0.2, ol: true }));
-        head.add(S(0.12, skinMat, -0.22, -0.15, 0.24, { sx: 1.2, sy: 0.8 }));
-        head.add(S(0.12, skinMat, 0.22, -0.15, 0.24, { sx: 1.2, sy: 0.8 }));
         break;
       case 'punk': { // tall spiky crimson-red punk mohawk + studded ear piercings
         const punkRed = M(0xef4444, 0.3);
@@ -422,11 +415,6 @@ export function buildOrc(kind: OrcKind, def: Def): OrcBuild {
   } else if (kind === 'frost') { // frost robe with icy hem
     body.add(cyl(0.24 * bs, 0.41 * bs, 0.52, M(0x0284c7, 0.15), 0, -0.17, 0, { ol: true, cast: true }));
     body.add(tor(0.41 * bs, 0.03, M(0xbae6fd), 0, -0.41, 0, { rx: Math.PI / 2 }));
-  } else if (kind === 'fatty') { // giant potbelly, wide skull buckle belt
-    body.add(S(0.38 * bs, skinMat, 0, -0.04 * bs, 0.24 * bs, { sx: 1.25, sy: 1.1, sz: 1.15, ol: true, cast: true }));
-    body.add(cyl(0.36 * bs, 0.46 * bs, 0.24 * bs, cloth, 0, -0.22 * bs, 0, { ol: true, cast: true }));
-    body.add(tor(0.42 * bs, 0.045, brown, 0, -0.12 * bs, 0, { rx: Math.PI / 2 }));
-    body.add(S(0.12 * bs, gold, 0, -0.12 * bs, 0.38 * bs, { ol: true }));
   } else if (kind === 'punk') { // spiked dark vest, silver studs
     body.add(cyl(0.26 * bs, 0.35 * bs, 0.26 * bs, M(0x18181b), 0, -0.15 * bs, 0, { ol: true, cast: true }));
     for (const sd of [-1, 1]) {
@@ -506,7 +494,6 @@ export function buildOrc(kind: OrcKind, def: Def): OrcBuild {
     case 'magnet': hold(armR, 'hammer'); break;
     case 'frost': hold(armR, 'staff'); break;
     case 'rider': hold(armR, 'axe'); break;
-    case 'fatty': hold(armR, 'greatstaff'); break;
     case 'punk': hold(armR, 'flamespear'); break;
     case 'shield': {
       hold(armR, 'axe');
@@ -568,7 +555,6 @@ export function poseOrc(kind: OrcKind, L: Limbs, ph: number) {
     case 'bomber': L.armR.rotation.set(-1.6 + Math.sin(ph) * 0.2, 0, 0.2); break;
     case 'frost': L.armR.rotation.set(-0.45 + Math.sin(ph * 0.5) * 0.1, 0, 0.15); break;
     case 'rider': if (L.mount) L.mount.position.y = -0.14 + Math.sin(ph * 2) * 0.025; break;
-    case 'fatty': L.armR.rotation.set(-0.8 + Math.sin(ph * 0.5) * 0.25, 0, 0.2); break;
     case 'punk': L.armR.rotation.set(-1.25 + Math.sin(ph) * 0.35, 0, -0.2); break;
     case 'shield': L.armL.rotation.set(-0.85, 0, 0.45); break;
     case 'toxic': L.armR.rotation.set(-0.9 + Math.sin(ph * 0.6) * 0.2, 0, 0.1); break;
