@@ -119,7 +119,18 @@ export function buildTowerModel(type: TowerType, level: number, def: { color: nu
     m.head.scale.setScalar(sz);
     m.head.userData.face = m.face;
     if (m.flame) m.head.userData.flames = [m.flame];
-    return { group: m.group, head: m.head, muzzle: m.muzzle };
+    // The muzzle is what the engine "kicks" on every shot and fades back to zero, so it must be a THROWAWAY flash
+    // (or nothing at all) – never a real body part. The joss builders return their head / sun / crystal there, which
+    // made those towers lose their head the moment they first fired.
+    let muzzle = m.muzzle;
+    if (!muzzle || !muzzle.userData.fx) {
+      const mz = MUZZLE[type];
+      muzzle = makeBlast(0.55, 0xfff3b0, def.accent, def.color);
+      muzzle.name = 'muzzleFlash';
+      muzzle.position.set(mz.x ?? 0, mz.y, mz.f);
+      m.head.add(muzzle);
+    }
+    return { group: m.group, head: m.head, muzzle };
   }
 
   const g = new THREE.Group();
@@ -381,11 +392,15 @@ export function buildTowerModel(type: TowerType, level: number, def: { color: nu
     }
     face = makeFace({ r: 0.12, gap: 0.15, iris: brown, skin: def.color, mouth: 'smile', body: { R, cy, sy, y0: 0.46 } });
   } else if (type === 'golem') {
-    // "Rocky": a mossy rock golem with crystal sprouts; it raises its fists and slams the ground – the shockwave hurts and stuns every ground orc around it
+    // "Rocky": a rock golem with crystal sprouts; it raises its fists and slams the ground – the shockwave hurts and stuns every ground orc around it
     const R = 0.42, cy = 0.46, sy = 0.92;
     head.add(S(R, def.color, 0, cy, 0, { sy, sx: 1.05 }));
-    head.add(S(0.3, 0x74c870, 0, 0.84, -0.04, { sx: 1.15, sy: 0.32 }));
-    for (const [x, z, h] of [[-0.12, 0.0, 0.16], [0.1, -0.08, 0.2], [0.02, 0.1, 0.13]] as [number, number, number][]) head.add(cone(0.04, h, 0x4ade80, x, 0.9, z, 5));
+    // stone crown: subtle rock lumps carved out of the same grey stone as the body (the old green moss cap +
+    // leaf sprouts are gone – they clashed with the rocky look), plus two little stone horns at the sides
+    for (const [x, y, z, r, rz] of [[-0.17, 0.72, 0.02, 0.16, 0.3], [0.16, 0.75, -0.05, 0.17, -0.32], [0.0, 0.7, 0.17, 0.13, 0.05]] as [number, number, number, number, number][]) {
+      const plate = S(r, def.color, x, y, z, { sy: 0.62 }); plate.rotation.z = rz; head.add(plate);
+    }
+    for (const sd of [-1, 1]) { const horn = cone(0.075, 0.22, 0xa8a29e, sd * 0.3, 0.72, -0.02, 5); horn.rotation.z = -sd * 0.55; head.add(horn); }
     const c1 = shard(0.1, 0x7dd3fc, 0.8); c1.scale.set(0.8, 1.7, 0.8); c1.position.set(0.2, 0.86, -0.3); c1.rotation.z = -0.3; head.add(c1);
     const c2 = shard(0.08, 0xf9a8d4, 0.8); c2.scale.set(0.8, 1.6, 0.8); c2.position.set(-0.22, 0.8, -0.32); c2.rotation.z = 0.35; head.add(c2);
     for (const sd of [-1, 1]) {

@@ -7,6 +7,9 @@ export interface JossTowerModel {
   group: THREE.Group;
   head: THREE.Group;
   face: THREE.Object3D;
+  /** anchor the tower fires from. NOTE: only objects made by makeBlast() (userData.fx) are used as the muzzle
+   *  flash – anything else is ignored by Game.buildTowerMesh and replaced by a fresh flash, because the engine
+   *  scales the muzzle down to zero after every shot. */
   muzzle: THREE.Object3D;
   flame: THREE.Object3D;
 }

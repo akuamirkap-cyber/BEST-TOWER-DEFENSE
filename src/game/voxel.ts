@@ -48,9 +48,12 @@ export function flickerFlame(g: THREE.Object3D, t: number, k = 1) {
   }
 }
 
-/** Star-burst muzzle flash. Hidden at scale 0; the game "kicks" it by setting a uniform scale and decays it. */
+/** Star-burst muzzle flash. Hidden at scale 0; the game "kicks" it by setting a uniform scale and decays it.
+ *  root.userData.fx marks it as a throwaway effect: the engine only ever scales objects with this flag, so a real
+ *  body part (head, snout, crystal...) can never be shrunk to nothing by the muzzle animation. */
 export function makeBlast(size = 1, core = 0xfff3b0, mid = 0xffa11f, outer = 0xff5a1a, dir: 'y' | 'z' = 'z') {
   const root = new THREE.Group(); const g = new THREE.Group(); root.add(g);
+  root.userData.fx = true;
   const bm = (c: number) => new THREE.MeshBasicMaterial({ color: c });
   const c0 = new THREE.Mesh(SPH, bm(core)); c0.scale.setScalar(0.2 * size); g.add(c0);
   const n = 7;
