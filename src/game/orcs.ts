@@ -91,7 +91,7 @@ const CFG: Record<OrcKind, Cfg> = {
   bomber: { ...N, bodyS: 0.92, bodyY: 0.54, headS: 1.05, headY: 1.04, armX: 0.29, armY: 0.68, eye: 0.14, iris: 0xf97316, bias: 0.55, ears: 1.2, tusk: 0.8, brows: 0x7c2d12, hpY: 2.0 },
   magnet: { ...N, bodyS: 1.28, bodyY: 0.65, headY: 1.15, armX: 0.42, armY: 0.8, eye: 0.118, iris: 0x3b82f6, bias: 0.35, ears: 0.9, tusk: 1.3, brows: 0x1e293b, hpY: 2.25 },
   frost: { ...N, legH: 0.3, bodyS: 0.95, bodyY: 0.55, headY: 1.02, armX: 0.29, armY: 0.68, eye: 0.13, iris: 0x06b6d4, ears: 1.1, tusk: 0.7, brows: 0x0e7490, hpY: 2.05 },
-  rider: { ...N, bodyS: 1.25, bodyY: 0.75, headY: 1.3, armX: 0.4, armY: 0.92, eye: 0.12, iris: 0xeab308, bias: 0.3, ears: 1.0, tusk: 1.4, brows: 0x334155, hpY: 2.45 },
+  rider: { ...N, bodyS: 1.25, bodyY: 1.38, headY: 1.93, armX: 0.42, armY: 1.55, eye: 0.12, iris: 0xeab308, bias: 0.3, ears: 1.0, tusk: 1.4, brows: 0x334155, hpY: 2.85 },
   punk: { ...N, bodyS: 0.94, bodyY: 0.58, headS: 1.0, headY: 1.06, armX: 0.3, armY: 0.72, eye: 0.13, iris: 0xdc2626, bias: 0.5, ears: 1.3, tusk: 1.1, brows: 0x991b1b, hpY: 2.15 },
   shield: { ...N, bodyS: 1.24, bodyY: 0.64, headY: 1.14, armX: 0.42, armY: 0.8, eye: 0.118, iris: 0x64748b, bias: 0.25, ears: 0.9, tusk: 1.1, brows: 0x1e293b, hpY: 2.25 },
   toxic: { ...N, bodyS: 0.96, bodyY: 0.57, headY: 1.05, armX: 0.3, armY: 0.72, eye: 0.13, iris: 0x16a34a, bias: 0.45, ears: 1.0, tusk: 0.8, brows: 0x14532d, hpY: 2.05 },
@@ -352,6 +352,15 @@ export function buildOrc(kind: OrcKind, def: Def): OrcBuild {
 
   // legs: stubby capsules + round dark boots
   const mkLeg = (sd: number) => {
+    if (kind === 'rider') {
+      const l = new THREE.Group();
+      l.position.set(sd * 0.36 * bs, 1.18, 0.06 * bs);
+      l.rotation.z = -sd * 0.35;
+      l.rotation.x = -0.3;
+      l.add(cap(0.09 * bs, 0.28 * bs, skinMat, 0, -0.1 * bs, 0, { cast: true, ol: true }));
+      l.add(S(1, M(0x4a3222), 0, -0.26 * bs, 0.08 * bs, { sx: 0.13 * bs, sy: 0.08 * bs, sz: 0.18 * bs, ol: true }));
+      return l;
+    }
     const l = new THREE.Group(); l.position.set(sd * 0.15 * bs, c.legH, 0);
     const total = c.legH - 0.05, r = 0.085;
     l.add(cap(r, total - 2 * r, skinMat, 0, -total / 2, 0, { cast: true, ol: true }));
@@ -456,13 +465,37 @@ export function buildOrc(kind: OrcKind, def: Def): OrcBuild {
   const parts: THREE.Object3D[] = [legL, legR, body, armL, armR, hd.head];
   Object.assign(limbs, { legL, legR, body, armL, armR, head: hd.head, face: hd.face, earL: hd.earL, earR: hd.earR });
 
-  // rider mount
+  // rider mount (badak lapis baja - bertumpu aman di atas terrain tanpa tembus ke bawah)
   if (kind === 'rider') {
-    const mount = new THREE.Group(); mount.name = 'mount'; mount.position.set(0, -0.14, 0.05);
+    const mount = new THREE.Group(); mount.name = 'mount'; mount.position.set(0, 0.72, 0.05);
+    // pelana & alas pelana
+    mount.add(box(0.72 * bs, 0.14 * bs, 0.72 * bs, M(0x78350f, 0.1, 0.5), 0, 0.25 * bs, -0.05 * bs, { ol: true }));
+    mount.add(box(0.76 * bs, 0.06 * bs, 0.65 * bs, M(0xb45309, 0.2, 0.4), 0, 0.21 * bs, -0.05 * bs, { ol: true }));
+    // badan utama badak
     mount.add(box(0.66 * bs, 0.48 * bs, 1.15 * bs, M(0x64748b, 0.1, 0.5), 0, 0, 0, { ol: true, cast: true }));
-    mount.add(box(0.42 * bs, 0.42 * bs, 0.45 * bs, M(0x475569, 0.1, 0.4), 0, 0.06 * bs, 0.65 * bs, { ol: true }));
-    mount.add(cone(0.12 * bs, 0.42 * bs, gold, 0, 0.25 * bs, 0.8 * bs, { rx: 0.65, ol: true }));
-    for (const sx of [-1, 1]) for (const sz of [-0.35, 0.35]) mount.add(cap(0.1 * bs, 0.26 * bs, M(0x334155), sx * 0.28 * bs, -0.32 * bs, sz * bs, { ol: true }));
+    // kepala & moncong badak
+    mount.add(box(0.42 * bs, 0.42 * bs, 0.48 * bs, M(0x475569, 0.1, 0.4), 0, 0.06 * bs, 0.65 * bs, { ol: true, cast: true }));
+    // telinga badak
+    for (const sd of [-1, 1]) {
+      mount.add(cone(0.08 * bs, 0.18 * bs, M(0x475569), sd * 0.22 * bs, 0.28 * bs, 0.55 * bs, { rz: -sd * 0.4, ol: true }));
+    }
+    // pelat zirah dahi & cula emas gagah
+    mount.add(box(0.24 * bs, 0.08 * bs, 0.3 * bs, steel, 0, 0.25 * bs, 0.72 * bs, { ol: true }));
+    mount.add(cone(0.13 * bs, 0.48 * bs, gold, 0, 0.26 * bs, 0.82 * bs, { rx: 0.65, ol: true }));
+    mount.add(cone(0.07 * bs, 0.24 * bs, gold, 0, 0.31 * bs, 0.62 * bs, { rx: 0.5, ol: true }));
+    // 4 kaki badak yang kokoh bertumpu di atas tanah
+    const mountLegs: THREE.Group[] = [];
+    for (const sx of [-1, 1]) {
+      for (const sz of [-0.35, 0.35]) {
+        const legGroup = new THREE.Group();
+        legGroup.position.set(sx * 0.28 * bs, -0.15 * bs, sz * bs);
+        legGroup.add(cap(0.11 * bs, 0.26 * bs, M(0x334155), 0, -0.16 * bs, 0, { ol: true }));
+        legGroup.add(cyl(0.12 * bs, 0.13 * bs, 0.08 * bs, M(0x1e293b), 0, -0.28 * bs, 0, { seg: 10, ol: true }));
+        mount.add(legGroup);
+        mountLegs.push(legGroup);
+      }
+    }
+    limbs.mountLegs = mountLegs as any;
     parts.push(mount); limbs.mount = mount;
   }
 
@@ -541,7 +574,12 @@ export function buildLog(def: Def): OrcBuild {
 /** walking animation: waddle, hop-bounce, swinging arms, flapping ears (per-kind arm poses) */
 export function poseOrc(kind: OrcKind, L: Limbs, ph: number) {
   const baby = kind === 'baby'; const sw = Math.sin(ph) * (baby ? 1.1 : 0.7);
-  L.legL.rotation.x = sw; L.legR.rotation.x = -sw;
+  if (kind === 'rider') {
+    L.legL.rotation.set(-0.35 + Math.sin(ph * 2) * 0.04, 0, 0.35);
+    L.legR.rotation.set(-0.35 + Math.sin(ph * 2) * 0.04, 0, -0.35);
+  } else {
+    L.legL.rotation.x = sw; L.legR.rotation.x = -sw;
+  }
   L.armL.rotation.set(-sw * 0.8, 0, -0.12); L.armR.rotation.set(-0.6 + Math.sin(ph * 0.5) * 0.25, 0, 0.12);
   L.head.rotation.z = Math.sin(ph * 0.5) * 0.08; L.head.rotation.x = Math.sin(ph * 2) * 0.05;
   L.body.rotation.z = Math.sin(ph) * 0.05;
@@ -554,7 +592,24 @@ export function poseOrc(kind: OrcKind, L: Limbs, ph: number) {
     case 'ninja': L.armL.rotation.set(-1.0, 0, 0.4); L.armR.rotation.set(-1.0, 0, -0.4); break;
     case 'bomber': L.armR.rotation.set(-1.6 + Math.sin(ph) * 0.2, 0, 0.2); break;
     case 'frost': L.armR.rotation.set(-0.45 + Math.sin(ph * 0.5) * 0.1, 0, 0.15); break;
-    case 'rider': if (L.mount) L.mount.position.y = -0.14 + Math.sin(ph * 2) * 0.025; break;
+    case 'rider': {
+      if (L.mount) {
+        L.mount.position.y = 0.72 + Math.abs(Math.sin(ph * 2)) * 0.035;
+        L.mount.rotation.x = Math.sin(ph * 2) * 0.04;
+        const mountLegs = (L as any).mountLegs as THREE.Group[] | undefined;
+        if (mountLegs && mountLegs.length === 4) {
+          const gSw = Math.sin(ph * 2) * 0.35;
+          mountLegs[0].rotation.x = gSw;
+          mountLegs[1].rotation.x = -gSw;
+          mountLegs[2].rotation.x = -gSw;
+          mountLegs[3].rotation.x = gSw;
+        }
+      }
+      L.armR.rotation.set(-1.15 + Math.sin(ph * 2) * 0.1, 0, 0.15);
+      L.armL.rotation.set(-0.85 + Math.sin(ph * 2) * 0.08, 0, -0.2);
+      L.body.rotation.x = Math.sin(ph * 2) * 0.05;
+      break;
+    }
     case 'punk': L.armR.rotation.set(-1.25 + Math.sin(ph) * 0.35, 0, -0.2); break;
     case 'shield': L.armL.rotation.set(-0.85, 0, 0.45); break;
     case 'toxic': L.armR.rotation.set(-0.9 + Math.sin(ph * 0.6) * 0.2, 0, 0.1); break;

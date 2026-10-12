@@ -126,8 +126,8 @@ export const CARD_INFO: Record<TowerType, CardData> = {
     good: ['Naga', 'Balon', 'Orc biasa'], weak: ['Armor tebal'], tip: 'Pasang di dekat jalur balon dan naga.',
   },
   hive: {
-    role: 'Kawanan pengejar', bars: [{ label: 'Kekuatan', v: 3 }, { label: 'Jangkauan', v: 4 }, { label: 'Kecepatan', v: 3 }],
-    skills: [{ icon: '🐝', title: 'Kawanan Lebah', text: 'Melepas 3 lebah (Lv2: 4, Lv3: 5) yang mengejar musuh.' }, { icon: '🎯', title: 'Sebar Target', text: 'Lebah dibagi ke 3 musuh terdepan, dan mencari target baru jika musuhnya tewas.' }, { icon: '🦅', title: 'Darat & Udara', text: 'Lebah bisa mengejar musuh terbang.' }],
+    role: 'Kawanan lebah pemburu', bars: [{ label: 'Kekuatan', v: 3 }, { label: 'Jangkauan', v: 4 }, { label: 'Kecepatan', v: 3 }],
+    skills: [{ icon: '🐝', title: 'Ratu Lebah & Kawanan', text: 'Ratu lebah yang imut dan berbelang melepas 3 lebah pemburu (Lv2: 4, Lv3: 5) yang meluncur mengejar musuh.' }, { icon: '🎯', title: 'Sebar Target', text: 'Lebah dibagi ke 3 musuh terdepan, dan mencari target baru jika musuhnya tewas.' }, { icon: '🦅', title: 'Darat & Udara', text: 'Lebah bisa mengejar musuh terbang.' }],
     good: ['Musuh yang kabur cepat', 'Beberapa musuh sekaligus'], weak: ['Armor tebal'], tip: 'Cocok untuk orc cepat yang sulit dibidik.',
     rateLabel: 'Kawanan / detik', extra: [{ label: 'Jumlah lebah', vals: ['3', '4', '5'] }],
   },
@@ -138,8 +138,8 @@ export const CARD_INFO: Record<TowerType, CardData> = {
     rateLabel: 'Hentakan / detik', extra: [{ label: 'Terpaku', vals: ['0.9 dtk', '1.1 dtk', '1.3 dtk'] }],
   },
   clock: {
-    role: 'Aura pelambat', bars: [{ label: 'Kontrol', v: 3 }, { label: 'Jangkauan', v: 3 }],
-    skills: [{ icon: '⏳', title: 'Aura Waktu', text: 'Semua musuh di dalam jangkauan melambat 34% (Lv2 44%, Lv3 54%), darat dan udara.' }, { icon: '➕', title: 'Menumpuk dengan Es', text: 'Perlambatan Jam dan Sinar Es saling mengalikan.' }, { icon: '🕊️', title: 'Tidak Menyerang', text: 'Hanya memperlambat musuh.' }],
+    role: 'Aura pelambat radius', bars: [{ label: 'Kontrol', v: 3 }, { label: 'Jangkauan', v: 3 }],
+    skills: [{ icon: '⏳', title: 'Zona Waktu Terbatas Radius', text: 'HANYA memperlambat musuh yang berada di dalam radius lingkaran towernya (Lv1 34%, Lv2 44%, Lv3 54%). Begitu melangkah keluar radius, musuh seketika kembali ke kecepatan normal.' }, { icon: '➕', title: 'Menumpuk dengan Es', text: 'Perlambatan Jam dan Sinar Es saling mengalikan.' }, { icon: '🕊️', title: 'Tidak Menyerang', text: 'Hanya memperlambat musuh di dalam radius lingkarannya.' }],
     good: ['Semua jenis musuh', 'Gerombolan'], weak: ['Tidak membunuh sendiri'], tip: 'Taruh di tengah tower penyerang: musuh lambat berarti lebih lama tertembak.',
     rows: [{ label: 'Perlambatan', vals: ['34%', '44%', '54%'] }, range('clock')],
   },
@@ -233,15 +233,6 @@ export const CARD_INFO: Record<TowerType, CardData> = {
     ],
     good: ['Raja Orc', 'Penunggang Badak', 'Ksatria Kelam', 'Naga'], weak: ['Kerumunan orc kecil yang banyak'], tip: 'Senjata pamungkas melawan Bos dan musuh terkuat. Taruh di titik di mana musuh terkuat berjalan paling lama.',
   },
-  siren: {
-    role: 'Gema sonik & pembangkits roh', bars: [{ label: 'Kekuatan', v: 3 }, { label: 'Jangkauan', v: 3 }, { label: 'Kecepatan', v: 3 }],
-    skills: [
-      { icon: '🎶', title: 'Gelombang Sonik Resonansi', text: 'Menembakkan riak gelombang suara harmonis yang melukai dan memikat musuh dalam radius.' },
-      { icon: '👻', title: 'Bangkitkan Klon Hantu', text: 'Ketika orc yang terpikat tewas, roh hantunya bangkit dan berjalan mundur menyerang orc musuh lainnya!' },
-      { icon: '🛡️', title: 'Tahanan Garis Depan', text: 'Klon hantu menahan dan menyodok musuh yang datang, membalikkan kekuatan lawan menjadi sekutu kita.' },
-    ],
-    good: ['Gelombang musuh beruntun', 'Orc ber-HP sedang', 'Darat & Udara'], weak: ['Musuh yang datang sendirian jarang'], tip: 'Taruh di awal atau tengah barisan agar roh musuh yang tumbang langsung menyambut musuh di belakangnya.',
-  },
   naga: {
     role: 'Penguasa Jalur Lahar & Semburan Naga', bars: [{ label: 'Kekuatan', v: 5 }, { label: 'Jangkauan', v: 4 }, { label: 'Area', v: 5 }],
     skills: [
@@ -261,26 +252,6 @@ export const CARD_INFO: Record<TowerType, CardData> = {
     ],
     good: ['Orc Ninja', 'Dukun Es', 'Orc Dinamit', 'Orc Magnet', 'Gerombolan cepat'], weak: ['Bos raksasa berbobot ultra berat'], tip: 'Sangat ampuh ditaruh di jalur lurus agar tornado menyapu sepanjang lintasan musuh.',
     extra: [{ label: 'Jarak Tempuh Tornado', vals: ['5 meter', '6,5 meter', '8 meter'] }, { label: 'Durasi Angkat & Bisu', vals: ['2,5 detik', '3,2 detik', '4,0 detik'] }],
-  },
-  quake: {
-    role: 'Pasak Seismik & Ikatan Rantai Jiwa', bars: [{ label: 'Kekuatan', v: 5 }, { label: 'Jangkauan', v: 3 }, { label: 'Sinergi Kombo', v: 5 }],
-    skills: [
-      { icon: '🔩', title: 'Pilar Pasak Seismik', text: 'Palu hidrolik menembakkan pasak baja seismik menghunjam ke tanah jalan dan mengunci hingga 4 musuh di sekitarnya.' },
-      { icon: '⛓️', title: 'Rantai Jiwa (100% Echo Damage Link)', text: 'MENGIKAT musuh dengan rantai energi! Ketika SATU musuh yang terikat diserang tower apa pun, 100% DAMAGE TERSEBUT OTOMATIS DISALURKAN KE SEMUA MUSUH LAIN YANG TERIKAT!' },
-      { icon: '🛡️', title: 'Pemberat Gerak & Zirah Rontok', text: 'Pasak memperlambat langkah musuh hingga 50% dan merontokkan zirah mereka sebesar -3 Armor.' },
-    ],
-    good: ['Penunggang Badak', 'Tanker', 'Ksatria Kelam', 'Kelompok orc berdekatan'], weak: ['Musuh terbang tinggi'], tip: 'KOMBO DAHSYAT: Ikatkan musuh dengan Pasak Quake, lalu tembak salah satu musuh dengan Sniper atau Meriam untuk membantai semuanya sekaligus!',
-    extra: [{ label: 'Maks Target Terikat', vals: ['3 musuh', '4 musuh', '5 musuh'] }, { label: 'Durasi Pasak', vals: ['4,0 detik', '5,0 detik', '6,0 detik'] }],
-  },
-  glacier: {
-    role: 'Barikade Tembok Es Fisik Penghadang Jalan', bars: [{ label: 'Kekuatan', v: 4 }, { label: 'Jangkauan', v: 3 }, { label: 'Pertahanan', v: 5 }],
-    skills: [
-      { icon: '🧊', title: 'Tembok Barikade Es Fisik', text: 'Membangkitkan dinding benteng es kristal 3D melintang menutup jalan! Musuh darat TERBLOKIR TOTAL dan terpaksa memukul tembok sampai hancur.' },
-      { icon: '👥', title: 'Penumpuk Gerombolan Orc', text: 'Menahan laju barisan orc agar mereka menumpuk berdesak-desakan di depan tembok, membuka peluang emas bagi tower area!' },
-      { icon: '💥', title: 'Ledakan Pecahan Cryo (Shatter)', text: 'Saat tembok es hancur atau mencair, ia meledak menjadi serpihan es tajam yang melukai dan membekukan musuh total selama 2 detik (+50% Rapuh)!' },
-    ],
-    good: ['Semua orc darat', 'Mencegah orc bocor ke benteng', 'Sinergi tower area'], weak: ['Orc terbang (bisa melompati tembok)'], tip: 'Pasang di dekat tower penghasil damage area (Naga, Mortir, Bowling) agar musuh yang tertahan langsung dihujani serangan!',
-    extra: [{ label: 'HP Barikade Es', vals: ['220 HP', '340 HP', '480 HP'] }, { label: 'Durasi Maksimal', vals: ['5,0 detik', '6,5 detik', '8,0 detik'] }],
   },
   cannon_v2: {
     role: 'Meriam Cepat & Ledakan Area Lv2-3', bars: [{ label: 'Kecepatan', v: 5 }, { label: 'Kekuatan', v: 3 }, { label: 'Area Ledakan', v: 3 }],
@@ -333,7 +304,7 @@ export const CARD_INFO: Record<TowerType, CardData> = {
   sol: {
     role: 'Nova Sinar Surya Wajah Tembus Lurus', bars: [{ label: 'Kekuatan', v: 5 }, { label: 'Tembus Lurus', v: 5 }, { label: 'Darat + Udara', v: 5 }],
     skills: [
-      { icon: '☀️', title: 'Matahari Senyum Bercahaya', text: 'Matahari kecil yang tersenyum ramah dengan 12 sinar berputar dan halo hangat melayang.' },
+      { icon: '🌻', title: 'Bunga Matahari Senyum Berseri', text: 'Bunga matahari yang tersenyum ramah dengan kelopak kerucut emas melingkari sisi kepala dan halo hangat melayang.' },
       { icon: '⚡', title: 'Sinar Surya Hanguskan Garis Lurus', text: 'Meledakkan sinar laser surya masif yang MENEMBUS SELURUH musuh dalam garis lurus sekaligus!' },
     ],
     good: ['Barisan lurus musuh', 'Darat + Udara', 'Armor tebal'], weak: ['Musuh menyebar melebar'], tip: 'Posisikan di ujung lintasan lurus untuk memaksimalkan jumlah musuh yang terpanggang sinar surya.',

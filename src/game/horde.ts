@@ -327,7 +327,7 @@ export class HordeView {
       }
       if (type === 'cannoneer' && L.torch) { const tf = L.torch.getObjectByName('flame'); if (tf) flickerFlame(tf, tt); }
       if (type === 'bomber' && L.head) { const hf = L.head.getObjectByName('flame'); if (hf) flickerFlame(hf, tt); }
-      if (type === 'rider' && L.mount) { L.mount.position.y = -0.14 + Math.sin(tt * 2.5) * 0.02; }
+      if (type === 'rider' && L.mount) { L.mount.position.y = 0.72 + Math.sin(tt * 2.5) * 0.02; }
     }
     if (L.face) updateFace(L.face, dt, t, { lookX: Math.sin(tt * 0.5) * 0.8, lookY: Math.sin(tt * 0.33) * 0.2, focus: sel ? 0.6 : 0.3, squint: cheer > 0.35 ? 1 : 0, worry: 0 });
     if (L.face2) updateFace(L.face2, dt, t, { lookX: Math.sin(tt * 0.5) * 0.8, lookY: 0, focus: 0.3, squint: 0, worry: 0 });

@@ -431,41 +431,99 @@ function buildDraco(level: number): JossTowerModel {
   return { group, head, face, muzzle: hd, flame: new THREE.Group() };
 }
 
-/** ☀️ Sol – a smiling little sun on a stone pedestal: 12 golden rays that spin, and a warm halo */
+/** 🌻 Sol (Matahari V2) – an adorable sunflower with a smiling sun face, a crown of conical petals encircling the rim (bunga matahari), and lush green leaves */
 function buildSol(level: number): JossTowerModel {
   const group = podium(level, 0xd97706);
   const head = new THREE.Group();
   head.position.y = 0.3;
   group.add(head);
-  const sun = M(0xfbbf24, 0.45, 0.3), sunD = M(0xd97706, 0.3, 0.4), glow = M(0xfde68a, 1, 0.2);
-  head.add(S(0.3, sunD, 0, 0.28, 0, { sy: 0.55, ol: true }));
-  const halo = new THREE.Mesh(new THREE.TorusGeometry(0.52, 0.025, 8, 30), new THREE.MeshBasicMaterial({ color: 0xffe9a0, transparent: true, opacity: 0.7, depthWrite: false }));
-  halo.rotation.x = Math.PI / 2;
-  halo.position.y = 0.95;
-  halo.name = 'halo';
-  head.add(halo);
+
+  const sun = M(0xfbbf24, 0.45, 0.3);       // warm sunflower golden yellow
+  const sunD = M(0xd97706, 0.35, 0.4);      // rich amber orange
+  const sunLight = M(0xfde047, 0.5, 0.25);  // bright lemon petal
+  const glow = M(0xfde68a, 1, 0.2);
+  const stemMat = M(0x65a30d, 0.2, 0.55);   // vibrant sunflower green
+  const leafMat = M(0x4d7c0f, 0.2, 0.5);
+
+  // 1. Sunflower Stem & Pedestal Collar
+  head.add(C(0.14, 0.18, 0.38, stemMat, 0, 0.34, 0, 10, true));
+  head.add(S(0.24, sunD, 0, 0.18, 0, { sy: 0.5, ol: true }));
+
+  // 2. Cute Green Sunflower Leaves sprouting to the left and right
+  const leafL = new THREE.Group();
+  leafL.position.set(-0.28, 0.46, 0);
+  leafL.rotation.set(0.12, 0.25, -0.32);
+  leafL.add(B(0.24, 0.04, 0.16, leafMat, -0.06, 0, 0, { ol: true }));
+  head.add(leafL);
+
+  const leafR = new THREE.Group();
+  leafR.position.set(0.28, 0.46, 0);
+  leafR.rotation.set(0.12, -0.25, 0.32);
+  leafR.add(B(0.24, 0.04, 0.16, leafMat, 0.06, 0, 0, { ol: true }));
+  head.add(leafR);
+
+  // 3. Flower Head (center disk + smiling face + petal crown)
   const orb = new THREE.Group();
   orb.position.y = 0.95;
   head.add(orb);
-  orb.add(S(0.36, sun, 0, 0, 0, { ol: true, cast: true }));
+
+  // Center sunflower disc (warm golden sun sphere, slightly flattened along z for a flower disk)
+  orb.add(S(0.36, sun, 0, 0, 0, { sz: 0.85, ol: true, cast: true }));
+
+  // Outer flower sepal / calyx disc behind the head
+  const calyx = C(0.33, 0.37, 0.08, stemMat, 0, 0, -0.16, 16, true);
+  calyx.rotation.x = Math.PI / 2;
+  orb.add(calyx);
+
+  // Golden ring framing the seed disc
+  const discRim = new THREE.Mesh(new THREE.TorusGeometry(0.36, 0.024, 8, 28), sunD);
+  discRim.position.z = 0.02;
+  orb.add(discRim);
+
+  // 4. Petals (Kerucut-kerucut melingkari sisi kepala, BUKAN di sisi depan!)
+  // Cones form a radiant sunflower corona radiating outward around the rim in X-Y plane
   const rays = new THREE.Group();
   rays.name = 'spin';
   orb.add(rays);
-  for (let i = 0; i < 12; i++) {
-    const a = (i / 12) * Math.PI * 2;
-    const r = cone(0.09, 0.26, i % 2 ? sunD : sun, 0, 0, 0, { ol: true });
-    r.position.set(Math.cos(a) * 0.48, 0, Math.sin(a) * 0.48);
-    r.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(Math.cos(a), 0, Math.sin(a)));
-    rays.add(r);
+
+  const NUM_PETALS = 16;
+  for (let i = 0; i < NUM_PETALS; i++) {
+    const a = (i / NUM_PETALS) * Math.PI * 2;
+    // Layer 1: Outer primary sunflower petals (alternating yellow and warm amber)
+    const pet1 = cone(0.08, 0.28, i % 2 ? sunD : sun, 0, 0, 0, { ol: true });
+    // Direction vector points radially outward around the rim, flared slightly backward (-z) so it never clips front face
+    const dir1 = new THREE.Vector3(Math.cos(a), Math.sin(a), -0.06).normalize();
+    pet1.position.set(Math.cos(a) * 0.34, Math.sin(a) * 0.34, -0.06);
+    pet1.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir1);
+    rays.add(pet1);
+
+    // Layer 2: Inner layered golden petals offset by half an angle step for a dense, lush sunflower bloom
+    const a2 = a + (Math.PI / NUM_PETALS);
+    const pet2 = cone(0.062, 0.20, sunLight, 0, 0, 0, { ol: true });
+    const dir2 = new THREE.Vector3(Math.cos(a2), Math.sin(a2), -0.03).normalize();
+    pet2.position.set(Math.cos(a2) * 0.35, Math.sin(a2) * 0.35, -0.02);
+    pet2.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir2);
+    rays.add(pet2);
   }
+
+  // 5. Divine warm golden halo ring behind the flower petals
+  const halo = new THREE.Mesh(new THREE.TorusGeometry(0.66, 0.025, 8, 36), new THREE.MeshBasicMaterial({ color: 0xffe9a0, transparent: true, opacity: 0.75, depthWrite: false }));
+  halo.position.set(0, 0, -0.12);
+  halo.name = 'halo';
+  orb.add(halo);
+
+  // 6. Sparkling orbiting sun motes
   for (let i = 0; i < 3; i++) {
     const s = new THREE.Mesh(new THREE.OctahedronGeometry(0.07), glow);
     s.name = 'orbit' + i;
-    s.userData = { r: 0.78, y: 0.95, n: 3, spd: 1.1, yIsWorld: true, off: 0.3 };
+    s.userData = { r: 0.88, y: 0.95, n: 3, spd: 1.1, yIsWorld: true, off: 0.3 };
     head.add(s);
   }
+
+  // 7. Cheerful Smiling Face on the front (+Z) – completely unobstructed!
   const face = makeFace({ r: 0.125, gap: 0.155, iris: 0xb45309, skin: 0xfbbf24, mouth: 'grin', cheeks: true, brows: 0x92400e, body: { R: 0.36, cy: 0, sy: 1, y0: 0.03 } });
   orb.add(face);
+
   return { group, head, face, muzzle: orb, flame: new THREE.Group() };
 }
 
