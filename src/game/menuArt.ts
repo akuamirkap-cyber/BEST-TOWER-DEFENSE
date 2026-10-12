@@ -547,7 +547,7 @@ function buildHeroMascot(): { group: THREE.Group; size: number } {
   armR.rotation.set(-0.45, 0.15, 0.75);
   armR.add(tor(0.1, 0.028, darkLeather, 0, -0.22, 0, { rx: Math.PI / 2 }));
   const spear = new THREE.Group();
-  spear.position.set(-0.04, -0.28, 0.06);
+  spear.position.set(0, -0.3, 0.01);
   spear.rotation.set(0.38, 0, -0.52);
   spear.add(cyl(0.042, 0.045, 1.95, wood, 0, 0.35, 0, { ol: true, cast: true }));
   spear.add(cyl(0.058, 0.058, 0.12, steel, 0, 1.28, 0, { ol: true }));
@@ -561,7 +561,7 @@ function buildHeroMascot(): { group: THREE.Group; size: number } {
   armL.position.set(0.4, 0.78, 0.08);
   armL.rotation.set(-0.35, -0.25, -0.35);
   const shield = new THREE.Group();
-  shield.position.set(0.16, -0.12, 0.24);
+  shield.position.set(0.04, -0.22, 0.16);
   shield.rotation.set(-0.08, -0.38, 0.05);
   // Wooden shield disc + rim
   shield.add(cyl(0.46, 0.46, 0.09, wood, 0, 0, 0, { rx: Math.PI / 2, seg: 24, ol: true, cast: true }));
@@ -674,8 +674,11 @@ function buildRightChampion(): { group: THREE.Group; size: number } {
   const wood = M(0x7c431e, 0.06, 0.75);
   const gold = M(0xfbbf24, 0.25, 0.35);
 
+  // Clear default weapon from tank
+  while (b.limbs.armR.children.length > 3) b.limbs.armR.remove(b.limbs.armR.children[b.limbs.armR.children.length - 1]);
+
   const sword = new THREE.Group();
-  sword.position.set(0, -0.26, 0.08);
+  sword.position.set(0, -0.3, 0.01);
   sword.rotation.set(1.1, 0, -0.2);
   sword.add(cap(0.045, 0.16, wood, 0, 0.08, 0, { ol: true }));
   sword.add(box(0.36, 0.07, 0.1, darkSteel, 0, 0.2, 0, { ol: true }));
@@ -685,7 +688,7 @@ function buildRightChampion(): { group: THREE.Group; size: number } {
   b.limbs.armL.rotation.set(-0.65, -0.2, -0.35);
 
   const staff = new THREE.Group();
-  staff.position.set(0, -0.22, 0.06);
+  staff.position.set(0, -0.3, 0.01);
   staff.rotation.set(0.45, 0, 0.15);
   staff.add(cyl(0.045, 0.05, 1.55, wood, 0, 0.35, 0, { ol: true, cast: true }));
   staff.add(S(0.085, gold, 0, 1.15, 0, { ol: true }));

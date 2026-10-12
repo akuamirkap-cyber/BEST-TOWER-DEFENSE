@@ -551,7 +551,7 @@ export class Game {
     } else {
       // cute round orc (Bloons-style) with tower-style glossy eyes – see orcs.ts
       const b = isElite(type) ? buildElite(type, def) : buildOrc(type as OrcKind, def);
-      parts = b.parts; Object.assign(limbs, b.limbs); skinMats.push(...b.skinMats); g.add(...parts); hpY = b.hpY;
+      parts = b.parts; debrisParts = b.debris ?? null; Object.assign(limbs, b.limbs); skinMats.push(...b.skinMats); g.add(...parts); hpY = b.hpY;
     }
     g.scale.setScalar(s);
     const hpBg = new THREE.Mesh(new THREE.PlaneGeometry(0.8, 0.1), new THREE.MeshBasicMaterial({ color: 0x1a1a2e, transparent: true, opacity: 0.6 }));

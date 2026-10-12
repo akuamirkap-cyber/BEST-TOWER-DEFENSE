@@ -3,6 +3,8 @@ import { updateFace, flickerFlame, makeFlame } from './voxel';
 import { poseOrc } from './orcs';
 import type { OrcKind } from './orcs';
 import { isElite, poseElite, poseDread, setBowDraw } from './elites';
+import { BIOMES, buildTreeMesh, buildBoulder, tuftGeo, flowerGeo } from './world';
+import type { Biome } from './world';
 
 /**
  * "Gerombolan": a live 3D scene of the orc horde of the coming level, gathered at dusk and getting ready for battle.
@@ -100,11 +102,13 @@ export class HordeView {
   private shadowMat = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.32, depthWrite: false });
   private ringGeo = new THREE.RingGeometry(0.82, 1, 40).rotateX(-Math.PI / 2);
   private ringMat = new THREE.MeshBasicMaterial({ color: 0xfde047, transparent: true, opacity: 0.9, depthWrite: false, side: THREE.DoubleSide });
+  private hemi: THREE.HemisphereLight;
   private key: THREE.DirectionalLight; private rim: THREE.DirectionalLight; private torchLights: THREE.PointLight[] = [];
   private scenery: THREE.Group | null = null; private flames: THREE.Object3D[] = []; private flags: THREE.Object3D[] = [];
+  private treeSways: { piv: THREE.Object3D; amp: number; ph: number }[] = [];
   private dust: THREE.Points; private dustBase: Float32Array;
   private glow: THREE.Sprite; private glowTexture: THREE.Texture; private fade: THREE.Texture;
-  private ground: THREE.Mesh;
+  private ground: THREE.Mesh | null = null;
   private poleGeo = new THREE.CylinderGeometry(0.05, 0.07, 1, 8); private boxGeo = new THREE.BoxGeometry(1, 1, 1); private sphGeo = new THREE.SphereGeometry(1, 10, 8); private coneGeo = new THREE.ConeGeometry(1, 1, 8);
   private poleMat = new THREE.MeshStandardMaterial({ color: 0x6b4423, roughness: 0.8 });
   private flagMat = new THREE.MeshStandardMaterial({ color: 0x6d28d9, roughness: 0.6, emissive: 0x4c1d95, emissiveIntensity: 0.25, side: THREE.DoubleSide });
@@ -112,37 +116,42 @@ export class HordeView {
   private whiteMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
   private rockMat = new THREE.MeshStandardMaterial({ color: 0x7b708a, roughness: 0.95 });
   private haloMat: THREE.SpriteMaterial;
+  private biome: Biome;
+  private seed: number;
+  private disposables: { dispose(): void }[] = [];
 
-  constructor(private canvas: HTMLCanvasElement, build: BuildFn, entries: HordeEntry[], private seed: number, private onPick: (type: string | null) => void) {
+  constructor(private canvas: HTMLCanvasElement, build: BuildFn, entries: HordeEntry[], private level: number, private onPick: (type: string | null) => void) {
+    const biomeIdx = ((this.level - 1) % BIOMES.length + BIOMES.length) % BIOMES.length;
+    this.biome = BIOMES[biomeIdx];
+    this.seed = (this.level * 7 + biomeIdx * 131 + 11) | 0;
+
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75));
     this.renderer.setClearColor(0x000000, 0);
     this.renderer.outputColorSpace = THREE.SRGBColorSpace; this.renderer.toneMapping = THREE.ACESFilmicToneMapping; this.renderer.toneMappingExposure = 1.12;
 
-    // lights: a "head-light" that follows the camera (faces are always lit) + a violet rim from behind + warm torch lights
-    this.scene.add(new THREE.HemisphereLight(0xd8c8ff, 0x4a3524, 1.0));
-    this.key = new THREE.DirectionalLight(0xfff0d6, 2.3); this.scene.add(this.key, this.key.target);
-    this.rim = new THREE.DirectionalLight(0x9a7bff, 1.1); this.scene.add(this.rim, this.rim.target);
+    // lights: hemisphere light matches the upcoming level's sky and grass
+    this.hemi = new THREE.HemisphereLight(this.biome.skyTop, this.biome.grass[1], 1.15);
+    this.scene.add(this.hemi);
+    this.key = new THREE.DirectionalLight(0xfff0d6, 2.2); this.scene.add(this.key, this.key.target);
+    this.rim = new THREE.DirectionalLight(this.biome.skyBot, 1.0); this.scene.add(this.rim, this.rim.target);
     for (let i = 0; i < 2; i++) { const l = new THREE.PointLight(0xff9a3c, 1.8, 7); this.scene.add(l); this.torchLights.push(l); }
 
-    // ground: a soft-edged dusty parade ground with a few darker / lighter patches
+    // alpha map for the ground outer fade
     this.fade = fadeTex();
-    this.ground = new THREE.Mesh(new THREE.CircleGeometry(26, 56).rotateX(-Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0x6b5a45, roughness: 1, transparent: true, alphaMap: this.fade, depthWrite: false }));
-    this.ground.renderOrder = -3; this.scene.add(this.ground);
-    const prng = mulberry32(seed * 31 + 5);
-    for (let i = 0; i < 16; i++) {
-      const p = new THREE.Mesh(new THREE.CircleGeometry(1, 14).rotateX(-Math.PI / 2), new THREE.MeshStandardMaterial({ color: prng() < 0.5 ? 0x5a4a38 : 0x7d6a52, roughness: 1, transparent: true, opacity: 0.5, depthWrite: false }));
-      const a = prng() * 6.28, rr = 2 + prng() * 12; p.position.set(Math.cos(a) * rr - 2, 0.01, Math.sin(a) * rr * 0.8); p.scale.set(1 + prng() * 2.4, 1, 0.8 + prng() * 1.8); p.rotation.y = prng() * 3; p.renderOrder = -2; this.scene.add(p);
-    }
+
     // violet glow of the portal the orcs come through (far behind the army)
     this.glowTexture = glowTex(); this.haloMat = new THREE.SpriteMaterial({ map: this.glowTexture, color: 0xa855f7, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true, opacity: 0.55 });
     this.glow = new THREE.Sprite(this.haloMat); this.glow.scale.setScalar(16); this.glow.position.set(-16, 3, 0); this.scene.add(this.glow);
-    // drifting dust motes
+
+    // drifting dust / particles matching the biome atmosphere
+    const prng = mulberry32(this.seed * 31 + 5);
     const N = 70; const pos = new Float32Array(N * 3); this.dustBase = new Float32Array(N * 3);
     for (let i = 0; i < N; i++) { this.dustBase[i * 3] = (prng() - 0.5) * 24 - 2; this.dustBase[i * 3 + 1] = prng() * 5; this.dustBase[i * 3 + 2] = (prng() - 0.5) * 16; }
     pos.set(this.dustBase);
     const dg = new THREE.BufferGeometry(); dg.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-    this.dust = new THREE.Points(dg, new THREE.PointsMaterial({ color: 0xffe2b0, size: 0.07, transparent: true, opacity: 0.55, depthWrite: false, sizeAttenuation: true })); this.dust.frustumCulled = false; this.scene.add(this.dust);
+    const dustCol = this.biome.snow ? 0xffffff : (this.biome.fly ?? 0xffe2b0);
+    this.dust = new THREE.Points(dg, new THREE.PointsMaterial({ color: dustCol, size: 0.08, transparent: true, opacity: 0.65, depthWrite: false, sizeAttenuation: true })); this.dust.frustumCulled = false; this.scene.add(this.dust);
 
     // how many of each type to show
     const reps = entries.map(e => ({ type: e.type, n: Math.min(CAP[e.type] ?? 3, Math.max(1, Math.ceil(e.count / (DIV[e.type] ?? 3)))) }));
@@ -150,7 +159,7 @@ export class HordeView {
     while (total > MAX_FIGS && normal && normal.n > 4) { normal.n--; total--; }
     let guard = 0; while (total > MAX_FIGS && guard++ < 40) { const big = reps.slice().sort((a, b) => b.n - a.n)[0]; if (!big || big.n <= 1) break; big.n--; total--; }
 
-    const srand = mulberry32(seed * 977 + 13);
+    const srand = mulberry32(this.seed * 977 + 13);
     for (const r of reps) for (let i = 0; i < r.n; i++) {
       let model: PreviewModel; try { model = build(r.type); } catch { continue; }
       const root = new THREE.Group(); root.add(model.group); root.userData.etype = r.type; this.scene.add(root);
@@ -212,33 +221,247 @@ export class HordeView {
     this.buildScenery(minX, maxX, minZ, maxZ);
   }
 
-  /** war-camp scenery around the army: banners behind, torches at the sides, rocks around */
+  /** builds the terrain of the upcoming level: central flat staging clearing ("lapangan"), surrounded by rolling grass terrain */
+  private buildTerrain(cx: number, cz: number, rx: number, rz: number): (x: number, z: number) => number {
+    if (this.ground) {
+      this.scene.remove(this.ground);
+      this.ground.geometry.dispose();
+      (this.ground.material as THREE.Material).dispose();
+      this.ground = null;
+    }
+    const B = this.biome;
+
+    const elevationAt = (x: number, z: number) => {
+      const dx = (x - cx) / rx, dz = (z - cz) / rz;
+      const d = Math.hypot(dx, dz);
+      if (d <= 1.0) return 0;
+      const t = clamp((d - 1.0) / 1.6, 0, 1);
+      const w = t * t * (3 - 2 * t);
+      const hill = 0.38 + 0.32 * Math.sin(x * 0.22 + 1.4) * Math.cos(z * 0.2) + 0.16 * Math.cos((x - z) * 0.24);
+      const frontFactor = x > cx + 1 ? 0.65 : 1.15;
+      return w * hill * frontFactor;
+    };
+
+    const S = 22;
+    const seg = 56;
+    const nx = seg + 1, nz = seg + 1;
+    const pos = new Float32Array(nx * nz * 3);
+    const col = new Float32Array(nx * nz * 3);
+    const uvs = new Float32Array(nx * nz * 2);
+    const idx = new Uint32Array(seg * seg * 6);
+
+    const cSand0 = new THREE.Color(B.sand[0]);
+    const cSand1 = new THREE.Color(B.sand[1]);
+    const cLane = new THREE.Color(B.lane);
+    const cEarth = new THREE.Color(0x6b533b);
+    const cGrass0 = new THREE.Color(B.grass[0]);
+    const cGrass1 = new THREE.Color(B.grass[1]);
+    const cGrass2 = new THREE.Color(B.grass[2]);
+
+    for (let j = 0; j < nz; j++) {
+      for (let i = 0; i < nx; i++) {
+        const k = j * nx + i;
+        const u = i / seg, v = j / seg;
+        const x = cx - S + u * 2 * S;
+        const z = cz - S + v * 2 * S;
+        const y = elevationAt(x, z);
+
+        pos[k * 3] = x;
+        pos[k * 3 + 1] = y;
+        pos[k * 3 + 2] = z;
+
+        uvs[k * 2] = u;
+        uvs[k * 2 + 1] = v;
+
+        const dx = (x - cx) / rx, dz = (z - cz) / rz;
+        const d = Math.hypot(dx, dz);
+        const noise = (Math.sin(x * 1.7) * Math.cos(z * 1.5) + 1) * 0.5;
+
+        // Lapangan (staging camp dirt/sand mix)
+        const cLap = cEarth.clone().lerp(cSand0, 0.45).lerp(cSand1, noise * 0.35);
+        cLap.lerp(cLane, (Math.sin(x * 3.1 + z * 2.7) + 1) * 0.1);
+
+        // Rumput (biome grass)
+        const cGrass = cGrass1.clone().lerp(cGrass0, noise * 0.4).lerp(cGrass2, (Math.cos(x * 2.3) + 1) * 0.15);
+
+        // Transition from lapangan to rumput
+        const tGrass = clamp((d - 0.92) / 0.42, 0, 1);
+        const blend = tGrass * tGrass * (3 - 2 * tGrass);
+        const finalCol = cLap.clone().lerp(cGrass, blend);
+
+        col[k * 3] = finalCol.r;
+        col[k * 3 + 1] = finalCol.g;
+        col[k * 3 + 2] = finalCol.b;
+      }
+    }
+
+    let ii = 0;
+    for (let j = 0; j < seg; j++) {
+      for (let i = 0; i < seg; i++) {
+        const a = j * nx + i, b = a + 1, c = a + nx, d = c + 1;
+        idx[ii++] = a; idx[ii++] = c; idx[ii++] = b;
+        idx[ii++] = b; idx[ii++] = c; idx[ii++] = d;
+      }
+    }
+
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+    geo.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
+    geo.setIndex(new THREE.BufferAttribute(idx, 1));
+    geo.computeVertexNormals();
+
+    const mat = new THREE.MeshStandardMaterial({
+      vertexColors: true,
+      roughness: 0.95,
+      transparent: true,
+      alphaMap: this.fade,
+      depthWrite: true,
+    });
+
+    this.ground = new THREE.Mesh(geo, mat);
+    this.ground.renderOrder = -3;
+    this.ground.receiveShadow = true;
+    this.scene.add(this.ground);
+
+    return elevationAt;
+  }
+
+  /** war-camp scenery: banners behind, torches at sides, real 3D voxel trees matching the level's biome on the surrounding grass terrain, grass tufts, flowers, boulders */
   private buildScenery(minX: number, maxX: number, minZ: number, maxZ: number) {
     if (this.scenery) this.scene.remove(this.scenery);
-    const g = new THREE.Group(); this.scenery = g; this.scene.add(g); this.flames = []; this.flags = [];
-    const side = Math.max(Math.abs(minZ), Math.abs(maxZ)) + 1.5; const rear = minX - 2.4; const front = maxX + 1.2;
-    for (const z of [-0.85 * side, 0, 0.85 * side]) { // purple banners with the orc sigil
-      const pole = new THREE.Mesh(this.poleGeo, this.poleMat); pole.scale.set(1, 3.6, 1); pole.position.set(rear, 1.8, z); g.add(pole);
-      const flag = new THREE.Group(); flag.position.set(rear, 3.0, z); g.add(flag); this.flags.push(flag);
+    const g = new THREE.Group(); this.scenery = g; this.scene.add(g);
+    this.flames = []; this.flags = []; this.treeSways = [];
+    for (const d of this.disposables) d.dispose();
+    this.disposables = [];
+
+    const side = Math.max(Math.abs(minZ), Math.abs(maxZ)) + 1.5;
+    const rear = minX - 2.5;
+    const front = maxX + 1.2;
+    const cx = (minX + maxX) / 2;
+    const cz = (minZ + maxZ) / 2;
+    const rx = Math.max(4.2, (maxX - minX) * 0.52 + 1.2);
+    const rz = Math.max(3.8, (maxZ - minZ) * 0.52 + 1.2);
+
+    const elevationAt = this.buildTerrain(cx, cz, rx, rz);
+
+    // purple banners with the orc sigil
+    for (const z of [-0.85 * side, 0, 0.85 * side]) {
+      const by = elevationAt(rear, z);
+      const pole = new THREE.Mesh(this.poleGeo, this.poleMat); pole.scale.set(1, 3.6, 1); pole.position.set(rear, by + 1.8, z); g.add(pole);
+      const flag = new THREE.Group(); flag.position.set(rear, by + 3.0, z); g.add(flag); this.flags.push(flag);
       const cloth = new THREE.Mesh(this.boxGeo, this.flagMat); cloth.scale.set(1.15, 0.85, 0.05); cloth.position.x = 0.62; flag.add(cloth);
       const face = new THREE.Mesh(this.sphGeo, this.sigilMat); face.scale.set(0.27, 0.27, 0.06); face.position.set(0.62, 0, 0.04); flag.add(face);
       for (const ex of [-0.09, 0.09]) { const eye = new THREE.Mesh(this.sphGeo, this.whiteMat); eye.scale.set(0.055, 0.055, 0.03); eye.position.set(0.62 + ex, 0.04, 0.09); flag.add(eye); }
-      const top = new THREE.Mesh(this.sphGeo, this.whiteMat); top.scale.setScalar(0.09); top.position.set(rear, 3.65, z); g.add(top);
+      const top = new THREE.Mesh(this.sphGeo, this.whiteMat); top.scale.setScalar(0.09); top.position.set(rear, by + 3.65, z); g.add(top);
     }
+
+    // torches with flame and halo at the 4 corners of the clearing
     const torchSpots: [number, number][] = [[front, -side], [front, side], [rear + 2.2, -side], [rear + 2.2, side]];
-    torchSpots.forEach(([x, z], i) => { // torches with a flame and a halo
-      const pole = new THREE.Mesh(this.poleGeo, this.poleMat); pole.scale.set(1, 1.7, 1); pole.position.set(x, 0.85, z); g.add(pole);
-      const bowl = new THREE.Mesh(this.coneGeo, this.poleMat); bowl.scale.set(0.2, 0.22, 0.2); bowl.rotation.x = Math.PI; bowl.position.set(x, 1.8, z); g.add(bowl);
-      const fl = makeFlame(0.42); fl.position.set(x, 1.86, z); g.add(fl); this.flames.push(fl);
-      const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: this.glowTexture, color: 0xffa24a, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true, opacity: 0.6 })); halo.scale.setScalar(1.9); halo.position.set(x, 2.1, z); g.add(halo);
-      if (i < this.torchLights.length) this.torchLights[i].position.set(x, 2.2, z);
+    torchSpots.forEach(([x, z], i) => {
+      const ty = elevationAt(x, z);
+      const pole = new THREE.Mesh(this.poleGeo, this.poleMat); pole.scale.set(1, 1.7, 1); pole.position.set(x, ty + 0.85, z); g.add(pole);
+      const bowl = new THREE.Mesh(this.coneGeo, this.poleMat); bowl.scale.set(0.2, 0.22, 0.2); bowl.rotation.x = Math.PI; bowl.position.set(x, ty + 1.8, z); g.add(bowl);
+      const fl = makeFlame(0.42); fl.position.set(x, ty + 1.86, z); g.add(fl); this.flames.push(fl);
+      const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: this.glowTexture, color: 0xffa24a, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true, opacity: 0.6 })); halo.scale.setScalar(1.9); halo.position.set(x, ty + 2.1, z); g.add(halo);
+      if (i < this.torchLights.length) this.torchLights[i].position.set(x, ty + 2.2, z);
     });
-    const rng = mulberry32(this.seed * 17 + 3);
-    for (let i = 0; i < 10; i++) { // rocks
-      const a = rng() * 6.28; const rr = Math.max(side + 1.5, 6.5) + rng() * 4.5; const rock = new THREE.Mesh(this.sphGeo, this.rockMat);
-      rock.scale.set(0.35 + rng() * 0.5, 0.25 + rng() * 0.3, 0.3 + rng() * 0.45); rock.position.set((minX + maxX) / 2 + Math.cos(a) * rr * 1.25, 0.12, Math.sin(a) * rr * 0.75); rock.rotation.y = rng() * 3; g.add(rock);
+
+    // trees matching the level's biome in the surrounding grass terrain
+    const B = this.biome;
+    const treeRng = mulberry32(this.level * 41 + 17);
+    const treeSpots: [number, number, number][] = [
+      // Rear line (behind banners and portal):
+      [minX - 3.8, cz - 3.5, 1.05],
+      [minX - 4.6, cz + 1.2, 1.15],
+      [minX - 5.8, cz - 1.5, 1.2],
+      [minX - 6.2, cz + 4.2, 1.1],
+      [minX - 7.5, cz - 4.8, 1.0],
+      [minX - 8.4, cz + 1.8, 1.25],
+      // North flank (+z):
+      [cx - 2.8, maxZ + 3.2, 1.0],
+      [cx + 0.8, maxZ + 4.5, 0.95],
+      [cx + 3.6, maxZ + 3.4, 0.9],
+      [minX - 1.8, maxZ + 6.2, 1.1],
+      // South flank (-z):
+      [cx - 2.5, minZ - 3.2, 1.05],
+      [cx + 1.2, minZ - 4.2, 0.95],
+      [cx + 3.8, minZ - 3.0, 0.9],
+      [minX - 2.0, minZ - 6.0, 1.1],
+    ];
+
+    treeSpots.forEach(([tx, tz, s]) => {
+      let r = treeRng() * B.trees.reduce((acc, t) => acc + t[1], 0);
+      let kind = B.trees[0][0];
+      for (const [k, w] of B.trees) {
+        if ((r -= w) <= 0) { kind = k; break; }
+      }
+      const tree = buildTreeMesh(kind, B, treeRng);
+      const ty = elevationAt(tx, tz);
+      tree.group.position.set(tx, ty, tz);
+      tree.group.rotation.y = treeRng() * 6.28;
+      tree.group.scale.setScalar(s * (0.85 + treeRng() * 0.3));
+      g.add(tree.group);
+      this.treeSways.push({ piv: tree.piv, amp: tree.amp, ph: tree.ph });
+    });
+
+    // Tufts of grass on the surrounding grass terrain
+    const tuftG = tuftGeo();
+    this.disposables.push(tuftG);
+    const tuftMat = new THREE.MeshStandardMaterial({ color: B.grass[1], roughness: 0.95, side: THREE.DoubleSide });
+    this.disposables.push(tuftMat);
+    for (let i = 0; i < 28; i++) {
+      const ang = treeRng() * 6.28;
+      const dist = 1.12 + treeRng() * 0.75;
+      const gx = cx + Math.cos(ang) * rx * dist;
+      const gz = cz + Math.sin(ang) * rz * dist;
+      const gy = elevationAt(gx, gz);
+      const tm = new THREE.Mesh(tuftG, tuftMat);
+      tm.position.set(gx, gy, gz);
+      tm.scale.setScalar(0.24 + treeRng() * 0.16);
+      tm.rotation.y = treeRng() * 6.28;
+      g.add(tm);
     }
-    this.glow.position.set(rear - 6, 3.2, 0);
+
+    // Biome flowers
+    if (B.flowers && B.flowers.length > 0) {
+      for (let i = 0; i < 18; i++) {
+        const fc = B.flowers[i % B.flowers.length];
+        const flG = flowerGeo(fc);
+        this.disposables.push(flG);
+        const flMat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.8 });
+        this.disposables.push(flMat);
+        const ang = treeRng() * 6.28;
+        const dist = 1.15 + treeRng() * 0.65;
+        const fx = cx + Math.cos(ang) * rx * dist;
+        const fz = cz + Math.sin(ang) * rz * dist;
+        const fy = elevationAt(fx, fz);
+        const fm = new THREE.Mesh(flG, flMat);
+        fm.position.set(fx, fy, fz);
+        fm.scale.setScalar(0.28 + treeRng() * 0.18);
+        fm.rotation.y = treeRng() * 6.28;
+        g.add(fm);
+      }
+    }
+
+    // Boulders
+    for (let i = 0; i < 6; i++) {
+      const ang = treeRng() * 6.28;
+      const dist = 1.25 + treeRng() * 0.6;
+      const bx = cx + Math.cos(ang) * rx * dist;
+      const bz = cz + Math.sin(ang) * rz * dist;
+      const by = elevationAt(bx, bz);
+      const bObj = buildBoulder(B.stone, B.moss, treeRng);
+      bObj.group.position.set(bx, by, bz);
+      bObj.group.scale.setScalar(0.55 + treeRng() * 0.35);
+      bObj.group.rotation.y = treeRng() * 6.28;
+      g.add(bObj.group);
+      this.disposables.push(bObj.geo, bObj.ol);
+    }
+
+    // Portal glow in the distance behind the rear tree line
+    const py = elevationAt(rear - 6, 0);
+    this.glow.position.set(rear - 6, py + 3.2, 0);
   }
 
   // ---------- camera ----------
@@ -288,6 +511,10 @@ export class HordeView {
     this.flags.forEach((fl, i) => { fl.rotation.y = Math.sin(t * 2.2 + i) * 0.28; fl.rotation.z = Math.sin(t * 1.6 + i * 2) * 0.05; });
     this.haloMat.opacity = 0.5 + Math.sin(t * 1.4) * 0.12;
     this.ringMat.opacity = 0.65 + Math.sin(t * 6) * 0.25;
+    this.treeSways.forEach(s => {
+      s.piv.rotation.z = Math.sin(t * 1.8 + s.ph) * s.amp;
+      s.piv.rotation.x = Math.cos(t * 1.3 + s.ph) * (s.amp * 0.65);
+    });
     const arr = this.dust.geometry.attributes.position as THREE.BufferAttribute;
     for (let i = 0; i < arr.count; i++) { arr.setXYZ(i, this.dustBase[i * 3] + Math.sin(t * 0.3 + i) * 0.5, (this.dustBase[i * 3 + 1] + t * 0.12 + i * 0.07) % 5, this.dustBase[i * 3 + 2] + Math.cos(t * 0.25 + i * 1.3) * 0.5); }
     arr.needsUpdate = true;
@@ -343,7 +570,9 @@ export class HordeView {
   dispose() {
     cancelAnimationFrame(this.raf);
     const c = this.canvas; c.removeEventListener('pointerdown', this.onDown); c.removeEventListener('pointermove', this.onMove); c.removeEventListener('pointerup', this.onUp); c.removeEventListener('pointercancel', this.onCancel);
-    for (const d of [this.shadowGeo, this.shadowMat, this.ringGeo, this.ringMat, this.glowTexture, this.fade, this.poleGeo, this.boxGeo, this.sphGeo, this.coneGeo, this.poleMat, this.flagMat, this.sigilMat, this.whiteMat, this.rockMat, this.haloMat, this.dust.geometry, this.ground.geometry]) d.dispose();
+    for (const d of [this.shadowGeo, this.shadowMat, this.ringGeo, this.ringMat, this.glowTexture, this.fade, this.poleGeo, this.boxGeo, this.sphGeo, this.coneGeo, this.poleMat, this.flagMat, this.sigilMat, this.whiteMat, this.rockMat, this.haloMat, this.dust.geometry]) d.dispose();
+    if (this.ground) { this.ground.geometry.dispose(); (this.ground.material as THREE.Material).dispose(); }
+    for (const d of this.disposables) d.dispose();
     this.renderer.dispose();
   }
 }

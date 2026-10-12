@@ -1018,7 +1018,7 @@ export function buildTowerModel(type: TowerType, level: number, def: { color: nu
     catArm.add(catRock);
     head.add(catArm);
 
-    face = makeFace({ r: 0.115, gap: 0.15, iris: 0x78350f, skin: def.color, mouth: 'grin', bias: 0.18, brows: true, body: { R, cy, sy, y0: 0.36 } });
+    face = makeFace({ r: 0.115, gap: 0.15, iris: 0x78350f, skin: def.color, mouth: 'grin', bias: 0.18, brows: 0x78350f, body: { R, cy, sy, y0: 0.36 } });
     muzzle = makeBlast(0.45, 0xfef3c7, 0xd97706, 0xa8a29e);
     muzzle.position.set(0, 1.08, 0.36);
     head.add(muzzle);

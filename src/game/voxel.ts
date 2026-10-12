@@ -71,7 +71,7 @@ export function makeBlast(size = 1, core = 0xfff3b0, mid = 0xffa11f, outer = 0xf
 
 // ---------- cartoon face ----------
 export interface FaceBody { kind?: 'sphere' | 'cyl'; R: number; cy: number; sy?: number; y0: number }
-export interface FaceOpts { r?: number; gap?: number; iris?: number; skin: number; mouth?: 'smile' | 'grin' | 'none'; mouthY?: number; cheeks?: boolean; round?: boolean; bias?: number; body?: FaceBody; brows?: number }
+export interface FaceOpts { r?: number; gap?: number; iris?: number; skin: number; mouth?: 'smile' | 'grin' | 'none'; mouthY?: number; cheeks?: boolean; round?: boolean; bias?: number; body?: FaceBody; brows?: number | boolean }
 interface EyeRef { eye: THREE.Group; pupil: THREE.Group; pivot: THREE.Group; lid: THREE.Mesh; side: number }
 
 /** Big glossy eyes (outlined sclera, iris, pupil, 2 highlights, eyelids), cheeks, mouth and a sweat drop. */
@@ -118,8 +118,9 @@ export function makeFace(o: FaceOpts): THREE.Group {
 
   // chunky cartoon eyebrows (optional) – they tilt/raise with the mood so the orc can look angry, worried or surprised
   const brows: { m: THREE.Mesh; side: number; y0: number }[] = [];
-  if (o.brows !== undefined) {
-    const bm = new THREE.MeshStandardMaterial({ color: o.brows, roughness: 0.6 });
+  if (o.brows !== undefined && o.brows !== false) {
+    const browColor = typeof o.brows === 'number' ? o.brows : 0x451a03;
+    const bm = new THREE.MeshStandardMaterial({ color: browColor, roughness: 0.6 });
     for (const side of [-1, 1]) {
       const x = side * gap, y = r * 1.5; const m = new THREE.Mesh(SPH, bm);
       m.scale.set(r * 1.05, r * 0.22, r * 0.3); m.position.set(x, y, sz(x, y) - r * 0.02); g.add(m); brows.push({ m, side, y0: y });

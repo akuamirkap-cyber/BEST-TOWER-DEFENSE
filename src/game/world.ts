@@ -318,6 +318,39 @@ function mushroomsMB(rng: () => number, caps: number[]) {
   return mb;
 }
 
+export { tuftGeo, flowerGeo, boulderMB, bushMB, mushroomsMB };
+
+export function buildTreeMesh(kind: TreeKind, biome: Biome, rng: () => number) {
+  const p = kind === 'round' ? roundTree(rng, biome.leaf, biome.trunk, biome.fruit)
+    : kind === 'blossom' ? roundTree(rng, biome.blossom, new THREE.Color(biome.trunk).offsetHSL(0, 0, -0.05).getHex(), [0xffffff, 0xffe066])
+    : kind === 'pine' ? pineTree(rng, biome.pine, biome.trunk, !!biome.snow)
+    : kind === 'lolly' ? lollyTree(rng, biome.candy, biome.fruit)
+    : mushroomTree(rng, biome.cap);
+  const g = new THREE.Group();
+  const tm = new THREE.Mesh(p.trunk.geo, VC_MAT);
+  tm.castShadow = true;
+  g.add(tm);
+  g.add(new THREE.Mesh(p.trunk.ol, OUTLINE_MAT));
+  const piv = new THREE.Group();
+  piv.position.y = p.pivotY;
+  g.add(piv);
+  const cm = new THREE.Mesh(p.canopy.geo, VC_MAT);
+  cm.castShadow = true;
+  piv.add(cm);
+  piv.add(new THREE.Mesh(p.canopy.ol, OUTLINE_MAT));
+  if (p.glow) piv.add(new THREE.Mesh(p.glow, GLOW_VC));
+  return { group: g, piv, amp: 0.022 + rng() * 0.02, ph: rng() * 6.28 };
+}
+
+export function buildBoulder(stone: number, moss: number | undefined, rng: () => number) {
+  const mb = boulderMB(rng, stone, moss);
+  const b = mb.build();
+  const g = new THREE.Group();
+  g.add(new THREE.Mesh(b.geo, VC_MAT));
+  g.add(new THREE.Mesh(b.ol, OUTLINE_MAT));
+  return { group: g, geo: b.geo, ol: b.ol };
+}
+
 // ---------- the world ----------
 export interface WorldOpts {
   W: number; H: number; level: number; biome: number; waypoints: THREE.Vector3[];

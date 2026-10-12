@@ -9,7 +9,7 @@ import { BOX, SPH, OUTLINE_MAT, makeFace, makeFlame, makeBlast } from './voxel';
 export type OrcKind = 'normal' | 'fast' | 'tank' | 'shaman' | 'berserker' | 'boss' | 'baby' | 'gunner' | 'jumper' | 'cannoneer' | 'ninja' | 'bomber' | 'magnet' | 'frost' | 'rider' | 'punk' | 'shield' | 'toxic' | 'bat' | 'troll' | 'gargantuar' | 'imp' | 'bungee' | 'miner';
 type Limbs = Record<string, THREE.Group>;
 interface Def { skin: number; cloth: number }
-export interface OrcBuild { parts: THREE.Object3D[]; limbs: Limbs; skinMats: THREE.MeshStandardMaterial[]; hpY: number }
+export interface OrcBuild { parts: THREE.Object3D[]; debris?: THREE.Object3D[]; limbs: Limbs; skinMats: THREE.MeshStandardMaterial[]; hpY: number }
 
 const OL = 0.02; // outline thickness in model units
 const EAR = 1.07; // ear tilt (rad) – pointing out and up
@@ -578,6 +578,7 @@ export function buildOrc(kind: OrcKind, def: Def): OrcBuild {
   hd.head.position.y = c.headY; hd.head.scale.setScalar(c.headS);
 
   const parts: THREE.Object3D[] = [legL, legR, body, armL, armR, hd.head];
+  const debris: THREE.Object3D[] = [legL, legR, body, armL, armR, hd.head];
   Object.assign(limbs, { legL, legR, body, armL, armR, head: hd.head, face: hd.face, earL: hd.earL, earR: hd.earR });
 
   // rider mount (badak lapis baja - bertumpu aman di atas terrain tanpa tembus ke bawah)
@@ -611,13 +612,13 @@ export function buildOrc(kind: OrcKind, def: Def): OrcBuild {
       }
     }
     limbs.mountLegs = mountLegs as any;
-    parts.push(mount); limbs.mount = mount;
+    parts.push(mount); debris.push(mount); limbs.mount = mount;
   }
 
   // weapons: held naturally in fists so they swing with the arms; thrown apart when the orc dies
   const hold = (arm: THREE.Group, kindW: WeaponKind, isLeft = false) => {
     const w = makeWeapon(kindW);
-    w.position.set(0, -0.3, 0.02);
+    w.position.set(0, -0.3, 0.01);
     if (kindW === 'pole') {
       // Gargantuar rests the massive utility pole over his shoulder
       w.rotation.set(-0.35, 0, 0.15);
@@ -641,7 +642,7 @@ export function buildOrc(kind: OrcKind, def: Def): OrcBuild {
       w.rotation.set(0.42, 0, isLeft ? 0.16 : -0.16);
     }
     arm.add(w);
-    parts.push(w);
+    debris.push(w);
     return w;
   };
 
@@ -653,15 +654,13 @@ export function buildOrc(kind: OrcKind, def: Def): OrcBuild {
     case 'shaman': hold(armR, 'staff'); break;
     case 'berserker': hold(armR, 'twin', false); hold(armL, 'twin', true); break;
     case 'gunner': {
-      // Two-handed sniper rifle grip: rifle across chest, hands firmly positioned on stock and barrel
+      // Held firmly in right hand across chest
       const rifle = makeWeapon('rifle');
-      const gunMount = new THREE.Group();
-      gunMount.name = 'gun';
-      gunMount.position.set(0.06, c.bodyY + 0.05, 0.24);
-      gunMount.add(rifle);
-      body.add(gunMount);
-      parts.push(rifle);
-      limbs.gun = gunMount;
+      rifle.position.set(0, -0.28, 0.06);
+      rifle.rotation.set(0.32, -0.12, 0.18);
+      armR.add(rifle);
+      debris.push(rifle);
+      limbs.gun = rifle;
       break;
     }
     case 'jumper': { // rocket jet-pack (flames only show while flying)
@@ -671,13 +670,14 @@ export function buildOrc(kind: OrcKind, def: Def): OrcBuild {
         pack.add(cyl(0.05, 0.09, 0.1, M(0x1f2937), sd * 0.14, -0.33, 0, { seg: 10 }));
         const f = makeFlame(0.28); f.position.set(sd * 0.14, -0.38, 0); f.rotation.x = Math.PI; jet.add(f);
       }
-      parts.push(pack); limbs.jet = jet; break;
+      parts.push(pack); debris.push(pack); limbs.jet = jet; break;
     }
     case 'cannoneer': {
       const torch = hold(armR, 'torch');
       torch.name = 'torch';
       const cannon = buildCannon();
       parts.push(cannon);
+      debris.push(cannon);
       limbs.torch = torch;
       limbs.cannon = cannon;
       break;
@@ -701,7 +701,7 @@ export function buildOrc(kind: OrcKind, def: Def): OrcBuild {
       tShield.add(box(0.22 * bs, 0.05, 0.12 * bs, brown, 0, 0.1, -0.05));
       tShield.add(box(0.22 * bs, 0.05, 0.12 * bs, brown, 0, -0.06, -0.05));
       armL.add(tShield);
-      parts.push(tShield);
+      debris.push(tShield);
       break;
     }
     case 'toxic': hold(armR, 'vial'); break;
@@ -713,7 +713,7 @@ export function buildOrc(kind: OrcKind, def: Def): OrcBuild {
     case 'miner': hold(armR, 'pickaxe', false); hold(armL, 'pickaxe', true); break;
     case 'baby': break;
   }
-  return { parts, limbs, skinMats, hpY: c.hpY };
+  return { parts, debris, limbs, skinMats, hpY: c.hpY };
 }
 
 /** the log: a plain rolling log with iron bands, rivets and wood grain. It has NO face – when it is destroyed, 5 orcs step out of it. */

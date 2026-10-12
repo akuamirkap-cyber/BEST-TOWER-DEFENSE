@@ -169,9 +169,9 @@ function buildArcher(def: Def): OrcBuild {
   head.add(cone(0.2, 0.42, hood, 0, 0.12, -0.38, { rx: -2.0, ol: true }));
   head.add(S(0.05, A_F1, 0.3, 0.55, -0.05, { sy: 3.2, sz: 0.4, rz: -0.5 })); head.add(S(0.04, A_F2, 0.37, 0.7, -0.05, { sy: 1.6, sz: 0.4, rz: -0.5 }));
   const armL = orcArm(skinMat), armR = orcArm(skinMat); armL.position.set(-0.28, 0.7, 0); armR.position.set(0.28, 0.7, 0);
-  const bow = makeBow(); bow.position.set(0, -0.3, 0.02); bow.rotation.x = Math.PI / 2; armL.add(bow);
+  const bow = makeBow(); bow.position.set(0, -0.3, 0.01); bow.rotation.x = Math.PI / 2; armL.add(bow);
   Object.assign(limbs, { legL, legR, body, armL, armR, head, face: hd.face, earL: hd.earL, earR: hd.earR, bow });
-  return { parts: [legL, legR, body, armL, armR, head, bow], limbs, skinMats, hpY: 1.85 };
+  return { parts: [legL, legR, body, armL, armR, head], debris: [legL, legR, body, armL, armR, head, bow], limbs, skinMats, hpY: 1.85 };
 }
 
 // ---------- DREAD KNIGHT (bulky black armour, glowing green) ----------
@@ -214,9 +214,9 @@ function buildDread(def: Def): OrcBuild {
   const face = makeFace({ r: 0.125, gap: 0.17, iris: 0x14532d, skin: def.skin, mouth: 'none', cheeks: false, bias: 0.9, brows: 0x16a34a, body: { R: 0.43, cy: 0, sy: 0.98, y0: 0.03 } });
   head.add(face); glowEyes(face, 0x66ff8f, 0x14532d);
   skinMats.push((face.userData.eyes as { lid: THREE.Mesh }[])[0].lid.material as THREE.MeshStandardMaterial);
-  const sword = greatsword(); sword.position.set(0, -0.3, 0.04); sword.rotation.x = 2.7; armR.add(sword);
+  const sword = greatsword(); sword.position.set(0, -0.3, 0.01); sword.rotation.x = 2.7; armR.add(sword);
   Object.assign(limbs, { legL, legR, body, armL, armR, head, face, sword });
-  return { parts: [legL, legR, body, armL, armR, head, sword], limbs, skinMats, hpY: 2.6 };
+  return { parts: [legL, legR, body, armL, armR, head], debris: [legL, legR, body, armL, armR, head, sword], limbs, skinMats, hpY: 2.6 };
 }
 
 // ---------- WAR CAPTAIN ----------
@@ -247,9 +247,9 @@ function buildCaptain(def: Def): OrcBuild {
   for (const sd of [-1, 1]) head.add(box(0.07, 0.24, 0.26, steel, sd * 0.4, 0.06, 0.05, { ol: true })); // cheek plates
   head.add(cap(0.075, 0.55, red, 0, 0.62, -0.12, { rx: 1.25, ol: true })); head.add(S(0.1, red, 0, 0.66, 0.1, { ol: true })); head.add(cone(0.06, 0.2, red, 0, 0.6, 0.12, {}));
   const armL = orcArm(skinMat), armR = orcArm(skinMat); armL.position.set(-0.4, 0.82, 0); armR.position.set(0.4, 0.82, 0);
-  const sword = longsword(); sword.position.set(0, -0.3, 0.04); sword.rotation.x = 1.15; armR.add(sword);
+  const sword = longsword(); sword.position.set(0, -0.3, 0.01); sword.rotation.x = 1.15; armR.add(sword);
   Object.assign(limbs, { legL, legR, body, armL, armR, head, face: hd.face, earL: hd.earL, earR: hd.earR, flag, sword });
-  return { parts: [legL, legR, body, armL, armR, head, sword], limbs, skinMats, hpY: 2.5 };
+  return { parts: [legL, legR, body, armL, armR, head], debris: [legL, legR, body, armL, armR, head, sword], limbs, skinMats, hpY: 2.5 };
 }
 
 // ---------- LEGION SOLDIER ----------
@@ -274,13 +274,13 @@ function buildLegion(def: Def): OrcBuild {
   for (const sd of [-1, 1]) head.add(box(0.06, 0.2, 0.22, steel, sd * 0.4, 0.06, 0.05, { ol: true }));
   head.add(cap(0.07, 0.5, red, 0, 0.58, -0.15, { rx: Math.PI / 2, ol: true })); head.add(cone(0.06, 0.2, red, 0, 0.55, 0.12, {}));
   const armL = orcArm(skinMat), armR = orcArm(skinMat); armL.position.set(-0.32, 0.76, 0); armR.position.set(0.32, 0.76, 0);
-  const spear = new THREE.Group(); spear.position.set(0, -0.3, 0.02); spear.rotation.x = 0.35; armR.add(spear);
+  const spear = new THREE.Group(); spear.position.set(0, -0.3, 0.01); spear.rotation.x = 0.35; armR.add(spear);
   // Grip centered around y = 0 inside hand, shaft extends down and up
   spear.add(cap(0.03, 1.35, wood, 0, 0.25, 0, { ol: true, cast: true }));
   spear.add(cone(0.06, 0.24, steel, 0, 0.98, 0, { ol: true }));
   spear.add(S(0.05, red, 0, 0.84, 0, {}));
   Object.assign(limbs, { legL, legR, body, armL, armR, head, face: hd.face, earL: hd.earL, earR: hd.earR, shield, spear });
-  return { parts: [legL, legR, body, armL, armR, head, spear], limbs, skinMats, hpY: 2.15 };
+  return { parts: [legL, legR, body, armL, armR, head], debris: [legL, legR, body, armL, armR, head, spear], limbs, skinMats, hpY: 2.15 };
 }
 
 // ---------- RAJA ORC (the king) ----------
@@ -332,10 +332,10 @@ function buildKing(def: Def): OrcBuild {
   weapon.add(cyl(0.2, 0.2, 0.52, gold, 0, 0.62, 0, { rz: Math.PI / 2, ol: true, cast: true }));
   for (const sd of [-1, 1]) { weapon.add(cyl(0.215, 0.215, 0.07, goldD, sd * 0.2, 0.62, 0, { rz: Math.PI / 2 })); weapon.add(S(0.075, sd > 0 ? ruby : blue, sd * 0.3, 0.62, 0, { ol: true })); }
   weapon.add(cone(0.07, 0.18, gold, 0, 0.82, 0, { ol: true }));
-  weapon.position.set(0, -0.3, 0.02); weapon.rotation.x = 1.0; weapon.scale.setScalar(1.1); armR.add(weapon);
+  weapon.position.set(0, -0.3, 0.01); weapon.rotation.x = 1.0; weapon.scale.setScalar(1.1); armR.add(weapon);
 
   Object.assign(limbs, { legL, legR, body, armL, armR, head, face: hd.face, earL: hd.earL, earR: hd.earR, weapon });
-  return { parts: [legL, legR, body, armL, armR, head, weapon], limbs, skinMats, hpY: 2.6 };
+  return { parts: [legL, legR, body, armL, armR, head], debris: [legL, legR, body, armL, armR, head, weapon], limbs, skinMats, hpY: 2.6 };
 }
 
 export function buildElite(kind: EliteKind, def: Def): OrcBuild {
