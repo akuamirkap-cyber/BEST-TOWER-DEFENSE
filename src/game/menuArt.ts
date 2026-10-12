@@ -25,12 +25,14 @@ export interface MenuArt {
   brute: string;
   airship: string;
   dragon: string;
+  /** little green orc used as the avatar in the player chip */
+  avatar: string;
   ready: boolean;
 }
 
-export type MenuArtKey = 'hero' | 'brute' | 'airship' | 'dragon';
+export type MenuArtKey = 'hero' | 'brute' | 'airship' | 'dragon' | 'avatar';
 
-const ART: MenuArt = { backdrop: '', hero: '', brute: '', airship: '', dragon: '', ready: false };
+const ART: MenuArt = { backdrop: '', hero: '', brute: '', airship: '', dragon: '', avatar: '', ready: false };
 let pending: Promise<MenuArt> | null = null;
 
 /** Renders the menu art once and caches it. Safe to call from several components (the work is de-duplicated). */
@@ -91,6 +93,36 @@ function roadSamples(wp: THREE.Vector3[]): { at: (s: number) => Placed; len: num
 }
 
 // ---------------------------------------------------------------- helpers
+/** a red/blue pennant on a pole (the game's castle carries one - the menu flies four of them) */
+function pennant(color: number) {
+  const g = new THREE.Group();
+  const poleMat = new THREE.MeshStandardMaterial({ color: 0xbdb0e0, roughness: 0.85 });
+  const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.018, 0.86, 6), poleMat);
+  pole.position.y = 0.43; pole.castShadow = true; g.add(pole);
+  const flagMat = new THREE.MeshStandardMaterial({ color, emissive: color, emissiveIntensity: 0.16, roughness: 0.7, side: THREE.DoubleSide });
+  const cloth = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.22, 0.03), flagMat);
+  cloth.position.set(0.21, 0.72, 0); cloth.castShadow = true; g.add(cloth);
+  const oc = new THREE.Mesh(cloth.geometry, OUTLINE_MAT); oc.position.copy(cloth.position); oc.scale.set(1.07, 1.14, 1.7); g.add(oc);
+  return g;
+}
+
+/** a lit torch: in the hero shot the road is lined with them */
+function torch() {
+  const g = new THREE.Group();
+  const stone = new THREE.MeshStandardMaterial({ color: 0xb9b3c9, roughness: 0.9 });
+  const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.062, 0.6, 8), stone);
+  pole.position.y = 0.3; pole.castShadow = true; g.add(pole);
+  const bowl = new THREE.Mesh(new THREE.CylinderGeometry(0.115, 0.07, 0.1, 10), stone);
+  bowl.position.y = 0.64; g.add(bowl);
+  const flame = new THREE.Mesh(new THREE.ConeGeometry(0.072, 0.24, 8), new THREE.MeshBasicMaterial({ color: 0xffc46b }));
+  flame.position.y = 0.82; g.add(flame);
+  const core = new THREE.Mesh(new THREE.ConeGeometry(0.04, 0.15, 8), new THREE.MeshBasicMaterial({ color: 0xfff4cc }));
+  core.position.y = 0.8; g.add(core);
+  const halo = new THREE.Mesh(SPH, new THREE.MeshBasicMaterial({ color: 0xffb347, transparent: true, opacity: 0.3, blending: THREE.AdditiveBlending, depthWrite: false }));
+  halo.scale.setScalar(0.34); halo.position.y = 0.8; g.add(halo);
+  return g;
+}
+
 /** a small floating voxel island for the sky (same palette as the world) */
 function floatingIsland(rng: () => number, biome: typeof BIOMES[number]) {
   const g = new THREE.Group();
@@ -113,9 +145,9 @@ function floatingIsland(rng: () => number, biome: typeof BIOMES[number]) {
 }
 
 /** soft puffy cloud cluster (the world's own clouds are reused for the sky, this adds extra depth) */
-function cloudCluster(rng: () => number, color: number) {
+function cloudCluster(rng: () => number, color: number, glow = 0.28) {
   const g = new THREE.Group();
-  const mat = new THREE.MeshStandardMaterial({ color, roughness: 1, emissive: color, emissiveIntensity: 0.28 });
+  const mat = new THREE.MeshStandardMaterial({ color, roughness: 1, emissive: color, emissiveIntensity: glow });
   const n = 3 + Math.floor(rng() * 3);
   for (let k = 0; k < n; k++) {
     const s = 0.8 + rng() * 0.9; const m = new THREE.Mesh(SPH, mat);
@@ -143,7 +175,7 @@ function renderAll() {
   renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
   const scene = new THREE.Scene();
-  const sky = makeSkyTexture(B.skyTop, B.skyBot);
+  const sky = makeSkyTexture(0x2f8fe6, 0xd8f0ff); // deeper blue overhead than the gameplay sky: the menu wants a saturated backdrop
   scene.background = sky;
   scene.fog = new THREE.Fog(B.fog, 78, 190); // the island sits ~46 units away: keep the air clear, only the far clouds haze out
 
@@ -175,8 +207,8 @@ function renderAll() {
   });
   // a deep sea of clouds far below the island: it fills the horizon the camera is looking down towards
   for (let i = 0; i < 12; i++) {
-    const c = cloudCluster(rng, B.cloud); const s = 1.5 + rng() * 1.6;
-    c.scale.setScalar(s); c.position.set(-92 + rng() * 184, -6 - rng() * 16, -72 - rng() * 58); scene.add(c);
+    const c = cloudCluster(rng, B.cloud, 0.62); const s = 1.5 + rng() * 1.6;
+    c.scale.setScalar(s); c.position.set(-92 + rng() * 184, -9 - rng() * 16, -72 - rng() * 58); scene.add(c);
   }
   // clouds high in the frame (just under the horizon line the camera is aimed at)
   for (let i = 0; i < 5; i++) {
@@ -185,12 +217,19 @@ function renderAll() {
     c.position.set(-24 + rng() * 48, 1 + rng() * 5, -26 - rng() * 20);
     scene.add(c);
   }
+  // a busy cloud band across the horizon (the key art is packed with clouds)
+  for (let i = 0; i < 12; i++) {
+    const c = cloudCluster(rng, B.cloud, 0.5); const s = 1.3 + rng() * 1.7;
+    c.scale.setScalar(s);
+    c.position.set(-96 + i * 16 + rng() * 10, 1 + rng() * 8, -58 - rng() * 30);
+    scene.add(c);
+  }
   // small mid-distance clouds: they nestle around the island's sides and give the shot depth
   for (let i = 0; i < 8; i++) {
-    const c = cloudCluster(rng, B.cloud); const s = 0.85 + rng() * 0.8;
+    const c = cloudCluster(rng, B.cloud, 0.55); const s = 0.85 + rng() * 0.8;
     const side = i % 2 === 0 ? -1 : 1;
     c.scale.setScalar(s);
-    c.position.set(side * (26 + rng() * 44), -9 - rng() * 8, -34 - rng() * 30);
+    c.position.set(side * (26 + rng() * 44), -10 - rng() * 8, -34 - rng() * 30);
     scene.add(c);
   }
   // foreground framing islands: big brothers of the sky rocks, parked at the lower left/right corners of the shot
@@ -202,10 +241,10 @@ function renderAll() {
     scene.add(f);
   }
   // floating voxel islands drifting far out in the sky (like the little floating rocks of the game's backgrounds)
-  for (let i = 0; i < 5; i++) {
-    const f = floatingIsland(rng, B); const s = 0.7 + rng() * 0.7;
-    f.scale.setScalar(s);
-    f.position.set((i % 2 ? 1 : -1) * (46 + rng() * 50), -8 + rng() * 9, -58 - rng() * 38);
+  for (const [fx, fy, fz, fs] of [[-31, 11, -42, 1.5], [-40, 4, -48, 1.2], [35, 12, -46, 1.4], [43, 5, -52, 1.15]] as const) {
+    const f = floatingIsland(rng, B);
+    f.scale.setScalar(fs);
+    f.position.set(fx, fy, fz);
     f.rotation.y = rng() * 6.28;
     scene.add(f);
   }
@@ -262,9 +301,48 @@ function renderAll() {
     scene.add(m.group);
   });
 
+  // ---- the castle is THE landmark of the shot: enlarge it, fly pennants, hang royal banners
+  {
+    let keep: THREE.Object3D | null = null;
+    world.group.children.forEach(ch => {
+      if (keep) return;
+      ch.traverse(o => {
+        const m = o as THREE.Mesh; const mat = m.material as THREE.MeshStandardMaterial | undefined;
+        if (m.isMesh && mat && mat.color && mat.color.getHex() === 0xc084fc) keep = ch;
+      });
+    });
+    if (keep) {
+      const k = keep as THREE.Object3D;
+      k.scale.multiplyScalar(1.02);
+      for (const [px, pz] of [[0.44, 0.44], [-0.44, 0.44], [0.44, -0.44], [-0.44, -0.44]] as [number, number][]) {
+        const pe = pennant(0xe23b3b); pe.position.set(px, 1.9, pz); k.add(pe);
+      }
+      const bannerMat = new THREE.MeshStandardMaterial({ color: 0x2f5fd0, roughness: 0.75, side: THREE.DoubleSide });
+      const crestMat = new THREE.MeshStandardMaterial({ color: 0xfbbf24, emissive: 0xf59e0b, emissiveIntensity: 0.35, roughness: 0.35 });
+      for (let i = 0; i < 4; i++) {
+        const a = Math.PI / 4 + (i * Math.PI) / 2;
+        const hang = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.8, 0.04), bannerMat);
+        hang.position.set(Math.sin(a) * 0.69, 1.42, Math.cos(a) * 0.69);
+        hang.rotation.y = a; hang.castShadow = true; k.add(hang);
+        const ob = new THREE.Mesh(hang.geometry, OUTLINE_MAT); ob.position.copy(hang.position); ob.rotation.y = a; ob.scale.set(1.08, 1.05, 1.6); k.add(ob);
+        const crest = new THREE.Mesh(SPH, crestMat);
+        crest.scale.set(0.1, 0.1, 0.03); crest.position.set(Math.sin(a) * 0.72, 1.5, Math.cos(a) * 0.72); crest.rotation.y = a; k.add(crest);
+      }
+    }
+  }
+
+  // ---- torches line the road, so the village reads as lit and alive
+  for (let i = 0; i < 9; i++) {
+    const p = road.at(road.len * (0.06 + i * 0.1));
+    const side = i % 2 === 0 ? -1 : 1;
+    const nx = Math.cos(p.dir) * side, nz = -Math.sin(p.dir) * side;
+    const tx = p.x + nx * 1.35, tz = p.z + nz * 1.35;
+    const t = torch(); t.position.set(tx, world.heightAt(tx, tz), tz); scene.add(t);
+  }
+
   // ---- camera: a low hero angle, castle on the right, gate on the left
   const cam = new THREE.PerspectiveCamera(24, RW / RH, 0.5, 400);
-  const look = new THREE.Vector3(1.5, 2.5, -0.2); // the castle keep stays in the right third of the frame
+  const look = new THREE.Vector3(0.75, 2.5, -0.2); // pans the keep into the right third, clear of the button column
   cam.position.copy(look).addScaledVector(new THREE.Vector3(-0.07, 0.38, 0.925).normalize(), 37);
   cam.lookAt(look);
   cam.updateMatrixWorld(true);
@@ -291,6 +369,11 @@ function renderAll() {
   });
   ART.dragon = renderProp(renderer, () => {
     const def = ENEMY_DEFS.dragon; const b = buildDragon(def);
+    return { parts: b.parts, size: def.size };
+  });
+  ART.avatar = renderProp(renderer, () => {
+    const def = ENEMY_DEFS.fast; const b = buildOrc('fast', def);
+    poseOrc('fast', b.limbs, 0.7);
     return { parts: b.parts, size: def.size };
   });
 

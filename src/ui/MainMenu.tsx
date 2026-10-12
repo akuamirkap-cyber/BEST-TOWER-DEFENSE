@@ -54,7 +54,7 @@ export default function MainMenu({ s, g, portraits, enemyPortraits }: MainMenuPr
   const filteredTowers = towerKeys.filter(t => !q || TOWER_DEFS[t].name.toLowerCase().includes(q) || (NICK[t] || '').toLowerCase().includes(q) || TOWER_DEFS[t].tag.toLowerCase().includes(q));
   const filteredEnemies = enemyKeys.filter(k => !q || k.toLowerCase().includes(q) || ENEMY_INFO[k].note.toLowerCase().includes(q));
 
-  const avatar = enemyPortraits['boss'] || enemyPortraits['captain'] || enemyPortraits['normal'];
+  const avatar = art?.avatar || enemyPortraits['boss'] || enemyPortraits['captain'] || enemyPortraits['normal'];
   const play = () => { g.sfx.resume(); g.sfx.click(); };
   const open = (m: ModalId) => { play(); setModal(m); };
   const toggleFullscreen = () => {
@@ -182,13 +182,13 @@ export default function MainMenu({ s, g, portraits, enemyPortraits }: MainMenuPr
       {/* ================= centre: the four battle buttons ================= */}
       <div className="absolute inset-x-0 top-[54%] z-30 -translate-y-1/2 px-3 sm:top-1/2 sm:px-6">
         <div className="mx-auto flex w-full max-w-[min(92vw,520px)] flex-col gap-2.5 sm:gap-3.5">
-          <MenuButton icon="swords" label="QUICK BATTLE" sub="Mulai Pertempuran Voxel" from="#ffe066" via="#fbbf24" to="#f97316" shadow="#9a3412" pulse
+          <MenuButton icon="swords" label="QUICK BATTLE" sub="Mulai Pertempuran Sekarang!" from="#ffe066" via="#fbbf24" to="#f97316" shadow="#9a3412" pulse
             onClick={() => { play(); g.startGame(); }} />
-          <MenuButton icon="trophy" label="HIGH SCORES" sub={s.best > 0 ? `Rekor terbaik: ${s.best} poin` : 'Belum ada rekor — ayo main!'} from="#a5e8ff" via="#4aa8e8" to="#1d4ed8" shadow="#1e3a8a"
+          <MenuButton icon="trophy" label="HIGH SCORES" sub={s.best > 0 ? `Rekor Terbaik: ${s.best}` : 'Belum ada rekor — ayo main!'} from="#a5e8ff" via="#4aa8e8" to="#1d4ed8" shadow="#1e3a8a"
             onClick={() => open('scores')} />
-          <MenuButton icon="tower" label="TOWERS & ORCS" sub={`${towerKeys.length} tower · ${enemyKeys.length} jenis orc`} from="#bbf7d0" via="#4ade80" to="#15803d" shadow="#14532d"
+          <MenuButton icon="tower" label="TOWERS & ORCS" sub={`${towerKeys.length} Tower · ${enemyKeys.length} Jenis Orc`} from="#bbf7d0" via="#4ade80" to="#15803d" shadow="#14532d"
             onClick={() => open('encyclopedia')} />
-          <MenuButton icon="note" label="AUDIO & INFO" sub={`Musik ${s.musicOn ? 'ON' : 'OFF'} · Efek ${s.muted ? 'MUTE' : 'ON'}`} from="#e9d5ff" via="#a855f7" to="#6d28d9" shadow="#3b0764"
+          <MenuButton icon="note" label="AUDIO & INFO" sub={`Musik · ${s.musicOn ? 'ON' : 'OFF'} · Efek · ${s.muted ? 'OFF' : 'ON'}`} from="#e9d5ff" via="#a855f7" to="#6d28d9" shadow="#3b0764"
             onClick={() => open('audio')} />
         </div>
       </div>
