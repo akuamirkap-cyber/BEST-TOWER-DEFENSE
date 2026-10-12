@@ -30,6 +30,10 @@ export const ENEMY_INFO: Record<string, EnemyInfo> = {
   toxic: { icon: '🧪', note: 'Orc Alkemis Racun: Tabung asam korosif, melarutkan armor & melemahkan damage tower!', bg: ['#bbf7d0', '#16a34a'] },
   bat: { icon: '🦇', note: 'Orc Kelelawar: Terbang melayang sayap membran, lifesteal menyedot HP lawan!', bg: ['#e9d5ff', '#7e22ce'] },
   troll: { icon: '🧟', note: 'Troll Rawa Raksasa: Tubuh lumut kekar, regenerasi HP konstan kecuali jika dibakar!', bg: ['#dcfce7', '#15803d'] },
+  gargantuar: { icon: '👹', note: 'Orc Gendong Imp (Gargantuar): Raksasa bawa tiang listrik; saat HP ≤ 50% melempar Imp jauh mendekati Kristal!', bg: ['#fde68a', '#b45309'] },
+  imp: { icon: '👺', note: 'Imp Orc: Orc kecil lincah yang dilempar terbang oleh Gargantuar ke dekat Kristal!', bg: ['#fef08a', '#ca8a04'] },
+  bungee: { icon: '🪂', note: 'Orc Terjun Payung (Bungee): Turun dari langit ke tengah jalur & mengikat tower 4 detik jika tak ditembak anti-udara!', bg: ['#fed7aa', '#ea580c'] },
+  miner: { icon: '⛏️', note: 'Orc Penambang (Miner): Menggali di bawah tanah (kebal tembakan lurus biasa) & muncul di tengah jalur! Counter: Ranjau, Golem, Mortir, Perangkap.', bg: ['#fef08a', '#a16207'] },
 };
 
 export interface RosterEntry {

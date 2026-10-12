@@ -125,19 +125,25 @@ export function setBowDraw(bow: THREE.Object3D, d: number, nocked: boolean) {
 // ---------- weapons ----------
 function greatsword() {
   const g = new THREE.Group(); const blade = M(0x2a2a36, 0.1, 0.3), edge = M(0x5dff8c, 1.3, 0.3), dark = M(0x1a1a22, 0.05, 0.5);
-  g.add(cap(0.045, 0.2, dark, 0, 0.12, 0, { ol: true })); g.add(S(0.07, edge, 0, 0, 0, {}));
-  g.add(box(0.46, 0.07, 0.1, dark, 0, 0.27, 0, { ol: true }));
-  for (const sd of [-1, 1]) g.add(cone(0.05, 0.14, edge, sd * 0.27, 0.27, 0, { rz: -sd * Math.PI / 2 }));
-  g.add(box(0.2, 0.95, 0.06, blade, 0, 0.78, 0, { ol: true, cast: true })); g.add(cone(0.1, 0.18, blade, 0, 1.255, 0, { sz: 0.6, ol: true }));
-  g.add(box(0.045, 0.85, 0.075, edge, 0, 0.78, 0));
-  for (const sd of [-1, 1]) g.add(box(0.016, 0.9, 0.07, edge, sd * 0.1, 0.78, 0));
+  // Grip centered around y = 0 inside hand
+  g.add(cap(0.045, 0.22, dark, 0, 0.0, 0, { ol: true }));
+  g.add(S(0.07, edge, 0, -0.13, 0, {})); // pommel
+  g.add(box(0.46, 0.07, 0.1, dark, 0, 0.15, 0, { ol: true })); // crossguard
+  for (const sd of [-1, 1]) g.add(cone(0.05, 0.14, edge, sd * 0.27, 0.15, 0, { rz: -sd * Math.PI / 2 }));
+  g.add(box(0.2, 0.95, 0.06, blade, 0, 0.66, 0, { ol: true, cast: true }));
+  g.add(cone(0.1, 0.18, blade, 0, 1.135, 0, { sz: 0.6, ol: true }));
+  g.add(box(0.045, 0.85, 0.075, edge, 0, 0.66, 0));
+  for (const sd of [-1, 1]) g.add(box(0.016, 0.9, 0.07, edge, sd * 0.1, 0.66, 0));
   return g;
 }
 function longsword() {
   const g = new THREE.Group(); const steel = M(0xdfe6f0, 0.15, 0.3), gold = M(0xfbbf24, 0.3, 0.3), brown = M(0x5b3a1e);
-  g.add(cap(0.04, 0.12, brown, 0, 0.1, 0, { ol: true })); g.add(S(0.055, gold, 0, 0, 0, { ol: true }));
-  g.add(box(0.32, 0.055, 0.08, gold, 0, 0.2, 0, { ol: true }));
-  g.add(box(0.12, 0.6, 0.035, steel, 0, 0.52, 0, { ol: true, cast: true })); g.add(cone(0.065, 0.14, steel, 0, 0.82, 0, { sz: 0.5, ol: true }));
+  // Grip centered around y = 0 inside hand
+  g.add(cap(0.04, 0.16, brown, 0, 0.0, 0, { ol: true }));
+  g.add(S(0.055, gold, 0, -0.1, 0, { ol: true })); // pommel
+  g.add(box(0.32, 0.055, 0.08, gold, 0, 0.1, 0, { ol: true })); // guard
+  g.add(box(0.12, 0.6, 0.035, steel, 0, 0.42, 0, { ol: true, cast: true }));
+  g.add(cone(0.065, 0.14, steel, 0, 0.72, 0, { sz: 0.5, ol: true }));
   return g;
 }
 
@@ -268,8 +274,11 @@ function buildLegion(def: Def): OrcBuild {
   for (const sd of [-1, 1]) head.add(box(0.06, 0.2, 0.22, steel, sd * 0.4, 0.06, 0.05, { ol: true }));
   head.add(cap(0.07, 0.5, red, 0, 0.58, -0.15, { rx: Math.PI / 2, ol: true })); head.add(cone(0.06, 0.2, red, 0, 0.55, 0.12, {}));
   const armL = orcArm(skinMat), armR = orcArm(skinMat); armL.position.set(-0.32, 0.76, 0); armR.position.set(0.32, 0.76, 0);
-  const spear = new THREE.Group(); spear.position.set(0, -0.3, 0.04); spear.rotation.x = 0.35; armR.add(spear);
-  spear.add(cap(0.03, 1.2, wood, 0, 0.55, 0, { ol: true, cast: true })); spear.add(cone(0.06, 0.22, steel, 0, 1.2, 0, { ol: true })); spear.add(S(0.05, red, 0, 1.12, 0, {}));
+  const spear = new THREE.Group(); spear.position.set(0, -0.3, 0.02); spear.rotation.x = 0.35; armR.add(spear);
+  // Grip centered around y = 0 inside hand, shaft extends down and up
+  spear.add(cap(0.03, 1.35, wood, 0, 0.25, 0, { ol: true, cast: true }));
+  spear.add(cone(0.06, 0.24, steel, 0, 0.98, 0, { ol: true }));
+  spear.add(S(0.05, red, 0, 0.84, 0, {}));
   Object.assign(limbs, { legL, legR, body, armL, armR, head, face: hd.face, earL: hd.earL, earR: hd.earR, shield, spear });
   return { parts: [legL, legR, body, armL, armR, head, spear], limbs, skinMats, hpY: 2.15 };
 }
@@ -317,13 +326,13 @@ function buildKing(def: Def): OrcBuild {
   for (const sd of [-1, 1]) head.add(tor(0.05, 0.015, gold, sd * 0.5, 0.0, 0, { ry: Math.PI / 2 }));
   head.add(S(0.09, dark, 0, -0.36, 0.3, { sx: 1.2, sy: 1.2, sz: 0.6, ol: true })); // goatee
 
-  // golden royal war hammer with gems
+  // golden royal war hammer with gems (grip at y = 0)
   const weapon = new THREE.Group();
-  weapon.add(cap(0.055, 0.75, wood, 0, 0.45, 0, { ol: true, cast: true }));
-  weapon.add(cyl(0.2, 0.2, 0.52, gold, 0, 0.95, 0, { rz: Math.PI / 2, ol: true, cast: true }));
-  for (const sd of [-1, 1]) { weapon.add(cyl(0.215, 0.215, 0.07, goldD, sd * 0.2, 0.95, 0, { rz: Math.PI / 2 })); weapon.add(S(0.075, sd > 0 ? ruby : blue, sd * 0.3, 0.95, 0, { ol: true })); }
-  weapon.add(cone(0.07, 0.18, gold, 0, 1.15, 0, { ol: true }));
-  weapon.position.set(0, -0.29, 0.04); weapon.rotation.x = 1.15; weapon.scale.setScalar(1.1); armR.add(weapon);
+  weapon.add(cap(0.055, 0.75, wood, 0, 0.18, 0, { ol: true, cast: true }));
+  weapon.add(cyl(0.2, 0.2, 0.52, gold, 0, 0.62, 0, { rz: Math.PI / 2, ol: true, cast: true }));
+  for (const sd of [-1, 1]) { weapon.add(cyl(0.215, 0.215, 0.07, goldD, sd * 0.2, 0.62, 0, { rz: Math.PI / 2 })); weapon.add(S(0.075, sd > 0 ? ruby : blue, sd * 0.3, 0.62, 0, { ol: true })); }
+  weapon.add(cone(0.07, 0.18, gold, 0, 0.82, 0, { ol: true }));
+  weapon.position.set(0, -0.3, 0.02); weapon.rotation.x = 1.0; weapon.scale.setScalar(1.1); armR.add(weapon);
 
   Object.assign(limbs, { legL, legR, body, armL, armR, head, face: hd.face, earL: hd.earL, earR: hd.earR, weapon });
   return { parts: [legL, legR, body, armL, armR, head, weapon], limbs, skinMats, hpY: 2.6 };

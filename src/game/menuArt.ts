@@ -919,7 +919,7 @@ function renderAll() {
 
   // Defending towers tucked on the mid-terrace
   const towerSpots: [TowerType, number, number, number][] = [
-    ['cannon_v2', 4.6, -0.8, -2.6],
+    ['cannon', 4.6, -0.8, -2.6],
     ['sniper', 9.2, 0.6, -5.4],
   ];
   towerSpots.forEach(([tt, tx, ty, tz]) => {

@@ -43,8 +43,8 @@ export const CARD_INFO: Record<TowerType, CardData> = {
   },
   sniper: {
     role: 'Penembak jitu', bars: [{ label: 'Kekuatan', v: 5 }, { label: 'Jangkauan', v: 5 }, { label: 'Kecepatan', v: 1 }],
-    skills: [{ icon: '🎯', title: 'Tembus Armor', text: 'Mengabaikan armor dan memberi damage ×1,4 pada musuh berarmor.' }, { icon: '💨', title: 'Dorong Mundur', text: 'Orc biasa terdorong ±0,5 petak ke belakang (bos & naga kebal).' }, { icon: '🔭', title: 'Jangkauan Terjauh', text: 'Menembak dari jarak 5,2 petak: paling jauh dari semua tower.' }],
-    good: ['Tank', 'Ksatria Kelam', 'Panglima', 'Naga'], weak: ['Banyak musuh sekaligus (lambat)'], tip: 'Taruh di tengah peta supaya mencakup banyak ruas jalan.',
+    skills: [{ icon: '🎯', title: 'Tembus Armor', text: 'Mengabaikan armor dan memberi damage ×1,4 pada musuh berarmor.' }, { icon: '💨', title: 'Dorong Mundur', text: 'Orc biasa terdorong ±0,5 petak ke belakang (bos & naga kebal).' }, { icon: '🔭', title: 'Jangkauan Super Luas (+40%)', text: 'Menembak dari jarak 7,3 petak (+40% lebih luas): paling jauh dari semua tower.' }],
+    good: ['Tank', 'Ksatria Kelam', 'Panglima', 'Naga'], weak: ['Banyak musuh sekaligus (lambat)'], tip: 'Taruh di tengah peta supaya mencakup hampir seluruh ruas jalan.',
   },
   poison: {
     role: 'Racun berkelanjutan', bars: [{ label: 'Kekuatan', v: 3 }, { label: 'Jangkauan', v: 3 }, { label: 'Kecepatan', v: 2 }],
@@ -253,14 +253,6 @@ export const CARD_INFO: Record<TowerType, CardData> = {
     good: ['Orc Ninja', 'Dukun Es', 'Orc Dinamit', 'Orc Magnet', 'Gerombolan cepat'], weak: ['Bos raksasa berbobot ultra berat'], tip: 'Sangat ampuh ditaruh di jalur lurus agar tornado menyapu sepanjang lintasan musuh.',
     extra: [{ label: 'Jarak Tempuh Tornado', vals: ['5 meter', '6,5 meter', '8 meter'] }, { label: 'Durasi Angkat & Bisu', vals: ['2,5 detik', '3,2 detik', '4,0 detik'] }],
   },
-  cannon_v2: {
-    role: 'Meriam Cepat & Ledakan Area Lv2-3', bars: [{ label: 'Kecepatan', v: 5 }, { label: 'Kekuatan', v: 3 }, { label: 'Area Ledakan', v: 3 }],
-    skills: [
-      { icon: '🔵', title: 'Tembakan Balistik Cepat', text: 'Menembak cepat secara beruntun dengan biaya terjangkau. Sangat efektif untuk mengatasi gelombang orc di awal permainan.' },
-      { icon: '💥', title: 'Ledakan Area (Lv 2 & 3)', text: 'Mulai dari Level 2 dan 3, pelurunya meledak dan melukai seluruh orc di sekitar titik benturan!' },
-    ],
-    good: ['Orc biasa', 'Orc cepat', 'Gerombolan awal'], weak: ['Musuh terbang', 'Armor ultra tebal'], tip: 'Tingkatkan segera ke Level 2 agar tembakan memiliki efek ledakan area.',
-  },
   gravity: {
     role: 'Kontrol Gravitasi & Hantam Banting Orc', bars: [{ label: 'Kontrol', v: 5 }, { label: 'Area', v: 4 }, { label: 'Kekuatan', v: 4 }],
     skills: [
@@ -284,14 +276,6 @@ export const CARD_INFO: Record<TowerType, CardData> = {
       { icon: '🔥', title: 'Kobaran Api Membakar (4 Detik)', text: 'Meninggalkan kawah kobaran api yang terus membakar setiap orc yang melintas selama 4 detik penuh.' },
     ],
     good: ['Kelompok orc besar', 'Darat + Udara', 'Musuh berarmor'], weak: ['Musuh cepat yang gesit'], tip: 'Otomatis mengincar titik terpadat musuh dalam jangkauannya.',
-  },
-  midas: {
-    role: 'Eksekusi HP Rendah Menjadi Koin Emas', bars: [{ label: 'Eksekusi', v: 5 }, { label: 'Ekonomi', v: 5 }, { label: 'Jangkauan', v: 3 }],
-    skills: [
-      { icon: '💰', title: 'Sinar Alkimia Emas', text: 'Menembakkan sinar emas ke orc yang paling terluka di dalam jangkauan menara.' },
-      { icon: '🪙', title: 'Transmutasi Jadi Emas Murni (<30% HP)', text: 'Kalau HP musuh di bawah 30%, orc itu LANGSUNG MATI menjadi patung emas dan memberi bonus emas berlipat ganda!' },
-    ],
-    good: ['Orc ber-HP tebal yang sekarat', 'Menimbun pundi emas'], weak: ['Musuh dengan HP penuh', 'Bos utama'], tip: 'Pasangkan dengan tower pembantai area agar orc cepat sekarat dan langsung diubah jadi koin emas!',
   },
   draco_v2: {
     role: 'Semburan Api Naga Kerucut Beruntun', bars: [{ label: 'Kecepatan Semburan', v: 5 }, { label: 'DoT Membakar', v: 4 }, { label: 'Area Kerucut', v: 4 }],
@@ -324,6 +308,17 @@ export const CARD_INFO: Record<TowerType, CardData> = {
       { icon: '🧊', title: 'Kurung Balok Es Solid', text: 'Setelah terpapar semburan salju, orc TERKURUNG TOTAL di dalam balok es kristal dan membeku kaku!' },
     ],
     good: ['Musuh berkecepatan tinggi', 'Darat + Udara', 'Mengunci musuh berbahaya'], weak: ['Menghabisi bos sendirian'], tip: 'Kombinasikan dengan tower perusak berat untuk memukul musuh yang sedang beku kaku.',
+  },
+  catapult: {
+    role: 'Pelontar batu jarak jauh', bars: [{ label: 'Kekuatan', v: 4 }, { label: 'Jangkauan', v: 5 }, { label: 'Area', v: 4 }],
+    skills: [
+      { icon: '🪨', title: 'Lontaran Batu Raksasa', text: 'Melontarkan bongkahan batu besar melambung tinggi hingga jarak 6,5 petak (sekelas Sniper) yang menghantam area kerumunan orc darat.' },
+      { icon: '💫', title: 'Remuk Armor & Terpaku', text: 'Batu yang mendarat memberi +25% damage ekstra ke musuh berarmor, memukul mundur sedikit, dan membuat orc terpaku 0,65 detik.' },
+      { icon: '⛏️', title: 'Bongkar Orc Penambang', text: 'Getaran hantaman batu sanggup membongkar paksa Orc Penambang yang sedang menggali di bawah tanah!' },
+    ],
+    good: ['Gerombolan darat dari jauh', 'Tank & Orc Perisai', 'Orc Penambang'], weak: ['Musuh terbang'], tip: 'Taruh di belakang garis pertahanan: jangkauan super jauhnya bisa menghujani batu ke hampir seluruh peta.',
+    rateLabel: 'Lontaran / detik',
+    extra: [{ label: 'Radius ledakan batu', vals: ['1.5 petak', '1.7 petak', '1.9 petak'] }],
   },
 };
 

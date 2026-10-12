@@ -6,7 +6,7 @@ import { BOX, SPH, OUTLINE_MAT, makeFace, makeFlame, makeBlast } from './voxel';
  * thick dark outline, big floppy ears, little tusks – and the SAME glossy blinking eyes as the towers.
  * No red eyes anywhere: every orc has its own warm/cool iris colour.
  */
-export type OrcKind = 'normal' | 'fast' | 'tank' | 'shaman' | 'berserker' | 'boss' | 'baby' | 'gunner' | 'jumper' | 'cannoneer' | 'ninja' | 'bomber' | 'magnet' | 'frost' | 'rider' | 'punk' | 'shield' | 'toxic' | 'bat' | 'troll';
+export type OrcKind = 'normal' | 'fast' | 'tank' | 'shaman' | 'berserker' | 'boss' | 'baby' | 'gunner' | 'jumper' | 'cannoneer' | 'ninja' | 'bomber' | 'magnet' | 'frost' | 'rider' | 'punk' | 'shield' | 'toxic' | 'bat' | 'troll' | 'gargantuar' | 'imp' | 'bungee' | 'miner';
 type Limbs = Record<string, THREE.Group>;
 interface Def { skin: number; cloth: number }
 export interface OrcBuild { parts: THREE.Object3D[]; limbs: Limbs; skinMats: THREE.MeshStandardMaterial[]; hpY: number }
@@ -97,6 +97,10 @@ const CFG: Record<OrcKind, Cfg> = {
   toxic: { ...N, bodyS: 0.96, bodyY: 0.57, headY: 1.05, armX: 0.3, armY: 0.72, eye: 0.13, iris: 0x16a34a, bias: 0.45, ears: 1.0, tusk: 0.8, brows: 0x14532d, hpY: 2.05 },
   bat: { ...N, bodyS: 0.86, bodyY: 0.54, headS: 0.95, headY: 1.0, armX: 0.27, armY: 0.67, eye: 0.135, iris: 0x9333ea, bias: 0.5, ears: 1.6, tusk: 1.4, brows: 0x581c87, hpY: 2.05 },
   troll: { ...N, legH: 0.38, bodyS: 1.38, bodyY: 0.72, headS: 1.1, headY: 1.26, armX: 0.45, armY: 0.86, eye: 0.12, iris: 0x15803d, bias: 0.35, ears: 1.2, tusk: 1.5, brows: 0x064e3b, hpY: 2.5 },
+  gargantuar: { ...N, legH: 0.38, bodyS: 1.42, bodyY: 0.74, headS: 1.12, headY: 1.28, armX: 0.46, armY: 0.88, eye: 0.118, iris: 0xd97706, bias: 0.5, ears: 1.1, tusk: 1.6, brows: 0x1c1917, hpY: 2.65 },
+  imp: { ...N, legH: 0.26, bodyS: 0.8, bodyY: 0.46, headS: 1.28, headY: 1.04, armX: 0.24, armY: 0.58, eye: 0.15, gap: 0.175, iris: 0xf59e0b, bias: 0.25, ears: 1.5, tusk: 0.6, brows: 0x3f6212, hpY: 2.0 },
+  bungee: { ...N, bodyS: 0.92, bodyY: 0.56, headS: 0.98, headY: 1.04, armX: 0.29, armY: 0.7, eye: 0.13, iris: 0x0284c7, bias: 0.3, ears: 1.2, tusk: 0.9, brows: 0x1e293b, hpY: 2.35 },
+  miner: { ...N, legH: 0.3, bodyS: 1.05, bodyY: 0.56, headS: 1.02, headY: 1.04, armX: 0.32, armY: 0.7, eye: 0.125, iris: 0xca8a04, bias: 0.2, ears: 1.0, tusk: 1.0, brows: 0x422006, hpY: 2.05 },
 };
 
 // ---------- head: big round head, floppy ears, tower-style glossy eyes ----------
@@ -241,6 +245,34 @@ function orcHead(kind: OrcKind, def: Def, skinMat: THREE.MeshStandardMaterial, m
         head.add(S(0.14, M(0x15803d, 0.2), 0, 0.42, 0, { sx: 1.8, sy: 0.6, sz: 1.2 }));
         head.add(S(0.09, M(0x22c55e, 0.2), 0.15, 0.44, 0.1, { sx: 1.1, sy: 0.7 }));
         break;
+      case 'gargantuar': // iron brow band + rugged leather skullcap & bone horns
+        head.add(tor(0.42, 0.04, M(0x3f2e21), 0, 0.26, 0, { rx: Math.PI / 2 }));
+        head.add(domeMesh(M(0x451a03, 0.08, 0.65), 0.44, 0.3, 0.42, 0, 0.27, 0));
+        for (const sd of [-1, 1]) {
+          head.add(cone(0.08, 0.28, M(0xfef3c7), sd * 0.36, 0.34, 0.04, { rz: -sd * 0.75, ol: true }));
+          head.add(S(0.045, steel, sd * 0.2, 0.26, 0.38));
+        }
+        break;
+      case 'imp': // mischievous patched beanie cap with a little pom-pom
+        head.add(domeMesh(M(0xdc2626, 0.12, 0.5), 0.42, 0.32, 0.4, 0, 0.25, 0));
+        head.add(tor(0.41, 0.04, M(0xfbbf24), 0, 0.25, 0, { rx: Math.PI / 2 }));
+        head.add(S(0.075, M(0xfef08a, 0.2), 0, 0.57, -0.04, { ol: true }));
+        break;
+      case 'bungee': // red-and-brown aviator helmet + bright sky-blue flight goggles over eyes
+        head.add(domeMesh(M(0x991b1b, 0.12, 0.45), 0.45, 0.34, 0.43, 0, 0.27, 0));
+        head.add(tor(0.44, 0.035, M(0x1f2937), 0, 0.27, 0, { rx: Math.PI / 2 }));
+        for (const sd of [-1, 1]) {
+          head.add(box(0.06, 0.2, 0.2, M(0x78350f), sd * 0.41, 0.12, -0.02, { ol: true }));
+          head.add(tor(0.09, 0.025, M(0x1e293b), sd * 0.14, 0.38, 0.36, {}));
+          head.add(cyl(0.08, 0.08, 0.045, M(0x38bdf8, 0.75), sd * 0.14, 0.38, 0.37, { rx: Math.PI / 2, seg: 14 }));
+        }
+        break;
+      case 'miner': // yellow mining hard-hat with glowing headlamp on the forehead
+        head.add(domeMesh(M(0xfacc15, 0.2, 0.35), 0.46, 0.36, 0.44, 0, 0.26, 0));
+        head.add(cyl(0.5, 0.5, 0.04, M(0xeab308, 0.15, 0.35), 0, 0.24, 0.03, { seg: 20, ol: true }));
+        head.add(cyl(0.11, 0.13, 0.12, steel, 0, 0.39, 0.38, { rx: Math.PI / 2, seg: 14, ol: true }));
+        head.add(S(0.095, M(0xfffbeb, 1.3, 0.1), 0, 0.39, 0.44));
+        break;
     }
   }
   return { head, face, earL, earR };
@@ -260,69 +292,112 @@ export function pilotHead(def: Def, skinMat: THREE.MeshStandardMaterial, mats: T
   }
   return h;
 }
-/** chubby capsule arm (pivot = shoulder) */
+/** chubby capsule arm (pivot = shoulder) with clenched fist and thumb grip */
 export function orcArm(skinMat: THREE.Material) {
   const a = new THREE.Group();
   a.add(cap(0.085, 0.11, skinMat, 0, -0.14, 0, { cast: true, ol: true }));
+  // Clenched round fist
   a.add(S(0.105, skinMat, 0, -0.3, 0.01, { ol: true }));
+  // Thumb / knuckles clenching around handle in front
+  a.add(S(0.046, skinMat, 0, -0.28, 0.08, { sx: 1.2, sy: 0.9, sz: 0.8, ol: false }));
   return a;
 }
 
-// ---------- weapons (chunky, rounded; grip at the origin, pointing up) ----------
-type WeaponKind = 'club' | 'dagger' | 'axe' | 'hammer' | 'staff' | 'twin' | 'rifle' | 'torch' | 'greatstaff' | 'flamespear' | 'vial';
+// ---------- weapons (chunky, rounded; grip at y = 0 where the fist clenches it) ----------
+type WeaponKind = 'club' | 'dagger' | 'axe' | 'hammer' | 'staff' | 'twin' | 'rifle' | 'torch' | 'greatstaff' | 'flamespear' | 'vial' | 'pole' | 'pickaxe';
 function makeWeapon(kind: WeaponKind) {
   const g = new THREE.Group(); const wood = M(0x8a5a2b), steel = M(0xcbd5e1, 0.12, 0.3), gold = M(0xfbbf24, 0.2, 0.35);
   if (kind === 'club') {
-    g.add(cap(0.045, 0.34, wood, 0, 0.2, 0, { ol: true, cast: true })); g.add(S(0.15, M(0x7c4a1e), 0, 0.5, 0, { ol: true, cast: true }));
+    // Handle clutched at y = 0, pommel extends below to y = -0.13, spiked head at y = 0.36
+    g.add(cap(0.045, 0.44, wood, 0, 0.08, 0, { ol: true, cast: true }));
+    g.add(S(0.06, M(0x5c3a1a), 0, -0.13, 0, { ol: true }));
+    g.add(S(0.15, M(0x7c4a1e), 0, 0.36, 0, { ol: true, cast: true }));
     for (const d of [[1, 0.3, 0], [-1, 0.3, 0], [0, 0.3, 1], [0, 0.3, -1], [0, 1, 0]]) {
-      const v = new THREE.Vector3(d[0], d[1], d[2]).normalize(); const sp = cone(0.045, 0.11, steel, v.x * 0.13, 0.5 + v.y * 0.13, v.z * 0.13);
+      const v = new THREE.Vector3(d[0], d[1], d[2]).normalize();
+      const sp = cone(0.045, 0.11, steel, v.x * 0.13, 0.36 + v.y * 0.13, v.z * 0.13);
       sp.quaternion.setFromUnitVectors(Y, v); g.add(sp);
     }
-  } else if (kind === 'greatstaff') { // giant heavy staff with carved stone head and spikes
-    g.add(cap(0.06, 1.05, M(0x5c3a1a), 0, 0.55, 0, { ol: true, cast: true }));
-    g.add(tor(0.15, 0.035, gold, 0, 0.95, 0, { rx: Math.PI / 2 }));
-    g.add(cyl(0.24, 0.2, 0.42, M(0x52525b), 0, 1.15, 0, { seg: 10, ol: true, cast: true }));
+  } else if (kind === 'pole') { // Gargantuar's uprooted utility pole: grip at y = 0, rests on shoulder
+    g.add(cyl(0.08, 0.11, 1.45, M(0x5c3a1a), 0, 0.34, 0, { ol: true, cast: true }));
+    g.add(tor(0.095, 0.022, steel, 0, -0.15, 0, { rx: Math.PI / 2 }));
+    g.add(tor(0.09, 0.022, steel, 0, 0.55, 0, { rx: Math.PI / 2 }));
+    g.add(box(0.56, 0.08, 0.08, wood, 0, 0.95, 0, { ol: true, cast: true }));
+    for (const sd of [-1, 1]) {
+      g.add(cyl(0.045, 0.045, 0.12, M(0x38bdf8, 0.6), sd * 0.2, 1.03, 0, { ol: true }));
+      g.add(S(0.04, gold, sd * 0.2, 1.1, 0));
+    }
+  } else if (kind === 'pickaxe') { // Miner's steel pickaxe: grip at y = 0, heads point along ±z
+    g.add(cap(0.038, 0.52, wood, 0, 0.07, 0, { ol: true, cast: true }));
+    g.add(S(0.05, gold, 0, -0.18, 0, { ol: true }));
+    g.add(box(0.11, 0.11, 0.11, gold, 0, 0.32, 0, { ol: true }));
+    g.add(cone(0.055, 0.26, steel, 0, 0.32, 0.04, { rx: Math.PI / 2 + 0.2, ol: true, cast: true }));
+    g.add(cone(0.055, 0.26, steel, 0, 0.32, -0.04, { rx: -Math.PI / 2 - 0.2, ol: true, cast: true }));
+  } else if (kind === 'greatstaff') { // Giant heavy staff: grip at y = 0, stone head at y = 0.75
+    g.add(cap(0.06, 1.15, M(0x5c3a1a), 0, 0.12, 0, { ol: true, cast: true }));
+    g.add(tor(0.15, 0.035, gold, 0, 0.52, 0, { rx: Math.PI / 2 }));
+    g.add(cyl(0.24, 0.2, 0.42, M(0x52525b), 0, 0.72, 0, { seg: 10, ol: true, cast: true }));
     for (let a = 0; a < 6; a++) {
       const ang = (a * Math.PI * 2) / 6;
-      g.add(cone(0.05, 0.18, steel, Math.sin(ang) * 0.22, 1.15, Math.cos(ang) * 0.22, { rx: Math.cos(ang) * 1.5, rz: -Math.sin(ang) * 1.5 }));
+      g.add(cone(0.05, 0.18, steel, Math.sin(ang) * 0.22, 0.72, Math.cos(ang) * 0.22, { rx: Math.cos(ang) * 1.5, rz: -Math.sin(ang) * 1.5 }));
     }
-    g.add(S(0.12, M(0xd97706, 0.4), 0, 1.38, 0, { ol: true }));
-  } else if (kind === 'flamespear') { // punk flaming spear with barbed blade and lively fire
-    g.add(cap(0.038, 1.1, M(0x27272a), 0, 0.6, 0, { ol: true, cast: true }));
-    g.add(cyl(0.06, 0.04, 0.15, gold, 0, 1.15, 0, { seg: 8 }));
-    g.add(cone(0.08, 0.36, steel, 0, 1.35, 0, { sz: 0.4, ol: true, cast: true }));
-    g.add(cone(0.045, 0.18, steel, -0.09, 1.25, 0, { rz: 0.5 }));
-    g.add(cone(0.045, 0.18, steel, 0.09, 1.25, 0, { rz: -0.5 }));
-    const fl = makeFlame(0.36); fl.position.set(0, 1.45, 0); g.add(fl);
-  } else if (kind === 'vial') { // chemical glass flask with bubbling poison
-    g.add(cap(0.035, 0.15, M(0x52525b), 0, 0.12, 0, { ol: true }));
-    g.add(S(0.14, M(0x22c55e, 0.8), 0, 0.32, 0, { ol: true }));
-    g.add(cyl(0.06, 0.06, 0.12, M(0x334155), 0, 0.44, 0, { seg: 10 }));
-    g.add(tor(0.07, 0.02, M(0xa3e635, 0.5), 0, 0.32, 0, { rx: Math.PI / 2 }));
+    g.add(S(0.12, M(0xd97706, 0.4), 0, 0.95, 0, { ol: true }));
+  } else if (kind === 'flamespear') { // Punk flaming spear: grip at y = 0, spearhead & fire at y = 0.8-1.0
+    g.add(cap(0.038, 1.25, M(0x27272a), 0, 0.15, 0, { ol: true, cast: true }));
+    g.add(cone(0.045, 0.14, steel, 0, -0.45, 0, { rx: Math.PI }));
+    g.add(cyl(0.06, 0.04, 0.15, gold, 0, 0.72, 0, { seg: 8 }));
+    g.add(cone(0.08, 0.36, steel, 0, 0.92, 0, { sz: 0.4, ol: true, cast: true }));
+    g.add(cone(0.045, 0.18, steel, -0.09, 0.82, 0, { rz: 0.5 }));
+    g.add(cone(0.045, 0.18, steel, 0.09, 0.82, 0, { rz: -0.5 }));
+    const fl = makeFlame(0.36); fl.position.set(0, 1.05, 0); g.add(fl);
+  } else if (kind === 'vial') { // Chemical glass flask: base cradled upright in hand at y = 0
+    g.add(S(0.14, M(0x22c55e, 0.8), 0, 0.08, 0, { ol: true }));
+    g.add(tor(0.07, 0.02, M(0xa3e635, 0.5), 0, 0.08, 0, { rx: Math.PI / 2 }));
+    g.add(cyl(0.06, 0.06, 0.12, M(0x334155), 0, 0.2, 0, { seg: 10 }));
+    g.add(cap(0.035, 0.1, M(0x52525b), 0, 0.26, 0, { ol: true }));
   } else if (kind === 'dagger') {
-    g.add(cap(0.03, 0.06, M(0x5b3a1e), 0, 0.07, 0, { ol: true })); g.add(box(0.17, 0.035, 0.06, gold, 0, 0.15, 0));
-    g.add(box(0.085, 0.28, 0.03, steel, 0, 0.3, 0, { ol: true })); g.add(cone(0.06, 0.12, steel, 0, 0.44, 0, { sz: 0.5 }));
+    // Grip at y = 0, pommel below at -0.06, guard at 0.06, blade above
+    g.add(S(0.045, gold, 0, -0.06, 0, { ol: true }));
+    g.add(cap(0.03, 0.08, M(0x5b3a1e), 0, 0, 0, { ol: true }));
+    g.add(box(0.17, 0.035, 0.06, gold, 0, 0.06, 0));
+    g.add(box(0.085, 0.26, 0.03, steel, 0, 0.21, 0, { ol: true }));
+    g.add(cone(0.06, 0.11, steel, 0, 0.35, 0, { sz: 0.5 }));
   } else if (kind === 'axe') {
-    g.add(cap(0.05, 0.5, wood, 0, 0.3, 0, { ol: true, cast: true }));
-    g.add(S(0.21, M(0xb8c1cc, 0.12, 0.3), 0, 0.62, 0.13, { sx: 0.18, sy: 1, sz: 1.1, ol: true, cast: true })); g.add(S(0.06, gold, 0, 0.8, 0));
+    // Grip at y = 0, pommel below at -0.16, blade forward (+z) at 0.36
+    g.add(S(0.06, gold, 0, -0.16, 0, { ol: true }));
+    g.add(cap(0.048, 0.54, wood, 0, 0.1, 0, { ol: true, cast: true }));
+    g.add(S(0.22, M(0xb8c1cc, 0.12, 0.3), 0, 0.36, 0.12, { sx: 0.18, sy: 1, sz: 1.1, ol: true, cast: true }));
+    g.add(S(0.06, gold, 0, 0.44, 0));
   } else if (kind === 'hammer') {
-    g.add(cap(0.06, 0.62, M(0x3b2f2f), 0, 0.38, 0, { ol: true, cast: true }));
-    g.add(cyl(0.2, 0.2, 0.56, M(0x6b7280, 0.1, 0.35), 0, 0.85, 0, { rz: Math.PI / 2, ol: true, cast: true }));
-    for (const sd of [-1, 1]) g.add(cyl(0.21, 0.21, 0.07, gold, sd * 0.2, 0.85, 0, { rz: Math.PI / 2 }));
+    // Grip at y = 0, pommel below at -0.18, hammer head at 0.46
+    g.add(S(0.07, gold, 0, -0.18, 0, { ol: true }));
+    g.add(cap(0.055, 0.64, M(0x3b2f2f), 0, 0.14, 0, { ol: true, cast: true }));
+    g.add(cyl(0.2, 0.2, 0.56, M(0x6b7280, 0.1, 0.35), 0, 0.46, 0, { rz: Math.PI / 2, ol: true, cast: true }));
+    for (const sd of [-1, 1]) g.add(cyl(0.21, 0.21, 0.07, gold, sd * 0.2, 0.46, 0, { rz: Math.PI / 2 }));
   } else if (kind === 'staff') {
-    g.add(cap(0.04, 0.9, M(0x6b4428), 0, 0.5, 0, { ol: true, cast: true }));
-    g.add(S(0.14, M(0x60a5fa, 0.95), 0, 1.1, 0, { ol: true })); g.add(tor(0.13, 0.025, gold, 0, 1.0, 0, { rx: Math.PI / 2 }));
-    g.add(cone(0.04, 0.16, M(0x2dd4bf, 0.3), -0.1, 1.0, 0, { rz: 0.8 })); g.add(cone(0.04, 0.16, M(0xfacc15, 0.3), 0.1, 1.0, 0, { rz: -0.8 }));
+    // Grip mid-shaft at y = 0, lower tip at -0.42, glowing magic head at 0.62
+    g.add(cap(0.04, 0.96, M(0x6b4428), 0, 0.06, 0, { ol: true, cast: true }));
+    g.add(cone(0.045, 0.12, gold, 0, -0.42, 0, { rx: Math.PI }));
+    g.add(S(0.14, M(0x60a5fa, 0.95), 0, 0.62, 0, { ol: true }));
+    g.add(tor(0.13, 0.025, gold, 0, 0.54, 0, { rx: Math.PI / 2 }));
+    g.add(cone(0.04, 0.16, M(0x2dd4bf, 0.3), -0.1, 0.54, 0, { rz: 0.8 }));
+    g.add(cone(0.04, 0.16, M(0xfacc15, 0.3), 0.1, 0.54, 0, { rz: -0.8 }));
   } else if (kind === 'twin') {
-    g.add(cap(0.035, 0.08, M(0x5b3a1e), 0, 0.09, 0, { ol: true })); g.add(box(0.16, 0.035, 0.07, gold, 0, 0.18, 0));
-    g.add(box(0.06, 0.3, 0.2, steel, 0, 0.35, 0.06, { ol: true })); g.add(S(0.1, steel, 0, 0.5, 0.06, { sx: 0.3, sy: 0.9 }));
-  } else if (kind === 'rifle') { // held across the belly, pointing +z
-    g.add(cap(0.045, 0.7, M(0x374151), 0, 0, 0.3, { rx: Math.PI / 2, ol: true, cast: true })); g.add(S(0.1, wood, 0, -0.03, -0.16, { sy: 0.8, sz: 1.7, ol: true }));
-    g.add(cyl(0.05, 0.05, 0.22, M(0x1f2937), 0, 0.1, 0.12, { rx: Math.PI / 2, seg: 10, ol: true })); g.add(S(0.035, M(0x38bdf8, 0.9), 0, 0.1, 0.25));
+    // Cleaver: grip at y = 0, pommel at -0.08, guard at 0.06, heavy blade up to 0.36
+    g.add(S(0.05, gold, 0, -0.08, 0, { ol: true }));
+    g.add(cap(0.035, 0.08, M(0x5b3a1e), 0, 0, 0, { ol: true }));
+    g.add(box(0.16, 0.035, 0.07, gold, 0, 0.06, 0));
+    g.add(box(0.06, 0.3, 0.18, steel, 0, 0.23, 0.05, { ol: true }));
+    g.add(S(0.1, steel, 0, 0.38, 0.05, { sx: 0.3, sy: 0.9 }));
+  } else if (kind === 'rifle') { // Two-handed sniper rifle held along +z
+    g.add(cap(0.045, 0.7, M(0x374151), 0, 0, 0.3, { rx: Math.PI / 2, ol: true, cast: true }));
+    g.add(S(0.1, wood, 0, -0.03, -0.16, { sy: 0.8, sz: 1.7, ol: true }));
+    g.add(cyl(0.05, 0.05, 0.22, M(0x1f2937), 0, 0.1, 0.12, { rx: Math.PI / 2, seg: 10, ol: true }));
+    g.add(S(0.035, M(0x38bdf8, 0.9), 0, 0.1, 0.25));
     g.add(cyl(0.065, 0.065, 0.07, gold, 0, 0, 0.72, { rx: Math.PI / 2, seg: 10 }));
-  } else { // torch
-    g.add(cap(0.04, 0.28, M(0x6b4428), 0, 0.2, 0, { ol: true })); g.add(cyl(0.09, 0.06, 0.12, M(0x3b2f2f), 0, 0.46, 0, { seg: 10, ol: true }));
-    const f = makeFlame(0.3); f.position.set(0, 0.52, 0); g.add(f);
+  } else { // torch: grip at y = 0, cage at 0.2, fire at 0.28
+    g.add(cap(0.04, 0.3, M(0x6b4428), 0, 0.04, 0, { ol: true }));
+    g.add(cyl(0.09, 0.06, 0.12, M(0x3b2f2f), 0, 0.22, 0, { seg: 10, ol: true }));
+    const f = makeFlame(0.28); f.position.set(0, 0.28, 0); g.add(f);
   }
   return g;
 }
@@ -454,6 +529,46 @@ export function buildOrc(kind: OrcKind, def: Def): OrcBuild {
     body.add(S(0.24 * bs, M(0x27272a), -0.2 * bs, 0.2 * bs, -0.18 * bs, { ol: true, cast: true }));
     body.add(S(0.28 * bs, M(0x166534, 0.2), 0.16 * bs, 0.22 * bs, -0.16 * bs, { ol: true, cast: true }));
     body.add(S(0.2 * bs, M(0x15803d, 0.3), 0, 0.28 * bs, -0.12 * bs, { ol: true }));
+  } else if (kind === 'gargantuar') { // leather harness + wicker backpack basket carrying a cute Imp orc on his back
+    for (const sd of [-1, 1]) body.add(box(0.09 * bs, 0.58 * bs, 0.05, brown, sd * 0.16 * bs, 0.06 * bs, 0.24 * bs, { ol: true }));
+    const basket = new THREE.Group(); basket.position.set(0, 0.1 * bs, -0.34 * bs);
+    basket.add(cyl(0.24 * bs, 0.19 * bs, 0.38 * bs, M(0x9a5b25, 0.08, 0.65), 0, 0, 0, { ol: true, cast: true }));
+    basket.add(tor(0.24 * bs, 0.028 * bs, M(0x78350f), 0, 0.17 * bs, 0, { rx: Math.PI / 2 }));
+    body.add(basket);
+    const impRider = new THREE.Group(); impRider.name = 'impRider'; impRider.position.set(0, 0.28 * bs, 0);
+    const impSkin = M(0x84cc16);
+    impRider.add(S(0.18 * bs, impSkin, 0, 0.06 * bs, 0, { ol: true, cast: true }));
+    impRider.add(domeMesh(M(0xdc2626), 0.18 * bs, 0.14 * bs, 0.18 * bs, 0, 0.16 * bs, 0));
+    for (const sd of [-1, 1]) {
+      impRider.add(cone(0.05 * bs, 0.16 * bs, impSkin, sd * 0.18 * bs, 0.08 * bs, 0, { rz: -sd * 1.1, ol: true }));
+      impRider.add(S(0.038 * bs, white, sd * 0.065 * bs, 0.08 * bs, 0.16 * bs));
+      impRider.add(S(0.02 * bs, M(0x111827), sd * 0.065 * bs, 0.08 * bs, 0.19 * bs));
+    }
+    basket.add(impRider);
+    limbs.impRider = impRider;
+  } else if (kind === 'bungee') { // parachute harness + colourful patchwork parachute canopy & bungee cords
+    for (const sd of [-1, 1]) body.add(box(0.075, 0.52, 0.04, M(0x1f2937), sd * 0.14, 0.04, 0.26, { ol: true }));
+    const chute = new THREE.Group(); chute.name = 'chute'; chute.position.set(0, 1.45, 0);
+    chute.add(domeMesh(M(0xf97316, 0.18, 0.45), 0.85, 0.48, 0.85, 0, 0.35, 0));
+    chute.add(box(0.45, 0.12, 0.45, M(0xfacc15, 0.2), 0.22, 0.68, 0.15, { ry: 0.4, ol: true }));
+    chute.add(box(0.42, 0.12, 0.42, M(0x38bdf8, 0.2), -0.24, 0.65, -0.15, { ry: -0.3, ol: true }));
+    for (const [sx, sz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) {
+      chute.add(cyl(0.012, 0.012, 0.95, M(0xe2e8f0), sx * 0.42, -0.05, sz * 0.42, { rz: sx * 0.32, rx: -sz * 0.32 }));
+    }
+    chute.add(cyl(0.025, 0.025, 2.6, M(0xfef08a, 0.3), 0, 1.8, 0));
+    body.add(chute);
+    limbs.chute = chute;
+  } else if (kind === 'miner') { // mining belt + dirt mound at feet when burrowing
+    body.add(tor(0.28 * bs, 0.04, M(0x78350f), 0, -0.08 * bs, 0, { rx: Math.PI / 2 }));
+    const mound = new THREE.Group(); mound.name = 'mound'; mound.position.set(0, -c.bodyY + 0.08, 0);
+    mound.add(domeMesh(M(0x78350f, 0.05, 0.85), 0.68, 0.32, 0.68, 0, 0, 0));
+    for (let i = 0; i < 6; i++) {
+      const a = (i / 6) * Math.PI * 2;
+      mound.add(S(0.14, M(i % 2 ? 0x92400e : 0x57534e), Math.cos(a) * 0.48, 0.06, Math.sin(a) * 0.48, { ol: true }));
+    }
+    mound.visible = false;
+    body.add(mound);
+    limbs.mound = mound;
   }
 
   // arms + head
@@ -499,16 +614,56 @@ export function buildOrc(kind: OrcKind, def: Def): OrcBuild {
     parts.push(mount); limbs.mount = mount;
   }
 
-  // weapons: held in the hands so they swing with the arms; thrown apart as their own pieces when the orc dies
-  const hold = (arm: THREE.Group, kindW: WeaponKind) => { const w = makeWeapon(kindW); w.position.set(0, -0.29, 0.04); w.rotation.x = 1.15; arm.add(w); parts.push(w); return w; };
+  // weapons: held naturally in fists so they swing with the arms; thrown apart when the orc dies
+  const hold = (arm: THREE.Group, kindW: WeaponKind, isLeft = false) => {
+    const w = makeWeapon(kindW);
+    w.position.set(0, -0.3, 0.02);
+    if (kindW === 'pole') {
+      // Gargantuar rests the massive utility pole over his shoulder
+      w.rotation.set(-0.35, 0, 0.15);
+    } else if (kindW === 'flamespear') {
+      // Spear thrust forward
+      w.rotation.set(0.48, 0, -0.12);
+    } else if (kindW === 'pickaxe') {
+      // Pickaxes held forward-down ready to strike earth
+      w.rotation.set(0.65, isLeft ? 0.2 : -0.2, isLeft ? 0.2 : -0.2);
+    } else if (kindW === 'twin') {
+      // Cleavers angled forward and slightly outward
+      w.rotation.set(0.45, isLeft ? 0.15 : -0.15, isLeft ? 0.22 : -0.22);
+    } else if (kindW === 'dagger') {
+      w.rotation.set(0.42, isLeft ? 0.12 : -0.12, isLeft ? 0.18 : -0.18);
+    } else if (kindW === 'vial') {
+      w.rotation.set(0.12, 0, 0); // Upright flask, no spilling!
+    } else if (kindW === 'torch') {
+      w.rotation.set(0.35, 0, 0.1);
+    } else {
+      // Club, axe, hammer, staff: firm upright forward grip
+      w.rotation.set(0.42, 0, isLeft ? 0.16 : -0.16);
+    }
+    arm.add(w);
+    parts.push(w);
+    return w;
+  };
+
   switch (kind) {
     case 'normal': hold(armR, 'club'); break;
     case 'fast': hold(armR, 'dagger'); break;
     case 'tank': hold(armR, 'axe'); break;
     case 'boss': hold(armR, 'hammer').scale.setScalar(1.15); break;
     case 'shaman': hold(armR, 'staff'); break;
-    case 'berserker': hold(armR, 'twin'); hold(armL, 'twin'); break;
-    case 'gunner': { const r = makeWeapon('rifle'); r.position.set(0, c.bodyY + 0.04, 0.3); parts.push(r); break; }
+    case 'berserker': hold(armR, 'twin', false); hold(armL, 'twin', true); break;
+    case 'gunner': {
+      // Two-handed sniper rifle grip: rifle across chest, hands firmly positioned on stock and barrel
+      const rifle = makeWeapon('rifle');
+      const gunMount = new THREE.Group();
+      gunMount.name = 'gun';
+      gunMount.position.set(0.06, c.bodyY + 0.05, 0.24);
+      gunMount.add(rifle);
+      body.add(gunMount);
+      parts.push(rifle);
+      limbs.gun = gunMount;
+      break;
+    }
     case 'jumper': { // rocket jet-pack (flames only show while flying)
       const pack = new THREE.Group(); pack.position.set(0, c.bodyY + 0.06, -0.4); const jet = new THREE.Group(); jet.visible = false; pack.add(jet);
       for (const sd of [-1, 1]) {
@@ -519,10 +674,15 @@ export function buildOrc(kind: OrcKind, def: Def): OrcBuild {
       parts.push(pack); limbs.jet = jet; break;
     }
     case 'cannoneer': {
-      const torch = makeWeapon('torch'); torch.position.set(0.45, 0.5, 0.15); torch.rotation.x = -0.4; torch.name = 'torch';
-      const cannon = buildCannon(); parts.push(torch, cannon); limbs.torch = torch; limbs.cannon = cannon; break;
+      const torch = hold(armR, 'torch');
+      torch.name = 'torch';
+      const cannon = buildCannon();
+      parts.push(cannon);
+      limbs.torch = torch;
+      limbs.cannon = cannon;
+      break;
     }
-    case 'ninja': hold(armR, 'dagger'); hold(armL, 'dagger'); break;
+    case 'ninja': hold(armR, 'dagger', false); hold(armL, 'dagger', true); break;
     case 'bomber': hold(armR, 'torch'); break;
     case 'magnet': hold(armR, 'hammer'); break;
     case 'frost': hold(armR, 'staff'); break;
@@ -530,17 +690,27 @@ export function buildOrc(kind: OrcKind, def: Def): OrcBuild {
     case 'punk': hold(armR, 'flamespear'); break;
     case 'shield': {
       hold(armR, 'axe');
-      // tower shield held on left arm
-      const tShield = new THREE.Group(); tShield.position.set(0, -0.25, 0.18);
+      // tower shield strapped onto left forearm
+      const tShield = new THREE.Group();
+      tShield.name = 'shield';
+      tShield.position.set(0, -0.22, 0.14);
       tShield.add(box(0.55 * bs, 0.85 * bs, 0.06 * bs, steel, 0, 0, 0, { ol: true, cast: true }));
       tShield.add(tor(0.18 * bs, 0.03 * bs, gold, 0, 0, 0.04 * bs, {}));
       tShield.add(cone(0.06 * bs, 0.16 * bs, steel, 0, 0, 0.06 * bs, { rx: Math.PI / 2 }));
-      armL.add(tShield); parts.push(tShield);
+      // forearm leather straps binding shield to arm
+      tShield.add(box(0.22 * bs, 0.05, 0.12 * bs, brown, 0, 0.1, -0.05));
+      tShield.add(box(0.22 * bs, 0.05, 0.12 * bs, brown, 0, -0.06, -0.05));
+      armL.add(tShield);
+      parts.push(tShield);
       break;
     }
     case 'toxic': hold(armR, 'vial'); break;
     case 'bat': break;
     case 'troll': break;
+    case 'gargantuar': hold(armR, 'pole'); break;
+    case 'imp': hold(armR, 'dagger'); break;
+    case 'bungee': break;
+    case 'miner': hold(armR, 'pickaxe', false); hold(armL, 'pickaxe', true); break;
     case 'baby': break;
   }
   return { parts, limbs, skinMats, hpY: c.hpY };
@@ -573,25 +743,43 @@ export function buildLog(def: Def): OrcBuild {
 
 /** walking animation: waddle, hop-bounce, swinging arms, flapping ears (per-kind arm poses) */
 export function poseOrc(kind: OrcKind, L: Limbs, ph: number) {
-  const baby = kind === 'baby'; const sw = Math.sin(ph) * (baby ? 1.1 : 0.7);
+  const baby = kind === 'baby' || kind === 'imp'; const sw = Math.sin(ph) * (baby ? 1.1 : 0.7);
   if (kind === 'rider') {
     L.legL.rotation.set(-0.35 + Math.sin(ph * 2) * 0.04, 0, 0.35);
     L.legR.rotation.set(-0.35 + Math.sin(ph * 2) * 0.04, 0, -0.35);
   } else {
     L.legL.rotation.x = sw; L.legR.rotation.x = -sw;
   }
-  L.armL.rotation.set(-sw * 0.8, 0, -0.12); L.armR.rotation.set(-0.6 + Math.sin(ph * 0.5) * 0.25, 0, 0.12);
+  L.armL.rotation.set(-sw * 0.8, 0, -0.12); L.armR.rotation.set(-0.48 + Math.sin(ph * 0.5) * 0.2, 0, 0.12);
   L.head.rotation.z = Math.sin(ph * 0.5) * 0.08; L.head.rotation.x = Math.sin(ph * 2) * 0.05;
   L.body.rotation.z = Math.sin(ph) * 0.05;
   L.earL.rotation.z = EAR + Math.sin(ph * 2) * 0.14; L.earR.rotation.z = -EAR - Math.sin(ph * 2 + 1) * 0.14;
   switch (kind) {
-    case 'gunner': L.armL.rotation.set(-1.15, 0, 0.7); L.armR.rotation.set(-1.25 + Math.sin(ph) * 0.03, 0, -0.7); break;
-    case 'cannoneer': L.armR.rotation.set(-0.7, 0, 0.45); break;
-    case 'shaman': L.armR.rotation.set(-0.35 + Math.sin(ph * 0.5) * 0.08, 0, 0.12); break;
-    case 'berserker': L.armL.rotation.set(-0.6 + Math.sin(ph * 0.5 + 1) * 0.25, 0, -0.12); break;
-    case 'ninja': L.armL.rotation.set(-1.0, 0, 0.4); L.armR.rotation.set(-1.0, 0, -0.4); break;
-    case 'bomber': L.armR.rotation.set(-1.6 + Math.sin(ph) * 0.2, 0, 0.2); break;
-    case 'frost': L.armR.rotation.set(-0.45 + Math.sin(ph * 0.5) * 0.1, 0, 0.15); break;
+    case 'gunner':
+      // Both hands grip the rifle firmly across chest
+      L.armR.rotation.set(-1.18, 0.15, -0.32);
+      L.armL.rotation.set(-1.05, -0.22, 0.52);
+      break;
+    case 'cannoneer':
+      L.armR.rotation.set(-0.65, 0, 0.15);
+      break;
+    case 'shaman':
+      L.armR.rotation.set(-0.38 + Math.sin(ph * 0.5) * 0.08, 0, 0.12);
+      break;
+    case 'berserker':
+      L.armL.rotation.set(-0.48 + Math.sin(ph * 0.5 + 1) * 0.2, 0, -0.12);
+      break;
+    case 'ninja':
+      L.armL.rotation.set(-0.75, 0.15, 0.25);
+      L.armR.rotation.set(-0.75, -0.15, -0.25);
+      break;
+    case 'bomber':
+      // Torch held high in the air
+      L.armR.rotation.set(-1.25 + Math.sin(ph) * 0.15, 0, 0.15);
+      break;
+    case 'frost':
+      L.armR.rotation.set(-0.45 + Math.sin(ph * 0.5) * 0.1, 0, 0.15);
+      break;
     case 'rider': {
       if (L.mount) {
         L.mount.position.y = 0.72 + Math.abs(Math.sin(ph * 2)) * 0.035;
@@ -605,14 +793,23 @@ export function poseOrc(kind: OrcKind, L: Limbs, ph: number) {
           mountLegs[3].rotation.x = gSw;
         }
       }
-      L.armR.rotation.set(-1.15 + Math.sin(ph * 2) * 0.1, 0, 0.15);
+      L.armR.rotation.set(-1.05 + Math.sin(ph * 2) * 0.1, 0, 0.15);
       L.armL.rotation.set(-0.85 + Math.sin(ph * 2) * 0.08, 0, -0.2);
       L.body.rotation.x = Math.sin(ph * 2) * 0.05;
       break;
     }
-    case 'punk': L.armR.rotation.set(-1.25 + Math.sin(ph) * 0.35, 0, -0.2); break;
-    case 'shield': L.armL.rotation.set(-0.85, 0, 0.45); break;
-    case 'toxic': L.armR.rotation.set(-0.9 + Math.sin(ph * 0.6) * 0.2, 0, 0.1); break;
+    case 'punk':
+      L.armR.rotation.set(-0.85 + Math.sin(ph) * 0.2, 0, -0.12);
+      break;
+    case 'shield': {
+      L.armL.rotation.set(-0.72, 0.12, 0.2); // Forward defensive shield block
+      const sh = L.armL.getObjectByName('shield');
+      if (sh) sh.rotation.set(0.72, -0.12, -0.2); // Counter-rotated to face flat forward!
+      break;
+    }
+    case 'toxic':
+      L.armR.rotation.set(-0.55 + Math.sin(ph * 0.6) * 0.15, 0, 0.1);
+      break;
     case 'bat':
       if (L.wingL && L.wingR) {
         const flap = Math.sin(ph * 5.5) * 0.48;
@@ -624,6 +821,25 @@ export function poseOrc(kind: OrcKind, L: Limbs, ph: number) {
       L.armL.rotation.set(-sw * 0.9, 0, -0.2);
       L.armR.rotation.set(sw * 0.9, 0, 0.2);
       break;
+    case 'gargantuar':
+      // Resting the massive pole over the shoulder
+      L.armR.rotation.set(-0.75 + Math.sin(ph * 0.6) * 0.15, 0, 0.18);
+      if (L.impRider) L.impRider.position.y = 0.38 + Math.abs(Math.sin(ph * 1.5)) * 0.06;
+      break;
+    case 'bungee':
+      if (L.chute && L.chute.visible) {
+        L.armL.rotation.set(-2.4, 0, -0.25);
+        L.armR.rotation.set(-2.4, 0, 0.25);
+        L.chute.rotation.z = Math.sin(ph * 0.5) * 0.08;
+      }
+      break;
+    case 'miner': {
+      // Dynamic alternating pickaxe chopping/digging strokes
+      const digSwing = Math.sin(ph * 2.5) * 0.65;
+      L.armL.rotation.set(-1.05 + digSwing, 0.15, -0.18);
+      L.armR.rotation.set(-1.05 - digSwing, -0.15, 0.18);
+      break;
+    }
     case 'boss': L.armL.rotation.x *= 0.7; break;
     default: break;
   }

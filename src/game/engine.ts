@@ -20,7 +20,7 @@ import type { World } from './world';
 import { buildOrc, buildLog, poseOrc } from './orcs';
 import type { OrcKind } from './orcs';
 
-export type TowerType = 'cannon' | 'frost' | 'blaster' | 'tesla' | 'sniper' | 'poison' | 'banner' | 'flame' | 'trap' | 'repair' | 'shield' | 'plasma' | 'piggy' | 'wind' | 'boomer' | 'mine' | 'cactus' | 'hive' | 'golem' | 'clock' | 'prism' | 'cupid' | 'hook' | 'bowl' | 'barracks' | 'mind' | 'vortex' | 'meteor' | 'orbital' | 'naga' | 'storm' | 'cannon_v2' | 'gravity' | 'tornado' | 'meteor_v2' | 'midas' | 'draco_v2' | 'sol' | 'chroma_v2' | 'frostbite_v2';
+export type TowerType = 'cannon' | 'frost' | 'blaster' | 'tesla' | 'sniper' | 'catapult' | 'poison' | 'banner' | 'flame' | 'trap' | 'repair' | 'shield' | 'plasma' | 'piggy' | 'wind' | 'boomer' | 'mine' | 'cactus' | 'hive' | 'golem' | 'clock' | 'prism' | 'cupid' | 'hook' | 'bowl' | 'barracks' | 'mind' | 'vortex' | 'meteor' | 'orbital' | 'naga' | 'storm' | 'gravity' | 'tornado' | 'meteor_v2' | 'draco_v2' | 'sol' | 'chroma_v2' | 'frostbite_v2';
 export interface TowerDef {
   name: string; cost: number; dmg: number; range: number; rate: number;
   color: number; accent: number; desc: string; icon: string; air: boolean; ground: boolean; tag: string;
@@ -30,7 +30,8 @@ export const TOWER_DEFS: Record<TowerType, TowerDef> = {
   frost: { name: 'Es', cost: 70, dmg: 5, range: 2.6, rate: 0.35, color: 0x8ff0ff, accent: 0x3fc9e8, desc: 'Tembakan salju pelambat & damage', icon: '❄️', air: true, ground: true, tag: 'Salju·Slow' },
   blaster: { name: 'Mortir', cost: 110, dmg: 34, range: 3.6, rate: 1.6, color: 0xff8a4c, accent: 0xe8552b, desc: 'Ledakan area', icon: '💥', air: false, ground: true, tag: 'Darat·Area' },
   tesla: { name: 'Tesla', cost: 120, dmg: 14, range: 2.6, rate: 0.9, color: 0xc084fc, accent: 0x7c3aed, desc: 'Petir berantai', icon: '⚡', air: true, ground: true, tag: 'Rantai' },
-  sniper: { name: 'Sniper', cost: 140, dmg: 60, range: 5.2, rate: 2.2, color: 0x34d399, accent: 0x0f766e, desc: 'Jauh, tembus armor', icon: '🎯', air: true, ground: true, tag: 'Anti-Armor' },
+  sniper: { name: 'Sniper', cost: 140, dmg: 60, range: 7.3, rate: 2.2, color: 0x34d399, accent: 0x0f766e, desc: 'Jauh (+40%), tembus armor', icon: '🎯', air: true, ground: true, tag: 'Anti-Armor' },
+  catapult: { name: 'Ketapel', cost: 125, dmg: 48, range: 6.5, rate: 2.0, color: 0xd97706, accent: 0x78350f, desc: 'Lontar batu jarak jauh', icon: '🪨', air: false, ground: true, tag: 'Jauh·Batu Area' },
   poison: { name: 'Racun', cost: 90, dmg: 4, range: 3.0, rate: 1.4, color: 0xa3e635, accent: 0x4d7c0f, desc: 'Genangan racun', icon: '☠️', air: false, ground: true, tag: 'Darat·DoT' },
   banner: { name: 'Panji', cost: 100, dmg: 0, range: 1.6, rate: 1, color: 0xfbbf24, accent: 0xb45309, desc: '+25% DMG sekitar', icon: '🚩', air: false, ground: false, tag: 'Buff' },
   flame: { name: 'Api', cost: 95, dmg: 3, range: 2.0, rate: 0.08, color: 0xf97316, accent: 0x9a3412, desc: 'Semburan kerucut', icon: '🔥', air: false, ground: true, tag: 'Darat·Kerucut' },
@@ -57,11 +58,9 @@ export const TOWER_DEFS: Record<TowerType, TowerDef> = {
   orbital: { name: 'Surya', cost: 145, dmg: 16, range: 3.6, rate: 0.15, color: 0xfacc15, accent: 0xd97706, desc: 'Sinar surya: lelehkan armor', icon: '☀️', air: true, ground: true, tag: 'Lelehkan Armor' },
   naga: { name: 'Naga Purba', cost: 155, dmg: 32, range: 4.0, rate: 2.2, color: 0xef4444, accent: 0xb91c1c, desc: 'Lidah api & retakan lahar di jalur jalan', icon: '🐉', air: true, ground: true, tag: 'Lahar Jalur' },
   storm: { name: 'Badai', cost: 145, dmg: 26, range: 3.6, rate: 2.4, color: 0x0284c7, accent: 0x38bdf8, desc: 'Tornado berjalan: angkat musuh & bisukan skill', icon: '🌪️', air: true, ground: true, tag: 'Tornado Berjalan' },
-  cannon_v2: { name: 'Meriam V2', cost: 60, dmg: 14, range: 2.8, rate: 0.55, color: 0x2f6fe0, accent: 0x7ab8ff, desc: 'Tembak cepat, Lv2-3 meledak area', icon: '🔵', air: false, ground: true, tag: 'Darat·Area Lv2' },
   gravity: { name: 'Gravitasi', cost: 110, dmg: 18, range: 2.8, rate: 4.5, color: 0x6d28d9, accent: 0xc4b5fd, desc: 'Hantam tanah, angkat & banting maut', icon: '🕳️', air: true, ground: true, tag: 'Hantam·Angkat' },
   tornado: { name: 'Pusaran', cost: 100, dmg: 16, range: 3.2, rate: 3.5, color: 0x0ea5e9, accent: 0xbae6fd, desc: 'Pusaran awan berjalan angkat orc', icon: '🌪️', air: false, ground: true, tag: 'Pusaran Awan' },
   meteor_v2: { name: 'Meteor V2', cost: 130, dmg: 70, range: 3.4, rate: 3.2, color: 0xdc2626, accent: 0xfca5a5, desc: 'Komet langit & kobaran api membakar', icon: '🌠', air: true, ground: true, tag: 'Komet·Api' },
-  midas: { name: 'Alkimia', cost: 120, dmg: 22, range: 3.0, rate: 1.1, color: 0xb45309, accent: 0xfde68a, desc: 'Sinar emas: orc HP <30% jadi emas!', icon: '💰', air: true, ground: true, tag: 'Eksekusi Emas' },
   draco_v2: { name: 'Naga V2', cost: 130, dmg: 5, range: 2.6, rate: 0.1, color: 0xb91c1c, accent: 0xfca5a5, desc: 'Naga merah: semburan api kerucut', icon: '🐉', air: false, ground: true, tag: 'Semburan Api' },
   sol: { name: 'Matahari V2', cost: 150, dmg: 28, range: 2.8, rate: 3.0, color: 0xd97706, accent: 0xfde68a, desc: 'Sinar surya bunga menembus lurus', icon: '🌻', air: true, ground: true, tag: 'Sinar Tembus' },
   chroma_v2: { name: 'Prisma V2', cost: 125, dmg: 18, range: 3.2, rate: 1.3, color: 0xdb2777, accent: 0xfbcfe8, desc: 'Cahaya pink memantul antar musuh', icon: '💎', air: true, ground: true, tag: 'Pantulan' },
@@ -77,7 +76,7 @@ export const upgradeCostOf = (type: TowerType, level: number): number | null => 
 /** Piggy bank: interest paid when a wave ends (a % of your gold, capped per piggy) and the bonus coins dropped by every orc that dies inside its range */
 export const PIGGY = { pct: (l: number) => 0.06 + 0.03 * (l - 1), cap: (l: number) => 25 + 20 * (l - 1), bounty: (l: number) => l };
 
-type EnemyType = 'normal' | 'fast' | 'tank' | 'shaman' | 'berserker' | 'dragon' | 'boss' | 'baby' | 'gunner' | 'jumper' | 'log' | 'balloon' | 'cannoneer' | 'archer' | 'dread' | 'captain' | 'legion' | 'ninja' | 'bomber' | 'magnet' | 'frost' | 'rider' | 'punk' | 'shield' | 'toxic' | 'bat' | 'troll';
+type EnemyType = 'normal' | 'fast' | 'tank' | 'shaman' | 'berserker' | 'dragon' | 'boss' | 'baby' | 'gunner' | 'jumper' | 'log' | 'balloon' | 'cannoneer' | 'archer' | 'dread' | 'captain' | 'legion' | 'ninja' | 'bomber' | 'magnet' | 'frost' | 'rider' | 'punk' | 'shield' | 'toxic' | 'bat' | 'troll' | 'gargantuar' | 'imp' | 'bungee' | 'miner';
 interface EnemyDef { hp: number; speed: number; reward: number; skin: number; cloth: number; size: number; weapon: 'club' | 'dagger' | 'axe' | 'hammer' | 'staff' | 'twin' | 'none' | 'rifle' | 'rocket' | 'torch'; armor: number; flying?: boolean; lives: number; label: string }
 export const ENEMY_DEFS: Record<EnemyType, EnemyDef> = {
   normal: { hp: 30, speed: 1.25, reward: 5, skin: 0x6abe4a, cloth: 0xd9433b, size: 0.55, weapon: 'club', armor: 0, lives: 1, label: 'Orc' },
@@ -107,6 +106,10 @@ export const ENEMY_DEFS: Record<EnemyType, EnemyDef> = {
   toxic: { hp: 92, speed: 1.05, reward: 22, skin: 0x65a30d, cloth: 0x14532d, size: 0.62, weapon: 'none', armor: 1, lives: 2, label: 'Orc Alkemis Racun' },
   bat: { hp: 96, speed: 1.45, reward: 25, skin: 0x3b5249, cloth: 0x581c87, size: 0.66, weapon: 'none', armor: 1, flying: true, lives: 2, label: 'Orc Kelelawar' },
   troll: { hp: 290, speed: 0.75, reward: 36, skin: 0x3f6232, cloth: 0x14532d, size: 0.96, weapon: 'none', armor: 3, lives: 3, label: 'Troll Rawa' },
+  gargantuar: { hp: 380, speed: 0.65, reward: 48, skin: 0x4d7c0f, cloth: 0x78350f, size: 0.96, weapon: 'club', armor: 4, lives: 3, label: 'Orc Gendong Imp' },
+  imp: { hp: 22, speed: 2.65, reward: 8, skin: 0x84cc16, cloth: 0xdc2626, size: 0.4, weapon: 'dagger', armor: 0, lives: 1, label: 'Imp Orc' },
+  bungee: { hp: 78, speed: 1.25, reward: 22, skin: 0x65a30d, cloth: 0xea580c, size: 0.58, weapon: 'none', armor: 0, flying: true, lives: 1, label: 'Orc Terjun Payung' },
+  miner: { hp: 98, speed: 1.45, reward: 24, skin: 0x5c8d3e, cloth: 0xca8a04, size: 0.6, weapon: 'axe', armor: 2, lives: 2, label: 'Orc Penambang' },
 };
 const BLOOD = 0xc0262d;
 
@@ -158,6 +161,7 @@ interface Enemy {
   silenceT?: number; freezeT?: number; burnT?: number; burnDps?: number;
   cycloneLiftT?: number;
   slamCd?: number; spearThrowCd?: number; toxicDropCd?: number; batDrainCd?: number; trollRegenT?: number;
+  impThrown?: boolean; bungeeState?: 'dropping' | 'landed'; bungeeY?: number; digging?: boolean; emergeS?: number;
   lift?: number; grabT?: number; frost?: number; frozen?: number; iceShell?: THREE.Object3D;
 }
 interface Tower {
@@ -171,7 +175,7 @@ interface Tower {
   gravStage?: number;
 }
 interface EnemyShot { pos: THREE.Vector3; vel: THREE.Vector3; target: Tower; mesh: THREE.Object3D; life: number; dmg: number; kind: 'bullet' | 'cannonball' | 'arrow'; start?: THREE.Vector3; goal?: THREE.Vector3; t?: number }
-interface Projectile { kind: 'tracer' | 'mortar' | 'glob' | 'needle' | 'bee' | 'heart' | 'fireball' | 'meteor' | 'cannon_v2' | 'snowball'; seed?: number; pos: THREE.Vector3; start: THREE.Vector3; t: number; target: Enemy; speed: number; dmg: number; mesh: THREE.Object3D; splash?: number; arc?: number; level: number }
+interface Projectile { kind: 'tracer' | 'mortar' | 'glob' | 'needle' | 'bee' | 'heart' | 'fireball' | 'meteor' | 'snowball' | 'boulder'; seed?: number; pos: THREE.Vector3; start: THREE.Vector3; t: number; target: Enemy; speed: number; dmg: number; mesh: THREE.Object3D; splash?: number; arc?: number; level: number }
 interface TornadoFx { obj: THREE.Group; s: number; life: number; dmg: number; radius: number; spin: number }
 interface BurnFx { mesh: THREE.Mesh; pos: THREE.Vector3; r: number; dps: number; life: number; max: number }
 interface MeteorV2Fx { obj: THREE.Object3D; pos: THREE.Vector3; to: THREE.Vector3; t: number; dmg: number; splash: number }
@@ -211,9 +215,9 @@ export const MINDC = {
   find: [3.4, 4.0, 4.4],   // how far the victim looks for a friend to fight
 };
 /** how much of a spear poke's push an enemy type gets (1 = fully flung back) */
-const KNOCK_RESIST: Record<string, number> = { boss: 0.25, dread: 0.3, rider: 0.05, captain: 0.55, log: 0.5, magnet: 0.45, tank: 0.6, legion: 0.6, berserker: 0.8, cannoneer: 0.8, bomber: 0.9, ninja: 0.85, frost: 0.9, punk: 0.8, shield: 0.2, toxic: 0.85, bat: 0.7, troll: 0.3 };
+const KNOCK_RESIST: Record<string, number> = { boss: 0.25, dread: 0.3, rider: 0.05, captain: 0.55, log: 0.5, magnet: 0.45, tank: 0.6, legion: 0.6, berserker: 0.8, cannoneer: 0.8, bomber: 0.9, ninja: 0.85, frost: 0.9, punk: 0.8, shield: 0.2, toxic: 0.85, bat: 0.7, troll: 0.3, gargantuar: 0.2, imp: 1.0, bungee: 0.85, miner: 0.7 };
 /** how hard a hallucinating orc of this type hits its friends (multiplied by the current wave strength) */
-const MIND_POWER: Record<string, number> = { normal: 9, fast: 5, baby: 3, tank: 20, shaman: 6, berserker: 15, gunner: 9, archer: 8, jumper: 8, cannoneer: 13, log: 12, balloon: 6, dragon: 32, captain: 22, legion: 15, dread: 38, boss: 48, ninja: 14, bomber: 20, magnet: 18, frost: 12, rider: 28, punk: 18, shield: 16, toxic: 14, bat: 16, troll: 30 };
+const MIND_POWER: Record<string, number> = { normal: 9, fast: 5, baby: 3, tank: 20, shaman: 6, berserker: 15, gunner: 9, archer: 8, jumper: 8, cannoneer: 13, log: 12, balloon: 6, dragon: 32, captain: 22, legion: 15, dread: 38, boss: 48, ninja: 14, bomber: 20, magnet: 18, frost: 12, rider: 28, punk: 18, shield: 16, toxic: 14, bat: 16, troll: 30, gargantuar: 36, imp: 6, bungee: 12, miner: 16 };
 const RINGT = new THREE.TorusGeometry(1, 0.07, 6, 28), OCT_FX = new THREE.OctahedronGeometry(1);
 interface Hook { owner: number; e: Enemy; phase: 'fly' | 'pull'; t: number; mesh: THREE.Object3D; line: THREE.Mesh; pullFrom: number; pullTo: number; dur: number; dmg: number; resist: number; pull: number }
 interface Roll { owner: number; mesh: THREE.Group; phase: 'fly' | 'roll'; t: number; from: THREE.Vector3; to: THREE.Vector3; s: number; travelled: number; maxDist: number; hit: Set<number>; dmg: number; strike: number; last: THREE.Vector3 }
@@ -450,7 +454,7 @@ export class Game {
       const a = seen.get(t)!; let first = 0; for (let w = 1; w <= wpl; w++) if (a[w] * 2 >= SAMPLES) { first = w; break; }
       if (!first) for (let w = 1; w <= wpl; w++) if (a[w] > 0) { first = w; break; }
       const d = ENEMY_DEFS[t]; const info = ENEMY_INFO[t];
-      out.push({ type: t, name: d.label, icon: info.icon, note: info.note, bg: info.bg, count: Math.max(1, Math.round(sum / SAMPLES)), first, isNew: level > 1 && !earlier.has(t), flying: !!d.flying, armor: d.armor + Math.floor(level / 3), hp: Math.round(d.hp * Math.pow(1.4, level - 1)), boss: t === 'boss' || t === 'dread' || t === 'dragon' || t === 'troll' });
+      out.push({ type: t, name: d.label, icon: info.icon, note: info.note, bg: info.bg, count: Math.max(1, Math.round(sum / SAMPLES)), first, isNew: level > 1 && !earlier.has(t), flying: !!d.flying, armor: d.armor + Math.floor(level / 3), hp: Math.round(d.hp * Math.pow(1.4, level - 1)), boss: t === 'boss' || t === 'dread' || t === 'dragon' || t === 'troll' || t === 'gargantuar' });
     }
     out.sort((x, y) => x.first - y.first || x.hp - y.hp);
     this.rosterCache.set(level, out); return out;
@@ -505,6 +509,9 @@ export class Game {
     if (w >= 3 || L >= 2) { const ntx = Math.min(3, 1 + Math.floor((w + L - 2) / 4)); for (let i = 0; i < ntx; i++) q.splice(Math.floor(Math.random() * q.length), 0, 'toxic'); }
     if ((w >= 4 && L >= 1) || L >= 2) { const nbt = Math.min(4, Math.floor((w + L - 2) / 3)); for (let i = 0; i < nbt; i++) q.push('bat'); }
     if (w >= 4 || (L >= 2 && w >= 3) || (last && L >= 2)) { const ntr = Math.min(3, 1 + Math.floor((w + L - 3) / 4)); for (let i = 0; i < ntr; i++) q.splice(Math.floor(q.length * 0.5), 0, 'troll'); }
+    if (w >= 2 || L >= 2) { const nmn = Math.min(4, 1 + Math.floor((w + L - 1) / 3)); for (let i = 0; i < nmn; i++) q.splice(Math.floor(Math.random() * q.length), 0, 'miner'); }
+    if (w >= 2 || L >= 2) { const nbg = Math.min(4, 1 + Math.floor((w + L - 1) / 3)); for (let i = 0; i < nbg; i++) q.splice(Math.floor(Math.random() * q.length), 0, 'bungee'); }
+    if (w >= 3 || L >= 2) { const ngg = Math.min(3, 1 + Math.floor((w + L - 2) / 4)); for (let i = 0; i < ngg; i++) q.splice(Math.floor(q.length * 0.45), 0, 'gargantuar'); }
     if (last) { const bosses = 1 + Math.floor((L - 1) / 2); for (let i = 0; i < bosses; i++) q.push('boss'); }
     return q;
   }
@@ -512,7 +519,7 @@ export class Game {
     const s = this.state; const w = s.wave + 1; if (w > s.wavesPerLevel) return '';
     const q = this.composeWave(s.level, w, w === s.wavesPerLevel); const cnt: Partial<Record<EnemyType, number>> = {};
     q.forEach(t => (cnt[t] = (cnt[t] || 0) + 1));
-    const ic: Record<EnemyType, string> = { normal: '👹', fast: '👺', tank: '🛡️', shaman: '🔮', berserker: '🔥', dragon: '🐉', boss: '👑', baby: '👶', gunner: '🔫', jumper: '🚀', log: '🪵', balloon: '🎈', cannoneer: '💣', archer: '🏹', dread: '⚔️', captain: '🚩', legion: '🪖', ninja: '🥷', bomber: '🧨', magnet: '🧲', frost: '❄️', rider: '🦏', punk: '🧑‍🎤', shield: '🛡️', toxic: '🧪', bat: '🦇', troll: '🧟' };
+    const ic: Record<EnemyType, string> = { normal: '👹', fast: '👺', tank: '🛡️', shaman: '🔮', berserker: '🔥', dragon: '🐉', boss: '👑', baby: '👶', gunner: '🔫', jumper: '🚀', log: '🪵', balloon: '🎈', cannoneer: '💣', archer: '🏹', dread: '⚔️', captain: '🚩', legion: '🪖', ninja: '🥷', bomber: '🧨', magnet: '🧲', frost: '❄️', rider: '🦏', punk: '🧑‍🎤', shield: '🛡️', toxic: '🧪', bat: '🦇', troll: '🧟', gargantuar: '👹', imp: '👺', bungee: '🪂', miner: '⛏️' };
     return (Object.keys(cnt) as EnemyType[]).map(t => `${ic[t]}${cnt[t]}`).join(' ');
   }
   startWave() {
@@ -554,13 +561,36 @@ export class Game {
     const hpGroup = new THREE.Group(); hpGroup.add(hpBg, hpFg); hpGroup.name = 'hp'; hpGroup.scale.setScalar(Math.max(0.6, s) / s); g.add(hpGroup);
     this.scene.add(g);
     const hp = Math.round(def.hp * this.hpMult);
-    const e: Enemy = { id: this.nextId++, type, s: at, speed: def.speed * this.spdMult, hp, maxHp: hp, reward: def.reward, armor: def.armor + Math.floor(this.state.level / 3), flying: !!def.flying, slowT: 0, flashT: 0, poisonT: 0, poisonDps: 0, healT: 2, stunT: 0, shootT: 2 + Math.random() * 2, jumpState: 'idle', jumpT: 0, jumpFrom: new THREE.Vector3(), jumpTo: new THREE.Vector3(), jumpS: 0, cannonPhase: 'walk', cannonT: 0, cannonTarget: null, group: g, parts: debrisParts ?? parts, skinMats, limbs, hpFg, hpBg, size: s, bobOff: Math.random() * 6, dead: false };
+    const startS = type === 'bungee' && at === 0 ? this.pathLen * (0.35 + Math.random() * 0.25) : at;
+    const e: Enemy = { id: this.nextId++, type, s: startS, speed: def.speed * this.spdMult, hp, maxHp: hp, reward: def.reward, armor: def.armor + Math.floor(this.state.level / 3), flying: !!def.flying, slowT: 0, flashT: 0, poisonT: 0, poisonDps: 0, healT: 2, stunT: 0, shootT: 2 + Math.random() * 2, jumpState: 'idle', jumpT: 0, jumpFrom: new THREE.Vector3(), jumpTo: new THREE.Vector3(), jumpS: 0, cannonPhase: 'walk', cannonT: 0, cannonTarget: null, group: g, parts: debrisParts ?? parts, skinMats, limbs, hpFg, hpBg, size: s, bobOff: Math.random() * 6, dead: false };
+    if (type === 'bungee') {
+      e.bungeeState = 'dropping';
+      e.bungeeY = 7.2;
+      e.flying = true;
+    } else if (type === 'miner') {
+      e.digging = true;
+      e.emergeS = this.pathLen * (0.48 + Math.random() * 0.18);
+      if (e.limbs.mound) e.limbs.mound.visible = true;
+    }
     this.enemies.push(e);
-    const sp = new THREE.Vector3(); this.posAt(at, sp);
-    this.particles.emit(sp.setY(0.4), 0x9b5cff, 6, 1.5, 0.12, 0.5);
+    const sp = new THREE.Vector3(); this.posAt(startS, sp);
+    this.particles.emit(sp.setY(type === 'bungee' ? 5.5 : 0.4), 0x9b5cff, 6, 1.5, 0.12, 0.5);
+    if (type === 'bungee') this.float('TERJUN PAYUNG! 🪂', sp.clone().setY(3.2), '#fdba74');
+    if (type === 'miner') this.float('MENGGALI! ⛏️', sp.clone().setY(1.2), '#fde047');
     if (type === 'legion') { this.legionLane = -this.legionLane; e.lane = this.legionLane * 0.36; } // soldiers march in two files either side of the road centre
-    if (type === 'boss' || type === 'dragon') this.sfx.roar(type); else if (type === 'dread' || type === 'rider' || type === 'troll') this.sfx.roar('boss'); else if (type === 'captain' || type === 'punk') this.sfx.warcry(); else this.sfx.spawn();
+    if (type === 'boss' || type === 'dragon') this.sfx.roar(type); else if (type === 'dread' || type === 'rider' || type === 'troll' || type === 'gargantuar') this.sfx.roar('boss'); else if (type === 'captain' || type === 'punk') this.sfx.warcry(); else this.sfx.spawn();
     return e;
+  }
+  unburrowMiner(e: Enemy, label = 'MUNCUL! ⛏️') {
+    if (!e.digging) return;
+    e.digging = false;
+    if (e.limbs.mound) e.limbs.mound.visible = false;
+    const p = e.group.position.clone().setY(0.1);
+    this.particles.emit(p, 0x78350f, 18, 2.6, 0.11, 0.6, 2.8);
+    this.particles.emit(p, 0xfacc15, 8, 1.8, 0.08, 0.45, 2.2);
+    this.ring(p.clone().setY(0.06), 0xca8a04, 0.2, 1.5, 0.38, RING, 0.85);
+    this.float(label, p.clone().setY(1.4), '#fde047');
+    this.sfx.thud();
   }
 
   // ---------- Towers ----------
@@ -1460,7 +1490,7 @@ export class Game {
     this.fireball(at.clone().setY(at.y + 0.05), 1.05);
     this.ring(at.clone().setY(at.y + 0.07), 0xffd166, 0.2, m.r * 2, 0.35, RING, 0.9); this.flash(at.clone().setY(at.y + 0.6), 0xff9a3c, 7, 6); this.shake = Math.max(this.shake, 0.2); this.sfx.boom();
     this.float('BOOM!', at.clone().setY(at.y + 1.2), '#fb923c');
-    for (const e of [...this.enemies]) if (!e.flying && !e.dead && e.group.position.distanceTo(at) <= m.r) { this.damage(e, m.dmg, { hitPos: this.enemyCenter(e) }); if (!e.dead && e.type !== 'boss') e.stunT = Math.max(e.stunT, 0.7); }
+    for (const e of [...this.enemies]) if (!e.flying && !e.dead && e.group.position.distanceTo(at) <= m.r) { if (e.digging) this.unburrowMiner(e, 'KENA RANJAU! 💥'); this.damage(e, m.dmg, { hitPos: this.enemyCenter(e) }); if (!e.dead && e.type !== 'boss') e.stunT = Math.max(e.stunT, 0.7); }
   }
   /** Dragon's fire stream: a stretched layered flame from its mouth to the tower. 5 HP/s = a full 20-HP tower burns down in 4 s (x0.25 under a shield dome). */
   /** The dragon's fire stream: 9 puffs of fire flowing from its mouth to the tower (thin + bright-yellow at the mouth, fat + red at the tower)
@@ -1565,6 +1595,7 @@ export class Game {
     this.curSrc = tp;
     for (const e of [...this.enemies]) {
       if (e.flying || e.dead) continue; const d = Math.hypot(e.group.position.x - tp.x, e.group.position.z - tp.z); if (d > st.range) continue;
+      if (e.digging) this.unburrowMiner(e, 'GEMPA GOLEM! 🪨');
       this.damage(e, Math.round(st.dmg * (1 - 0.4 * (d / st.range))), { hitPos: this.enemyCenter(e) });
       if (!e.dead && e.type !== 'boss') e.stunT = Math.max(e.stunT, 0.7 + 0.2 * t.level);
     }
@@ -1695,6 +1726,7 @@ export class Game {
     }
     if (t.type === 'trap') {
       const jawL = t.head.getObjectByName('jawL'), jawR = t.head.getObjectByName('jawR'); if (jawL && jawR) { jawL.rotation.z = -1.45; jawR.rotation.z = 1.45; }
+      if (target.digging) this.unburrowMiner(target, 'TERJEPIT! 🪤');
       this.particles.emit(goal, 0xd6d3d1, 8, 2, 0.06, 0.3, 2); this.ring(goal.clone().setY(0.08), 0xffffff, 0.2, 1.2, 0.25, RING, 0.9);
       this.damage(target, st.dmg, { hitPos: goal, pierce: true }); if (!target.dead && target.type !== 'boss') { target.stunT = 1.2 + 0.3 * t.level; this.float('JEPIT!', goal.clone().setY(goal.y + 0.5), '#fde68a'); }
       this.shake = Math.max(this.shake, 0.1); this.sfx.trap(); return;
@@ -1728,6 +1760,35 @@ export class Game {
       this.projectiles.push({ kind: 'tracer', pos: start.clone(), start, t: 0, target, speed: 18, dmg: st.dmg, mesh: tracer, level: t.level });
       this.kick(t, 1);
       this.flash(start, 0xffe08a, 3, 3); this.particles.emit(start, 0xffe08a, 4, 1.5, 0.06, 0.2, 0.5, 0); this.sfx.shoot('cannon'); return;
+    }
+    if (t.type === 'catapult') {
+      const start = this.muzzleWorld(t);
+      const boulder = new THREE.Group();
+      boulder.add(mkSphere(0.24, 0x78716c, 0, 0, 0, 0x57534e));
+      boulder.add(mkBox(0.28, 0.18, 0.28, 0x57534e));
+      boulder.add(mkBox(0.18, 0.28, 0.22, 0xa8a29e, 0.04, 0.03, -0.03));
+      boulder.add(mkBox(0.3, 0.06, 0.3, 0xd97706));
+      boulder.position.copy(start);
+      this.scene.add(boulder);
+      this.projectiles.push({
+        kind: 'boulder',
+        pos: start.clone(),
+        start,
+        t: 0,
+        target,
+        speed: 1.05,
+        dmg: st.dmg,
+        mesh: boulder,
+        splash: 1.5 + 0.2 * (t.level - 1),
+        arc: 2.8 + Math.random() * 0.5,
+        level: t.level,
+      });
+      this.kick(t, 1.3);
+      this.particles.emit(start, 0xd97706, 8, 1.8, 0.08, 0.4, 1.8);
+      this.particles.emit(start, 0xa8a29e, 6, 1.4, 0.09, 0.45, 1.5);
+      this.shake = Math.max(this.shake, 0.08);
+      this.sfx.launch();
+      return;
     }
     if (t.type === 'blaster' || t.type === 'poison') {
       const isP = t.type === 'poison';
@@ -1877,19 +1938,6 @@ export class Game {
       this.sfx.zap();
       return;
     }
-    if (t.type === 'cannon_v2') {
-      const from = this.muzzleWorld(t);
-      const shell = new THREE.Mesh(SPHERE_FX, new THREE.MeshBasicMaterial({ color: 0xffd9a0 }));
-      shell.scale.setScalar(0.18);
-      const glow = new THREE.Mesh(SPHERE_FX, new THREE.MeshBasicMaterial({ color: 0x4f8cff, transparent: true, opacity: 0.6, depthWrite: false }));
-      glow.scale.setScalar(0.36); shell.add(glow);
-      shell.position.copy(from); this.scene.add(shell);
-      this.projectiles.push({ kind: 'cannon_v2', pos: from.clone(), start: from.clone(), target, mesh: shell, speed: 18, dmg: st.dmg, t: 0, splash: t.level >= 3 ? 1.45 : t.level >= 2 ? 1.15 : 0.5, level: t.level });
-      this.kick(t, 1); this.flash(from, 0x7ab8ff, 3, 3);
-      this.particles.emit(from, 0x7ab8ff, 6, 1.8, 0.08, 0.3, 1, 0);
-      this.sfx.shoot('cannon');
-      return;
-    }
     if (t.type === 'tornado') {
       const g = new THREE.Group();
       const cloud = new THREE.Mesh(SPHERE_FX, new THREE.MeshStandardMaterial({ color: 0xf0f9ff, roughness: 0.85, transparent: true, opacity: 0.9 }));
@@ -1924,36 +1972,6 @@ export class Game {
       this.meteorsV2.push({ obj, pos: best.clone(), to: best.clone(), t: 0, dmg: st.dmg, splash: 1.3 + t.level * 0.25 });
       this.float('KOMET! 🌠', best.clone().setY(1.6), '#fca5a5');
       this.sfx.launch();
-      return;
-    }
-    if (t.type === 'midas') {
-      const tp = t.group.position;
-      let best: Enemy | null = null, bestR = 2;
-      for (const e of this.enemies) {
-        if (e.dead) continue;
-        const dx = e.group.position.x - tp.x, dz = e.group.position.z - tp.z;
-        if (dx * dx + dz * dz > st.range * st.range) continue;
-        const r = e.hp / e.maxHp;
-        if (r < bestR) { bestR = r; best = e; }
-      }
-      if (!best) best = target;
-      const from = this.muzzleWorld(t); const to = this.enemyCenter(best);
-      this.beamFx(from, to, 0xfbbf24, 0.08, 0.24);
-      this.particles.emit(from, 0xffe066, 6, 1.6, 0.07, 0.35, 2);
-      this.curSrc = tp;
-      const rRatio = best.hp / best.maxHp;
-      if (rRatio <= 0.3 && best.type !== 'boss') {
-        const bonus = Math.round(best.reward * 2.5 + 10);
-        this.state.gold += bonus; this.state.score += bonus * 5;
-        this.particles.emit(to, 0xffd166, 26, 3, 0.12, 0.9, 3.2);
-        this.ring(best.group.position.clone().setY(0.08), 0xffd166, 0.3, 2, 0.5);
-        this.float(`EMAS! +${bonus} 🪙`, to.clone().setY(to.y + 0.8), '#fde047');
-        this.flash(to, 0xffd166, 5, 5); this.sfx.coin();
-        this.damage(best, best.maxHp * 2, { hitPos: to });
-      } else {
-        this.damage(best, st.dmg, { hitPos: to });
-        this.particles.emit(to, 0xffe066, 8, 2, 0.08, 0.45, 2.2);
-      }
       return;
     }
     if (t.type === 'sol') {
@@ -2060,6 +2078,35 @@ export class Game {
       }
       return;
     }
+    if (p.kind === 'boulder') {
+      this.particles.emit(at, 0x78716c, 22, 3.4, 0.14, 0.65, 3.0);
+      this.particles.emit(at, 0xa8a29e, 16, 2.6, 0.12, 0.55, 2.4);
+      this.particles.emit(at, 0xd97706, 10, 2.2, 0.09, 0.45, 2.0);
+      for (let i = 0; i < 5; i++) {
+        const chunk = mkBox(0.14 + Math.random() * 0.08, 0.12 + Math.random() * 0.08, 0.14 + Math.random() * 0.08, i % 2 === 0 ? 0x78716c : 0xa8a29e);
+        chunk.position.copy(at).setY(0.18);
+        this.scene.add(chunk);
+        this.addDebris(chunk, new THREE.Vector3((Math.random() - 0.5) * 4.2, 2.5 + Math.random() * 2.5, (Math.random() - 0.5) * 4.2), 0.9 + Math.random() * 0.4);
+      }
+      this.ring(at.clone().setY(0.07), 0xd97706, 0.2, p.splash! * 2.1, 0.38, RING, 0.9);
+      this.ring(at.clone().setY(0.05), 0x78716c, p.splash! * 0.7, p.splash! * 1.05, 4.5, DISC, 0.5);
+      this.flash(at.clone().setY(0.5), 0xfbbf24, 6, 5);
+      this.shake = Math.max(this.shake, 0.26);
+      this.float('BATU! 🪨', at.clone().setY(1.3), '#fcd34d');
+      this.sfx.quake();
+      for (const e of [...this.enemies]) {
+        if (!e.flying && e.group.position.distanceTo(at) <= p.splash!) {
+          if (e.digging) this.unburrowMiner(e, 'KENA BATU! 🪨');
+          const bonus = e.armor > 0 ? Math.round(p.dmg * 1.25) : p.dmg;
+          this.damage(e, bonus, { hitPos: this.enemyCenter(e) });
+          if (!e.dead && e.type !== 'boss') {
+            e.stunT = Math.max(e.stunT, 0.65);
+            e.s = Math.max(0, e.s - 0.25);
+          }
+        }
+      }
+      return;
+    }
     if (p.kind === 'glob') {
       this.particles.emit(at, 0xa3e635, 16, 2.2, 0.1, 0.6, 2.5); this.particles.emit(at, 0x4d7c0f, 8, 1.4, 0.12, 0.8, 1.5);
       this.ring(at.clone().setY(0.07), 0xa3e635, 0.2, p.splash! * 2, 0.35, RING, 0.9);
@@ -2069,28 +2116,13 @@ export class Game {
       for (const e of this.enemies) if (!e.flying && e.group.position.distanceTo(at) <= r) { e.poisonT = 3; e.poisonDps = p.dmg * 1.5; }
       this.sfx.splat(); return;
     }
-    if (p.kind === 'cannon_v2') {
-      const splash = p.splash ?? (p.level >= 3 ? 1.45 : p.level >= 2 ? 1.15 : 0.5);
-      this.particles.emit(at, 0xffd9a0, 16, 3.2, 0.12, 0.6, 2.5);
-      this.particles.emit(at, 0x4f8cff, 10, 2.4, 0.09, 0.5, 2.0);
-      this.ring(at.clone().setY(0.07), 0x2f6fe0, 0.2, splash * 2.2, 0.35, RING, 0.9);
-      this.flash(at.clone().setY(0.6), 0x7ab8ff, 6, 5);
-      this.shake = Math.max(this.shake, 0.18);
-      this.sfx.boom();
-      for (const e of [...this.enemies]) {
-        if (!e.flying && e.group.position.distanceTo(at) <= splash) {
-          this.damage(e, p.dmg, { hitPos: this.enemyCenter(e) });
-        }
-      }
-      return;
-    }
     this.particles.emit(at, 0xffd166, 18, 3.5, 0.13, 0.5, 3); this.particles.emit(at, 0xff6a2b, 14, 2.5, 0.16, 0.6, 2.5);
     this.particles.emit(at, 0x55555f, 16, 1.2, 0.2, 1.2, 1.2, -1.5); this.particles.emit(at, 0x8a6a4b, 10, 3, 0.1, 0.8, 4);
     this.ring(at.clone().setY(0.07), 0xffd166, 0.2, p.splash! * 2.2, 0.35, RING, 0.9);
     this.ring(at.clone().setY(0.04), 0x2a2420, p.splash! * 0.9, p.splash! * 1.1, 6, DISC, 0.55);
     this.ring(at.clone().setY(0.3), 0xffffff, 0.1, 1.2, 0.2, undefined, 0.8, 1.5);
     this.flash(at.clone().setY(0.6), 0xff9a3c, 8, 6); this.shake = Math.max(this.shake, 0.22); this.sfx.boom();
-    for (const e of [...this.enemies]) if (!e.flying && e.group.position.distanceTo(at) <= p.splash!) this.damage(e, p.dmg);
+    for (const e of [...this.enemies]) if (!e.flying && e.group.position.distanceTo(at) <= p.splash!) { if (e.digging) this.unburrowMiner(e, 'KENA MORTIR! 💣'); this.damage(e, p.dmg); }
   }
 
   // ---------- Loop ----------
@@ -2150,6 +2182,9 @@ export class Game {
       const horn = t.head.getObjectByName('boltHorn'); if (horn) { horn.position.y = 1.04 + Math.sin(this.time * 3 + t.id) * 0.03; horn.rotation.z = Math.sin(this.time * 2.2 + t.id) * 0.08; }
       const sh = t.group.getObjectByName('shards'); if (sh) { sh.rotation.y += dt * 1.3; sh.children.forEach((c, i) => { c.position.y = Math.sin(this.time * 2.5 + i * 2) * 0.05; }); }
       const gear = t.head.getObjectByName('gear'); if (gear) gear.rotation.z += dt * (1 + rc * 8);
+      const gearL = t.head.getObjectByName('gearL'); if (gearL) gearL.rotation.x += dt * (1 + rc * 8);
+      const catArm = t.head.getObjectByName('catArm'); if (catArm) catArm.rotation.x = -0.35 + rc * 1.45 + Math.sin(this.time * 2.2 + t.id) * 0.03;
+      const catRock = t.head.getObjectByName('catRock'); if (catRock) catRock.visible = t.cooldown < Math.max(0.25, this.towerStats(t.type, t.level).rate * 0.65);
       if (t.type === 'piggy') { const pcoin = t.head.getObjectByName('coin'); if (pcoin) { pcoin.rotation.y += dt * 2.6; pcoin.position.y = 1.18 + Math.sin(this.time * 3 + t.id) * 0.05 + rc * 0.3; pcoin.scale.setScalar(1 + rc * 0.35); } }
       if (t.type === 'wind') { const wrotor = t.head.getObjectByName('rotor'); if (wrotor) wrotor.rotation.y += dt * (4 + (t.target ? 18 : 0)); }
       for (let i = 0; i < 2; i++) { const sw = t.head.getObjectByName('swirl' + i); if (sw) { sw.rotation.y += dt * (i ? -1 : 1) * (1.5 + (t.target ? 4 : 0)); sw.position.y = (i ? 0.58 : 0.34) + Math.sin(this.time * 2 + i) * 0.03; } }
@@ -2546,16 +2581,117 @@ export class Game {
             }
           }
         }
-        // jumper: launch near finish
-        if (e.type === 'jumper') {
-          if (e.jumpState === 'idle' && e.s > 2.5 && e.stunT <= 0) {
+        // gargantuar: orc raksasa gendong imp - melempar imp ke dekat garis akhir kristal saat HP <= 50%
+        if (e.type === 'gargantuar' && !dazed && e.stunT <= 0) {
+          if (!e.impThrown && e.hp <= e.maxHp * 0.5) {
+            e.impThrown = true;
+            if (e.limbs.impRider) e.limbs.impRider.visible = false;
+            const targetS = Math.min(this.pathLen - 1.0, Math.max(e.s + 4.2, this.pathLen * 0.72));
+            const imp = this.spawnEnemy('imp', e.s);
+            imp.jumpState = 'flying';
+            imp.jumpT = 0;
+            this.posAt(e.s, imp.jumpFrom);
+            imp.jumpFrom.y = 1.5;
+            imp.jumpS = targetS;
+            this.posAt(targetS, imp.jumpTo);
+            const c = this.enemyCenter(e);
+            this.particles.emit(c, 0xfde047, 14, 2.4, 0.09, 0.5, 2.5);
+            this.ring(e.group.position.clone().setY(0.08), 0xf59e0b, 0.25, 1.8, 0.4, RING, 0.85);
+            this.float('LEMPAR IMP! 👹💨', c.clone().setY(2.1), '#fde047');
+            this.sfx.launch();
+          }
+          // smash nearby tower with utility pole
+          e.slamCd = (e.slamCd ?? 2.2) - dt;
+          if (e.slamCd <= 0) {
+            let nearT: Tower | null = null, bd = 2.1;
+            for (const t of this.towers) {
+              if (t.dead) continue;
+              const d = Math.hypot(t.group.position.x - e.group.position.x, t.group.position.z - e.group.position.z);
+              if (d < bd) { bd = d; nearT = t; }
+            }
+            if (nearT) {
+              e.slamCd = 3.0;
+              const tp2 = nearT.group.position.clone();
+              this.hurtTower(nearT, tp2, 6);
+              this.ring(tp2.clone().setY(0.08), 0xf59e0b, 0.2, 1.8, 0.4, RING, 0.9);
+              this.shake = Math.max(this.shake, 0.28);
+              this.float('GEBUK TIANG! 💥 -6 HP', tp2.clone().setY(1.5), '#fbbf24');
+              this.sfx.thud();
+            } else {
+              e.slamCd = 0.8;
+            }
+          }
+        }
+        // bungee: orc terjun payung dari langit ke tengah jalur & mengikat tower selama 4 detik
+        if (e.type === 'bungee' && e.bungeeState === 'dropping') {
+          e.bungeeY = Math.max(0, (e.bungeeY ?? 7.2) - dt * 2.2);
+          this.posAt(e.s, tmp);
+          e.group.position.set(tmp.x + Math.sin(this.time * 2.5 + e.bobOff) * 0.18, e.bungeeY, tmp.z);
+          e.group.rotation.y = Math.sin(this.time * 1.8 + e.bobOff) * 0.35;
+          poseOrc('bungee', e.limbs, this.time * 4 + e.bobOff);
+          if (e.bungeeY <= 0) {
+            e.bungeeState = 'landed';
+            e.flying = false;
+            if (e.limbs.chute) e.limbs.chute.visible = false;
+            const landPos = tmp.clone().setY(0.08);
+            this.particles.emit(landPos, 0xe2e8f0, 14, 2.2, 0.09, 0.5, 2.0);
+            this.ring(landPos, 0xf97316, 0.2, 1.5, 0.35, RING, 0.85);
+            // cari tower terdekat untuk diikat selama 4 detik (kecuali dilindungi Perisai)
+            let targetTower: Tower | null = null, bd = 3.0;
+            for (const t of this.towers) {
+              if (t.dead || t.type === 'shield') continue;
+              const d = Math.hypot(t.group.position.x - tmp.x, t.group.position.z - tmp.z);
+              if (d < bd) { bd = d; targetTower = t; }
+            }
+            if (targetTower) {
+              const tp2 = targetTower.group.position.clone();
+              let shielded = false;
+              for (const s2 of this.towers) {
+                if (s2.type === 'shield' && !s2.dead && s2.group.position.distanceTo(tp2) <= 2.0 + 0.3 * (s2.level - 1)) {
+                  shielded = true; s2.recoil = 1; break;
+                }
+              }
+              if (shielded) {
+                this.ring(tp2.clone().setY(0.4), 0x7dd3fc, 0.2, 1.8, 0.35, RING, 0.9);
+                this.float('DITANGKIS PERISAI! 🛡️', tp2.clone().setY(1.5), '#7dd3fc');
+                e.stunT = 1.2;
+              } else {
+                targetTower.frozenT = Math.max(targetTower.frozenT ?? 0, 4.0);
+                this.bolt(tmp.clone().setY(0.8), tp2.clone().setY(0.8), 0xfacc15, 0.08, 0.45, 0.1);
+                this.ring(tp2.clone().setY(0.1), 0xf97316, 0.2, 1.6, 0.45, RING, 0.85);
+                this.float('DIIKAT BUNGEE! 🪂 4d', tp2.clone().setY(1.6), '#fb923c');
+                this.sfx.trap();
+              }
+            } else {
+              this.float('MENDARAT! 🪂', landPos.clone().setY(1.3), '#fdba74');
+            }
+          } else {
+            const ratioB = e.hp / e.maxHp;
+            if (ratioB < 1) { e.hpBg.visible = e.hpFg.visible = true; e.hpFg.scale.x = ratioB; e.hpFg.position.x = -(1 - ratioB) * 0.4; }
+            const hpgB = e.group.getObjectByName('hp'); if (hpgB) hpgB.rotation.y = -e.group.rotation.y;
+            e.flashT -= dt;
+            continue;
+          }
+        }
+        // miner: orc penambang menggali di bawah tanah & muncul di tengah/belakang jalur
+        if (e.type === 'miner' && e.digging) {
+          if (Math.random() < 0.45) {
+            this.particles.emit(e.group.position.clone().setY(0.06), 0x78350f, 1, 0.9, 0.08, 0.35, 1.1);
+          }
+          if (e.s >= (e.emergeS ?? this.pathLen * 0.55)) {
+            this.unburrowMiner(e, 'PENAMBANG MUNCUL! ⛏️');
+          }
+        }
+        // jumper & thrown imp: launch near finish
+        if (e.type === 'jumper' || (e.type === 'imp' && e.jumpState === 'flying')) {
+          if (e.type === 'jumper' && e.jumpState === 'idle' && e.s > 2.5 && e.stunT <= 0) {
             e.jumpState = 'flying'; e.jumpT = 0; e.jumpFrom.copy(e.group.position); e.jumpS = Math.max(e.s + 2, this.pathLen - 3.5 - Math.random() * 1.5); this.posAt(e.jumpS, e.jumpTo);
             this.particles.emit(e.group.position.clone().setY(0.2), 0x9ca3af, 14, 2, 0.1, 0.8, 2); this.particles.emit(e.group.position.clone().setY(0.2), 0xf59e0b, 8, 1.5, 0.08, 0.4, 3); this.flash(e.group.position.clone().setY(0.5), 0xf59e0b, 4, 4);
             this.float('WUSSH!', e.group.position.clone().setY(1.5), '#38bdf8'); this.sfx.launch();
           }
           if (e.jumpState === 'flying') {
-            e.jumpT += dt * 0.55; const k = Math.min(1, e.jumpT);
-            const p = e.jumpFrom.clone().lerp(e.jumpTo, k); p.y = Math.sin(k * Math.PI) * 4;
+            e.jumpT += dt * (e.type === 'imp' ? 0.72 : 0.55); const k = Math.min(1, e.jumpT);
+            const p = e.jumpFrom.clone().lerp(e.jumpTo, k); p.y = (1 - k) * e.jumpFrom.y + Math.sin(k * Math.PI) * 3.8;
             e.group.position.copy(p); e.group.rotation.y = Math.atan2(e.jumpTo.x - e.jumpFrom.x, e.jumpTo.z - e.jumpFrom.z); e.group.rotation.x = (k - 0.5) * 1.2;
             if (e.limbs.armL) e.limbs.armL.rotation.x = -2.5;
             if (e.limbs.armR) e.limbs.armR.rotation.x = -2.5;
@@ -2563,7 +2699,7 @@ export class Game {
             if (e.limbs.legR) e.limbs.legR.rotation.x = -0.3;
             if (e.limbs.jet) { e.limbs.jet.visible = true; e.limbs.jet.children.forEach(f => flickerFlame(f, this.time * 1.6 + e.bobOff)); }
             this.particles.emit(p.clone().add(new THREE.Vector3(0, -0.1, 0)), 0xd1d5db, 2, 0.3, 0.08, 0.6, -0.5, -1); if (Math.random() < 0.6) this.particles.emit(p, 0xf59e0b, 1, 0.3, 0.06, 0.2, 0, 0);
-            if (k >= 1) { if (e.limbs.jet) e.limbs.jet.visible = false; e.jumpState = 'done'; e.s = e.jumpS; e.group.rotation.x = 0; e.stunT = 0.6; this.particles.emit(e.jumpTo.clone().setY(0.1), 0xcdb98a, 14, 2.5, 0.1, 0.6, 3); this.ring(e.jumpTo.clone().setY(0.07), 0xffffff, 0.2, 1.4, 0.3); this.shake = Math.max(this.shake, 0.12); }
+            if (k >= 1) { if (e.limbs.jet) e.limbs.jet.visible = false; e.jumpState = 'done'; e.s = e.jumpS; e.group.rotation.x = 0; e.stunT = e.type === 'imp' ? 0.25 : 0.6; this.particles.emit(e.jumpTo.clone().setY(0.1), 0xcdb98a, 14, 2.5, 0.1, 0.6, 3); this.ring(e.jumpTo.clone().setY(0.07), 0xffffff, 0.2, 1.4, 0.3); this.shake = Math.max(this.shake, 0.12); if (e.type === 'imp') this.float('IMP MENDARAT! 👺', e.jumpTo.clone().setY(1.2), '#fef08a'); }
             e.flashT -= dt; continue;
           }
         }
@@ -2640,7 +2776,9 @@ export class Game {
           if (sp > 0 && Math.random() < 0.3) this.particles.emit(tmp.clone().setY(0.05), 0xcdb98a, 1, 0.8, 0.07, 0.6, 1.2);
         } else {
           // cute hop-waddle: bouncy steps, swaying body, swinging arms, flapping ears (see poseOrc)
-          e.group.position.set(tmp.x, Math.abs(Math.sin(ph)) * (e.type === 'baby' ? 0.14 : 0.08), tmp.z); e.group.rotation.z = Math.sin(ph) * 0.06;
+          const digSink = e.type === 'miner' && e.digging ? -0.45 : Math.abs(Math.sin(ph)) * (e.type === 'baby' || e.type === 'imp' ? 0.14 : 0.08);
+          e.group.position.set(tmp.x, digSink, tmp.z); e.group.rotation.z = Math.sin(ph) * 0.06;
+          if (e.type === 'miner' && e.limbs.mound) e.limbs.mound.position.y = e.digging ? 0.22 : -0.48;
           if (isElite(e.type)) { poseElite(e.type, e.limbs, ph, this.time); this.eliteAttackPose(e, dt); } else poseOrc(e.type as OrcKind, e.limbs, ph);
           if (e.type === 'gunner') {
             if (aimAt) {
@@ -2804,9 +2942,9 @@ export class Game {
         }
         if (t.type === 'shield') { const dome = t.head.getObjectByName('dome') as THREE.Mesh | undefined; if (dome) (dome.material as THREE.MeshBasicMaterial).opacity = 0.14 + Math.sin(this.time * 3) * 0.04 + t.recoil * 0.3; t.recoil = Math.max(0, t.recoil - dt * 2); continue; }
         if (t.type === 'gravity') { this.gravityTick(t, st, dt); continue; }
-        const can = (e: Enemy) => (e.flying ? def.air : def.ground) && ((e.stealthT ?? 0) <= 0);
+        const can = (e: Enemy) => (e.flying ? def.air : def.ground) && ((e.stealthT ?? 0) <= 0) && (!e.digging || t.type === 'blaster' || t.type === 'catapult' || t.type === 'meteor' || t.type === 'meteor_v2' || t.type === 'naga' || t.type === 'trap' || t.type === 'bowl');
         let target: Enemy | null = null;
-        if (t.target && !t.target.dead && t.target.group.position.distanceTo(tp) <= st.range) target = t.target;
+        if (t.target && !t.target.dead && can(t.target) && t.target.group.position.distanceTo(tp) <= st.range) target = t.target;
         else for (const e of this.enemies) { if (!can(e)) continue; const dx = e.group.position.x - tp.x, dz = e.group.position.z - tp.z; if (dx * dx + dz * dz <= st.range * st.range && (!target || e.s > target.s)) target = e; }
         t.target = target;
         if (target) {
@@ -3070,15 +3208,22 @@ export class Game {
           } else if (Math.random() < 0.5) this.particles.emit(p.pos, p.kind === 'heart' ? 0xfbcfe8 : 0xbbf7d0, 1, 0.2, 0.03, 0.18, 0, 0);
           return true;
         }
-        if (p.kind === 'mortar' || p.kind === 'glob' || p.kind === 'fireball' || p.kind === 'meteor') {
+        if (p.kind === 'mortar' || p.kind === 'glob' || p.kind === 'fireball' || p.kind === 'meteor' || p.kind === 'boulder') {
           const total = Math.max(1.5, p.start.distanceTo(goal)); p.t += dt * p.speed * 4 / total;
           const prev = p.pos.clone(); p.pos.lerpVectors(p.start, goal, Math.min(1, p.t)); p.pos.y += Math.sin(Math.min(1, p.t) * Math.PI) * p.arc!;
-          p.mesh.position.copy(p.pos); p.mesh.lookAt(p.pos.clone().add(p.pos.clone().sub(prev)));
+          p.mesh.position.copy(p.pos);
+          if (p.kind === 'boulder') {
+            p.mesh.rotation.x += dt * 11;
+            p.mesh.rotation.z += dt * 7;
+            if (Math.random() < 0.65) this.particles.emit(p.pos, 0xa8a29e, 1, 0.35, 0.07, 0.35, 0.2, 0);
+          } else {
+            p.mesh.lookAt(p.pos.clone().add(p.pos.clone().sub(prev)));
+          }
           if (p.kind === 'fireball' || p.kind === 'meteor') {
             this.particles.emit(p.pos, 0xff7a1a, 1, 0.4, 0.08, 0.4, 0.3, 0);
             if (Math.random() < 0.5) this.particles.emit(p.pos, 0xfde047, 1, 0.3, 0.05, 0.3, 0.2, 0);
           } else if (p.kind === 'mortar') { this.particles.emit(p.pos, 0x9a9aa5, 1, 0.3, 0.09, 0.7, 0.4, -0.5); if (Math.random() < 0.6) this.particles.emit(p.pos, 0xffb347, 1, 0.5, 0.05, 0.25, 0.2, 0); }
-          else if (Math.random() < 0.5) this.particles.emit(p.pos, 0xa3e635, 1, 0.2, 0.05, 0.4, 0.2, 0);
+          else if (p.kind === 'glob' && Math.random() < 0.5) this.particles.emit(p.pos, 0xa3e635, 1, 0.2, 0.05, 0.4, 0.2, 0);
           if (p.t >= 1) { this.scene.remove(p.mesh); this.explode(goal.clone().setY(0.1), p); return false; }
           return true;
         }

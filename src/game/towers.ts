@@ -27,9 +27,10 @@ export const MUZZLE: Record<TowerType, { y: number; f: number; x?: number }> = {
   barracks: { y: 0.5, f: 0.3 }, mind: { y: 0.8, f: 0.29 },
   vortex: { y: 0.72, f: 0.42 }, meteor: { y: 1.05, f: 0.2 }, orbital: { y: 0.95, f: 0.5 },
   naga: { y: 0.85, f: 0.52 }, storm: { y: 1.15, f: 0 },
-  cannon_v2: { y: 0.26, f: 0.86 }, gravity: { y: 0.92, f: 0 }, tornado: { y: 0.72, f: 0.12 },
-  meteor_v2: { y: 1.0, f: 0.2 }, midas: { y: 0.45, f: 0.9 }, draco_v2: { y: 0.83, f: 0.72 },
+  gravity: { y: 0.92, f: 0 }, tornado: { y: 0.72, f: 0.12 },
+  meteor_v2: { y: 1.0, f: 0.2 }, draco_v2: { y: 0.83, f: 0.72 },
   sol: { y: 0.95, f: 0.4 }, chroma_v2: { y: 1.02, f: 0 }, frostbite_v2: { y: 1.5, f: 0 },
+  catapult: { y: 1.08, f: 0.36 },
 };
 
 export interface TowerModel { group: THREE.Group; head: THREE.Group; muzzle?: THREE.Object3D; beam?: THREE.Mesh; beamGlow?: THREE.Mesh }
@@ -128,11 +129,9 @@ export function makeBoomerang(color: number, accent: number) {
 
 export function buildTowerModel(type: TowerType, level: number, def: { color: number; accent: number }): TowerModel {
   const JOSS_MAP: Partial<Record<TowerType, JossTowerKind>> = {
-    cannon_v2: 'cannon',
     gravity: 'gravity',
     tornado: 'tornado',
     meteor_v2: 'meteor',
-    midas: 'midas',
     draco_v2: 'draco',
     sol: 'sol',
     chroma_v2: 'chroma',
@@ -507,6 +506,7 @@ export function buildTowerModel(type: TowerType, level: number, def: { color: nu
 
     // 9. Cute smiling bumblebee face
     face = makeFace({ r: 0.12, gap: 0.155, iris: black, skin: yellow, mouth: 'smile', cheeks: true, bias: 0.18, body: { R, cy, sy, y0: 0.58 } });
+    face.position.z += 0.24;
   } else if (type === 'golem') {
     // "Rocky": a rock golem with crystal sprouts; it raises its fists and slams the ground – the shockwave hurts and stuns every ground orc around it
     const R = 0.42, cy = 0.46, sy = 0.92;
@@ -967,6 +967,61 @@ export function buildTowerModel(type: TowerType, level: number, def: { color: nu
       head.add(spk);
     }
     face = makeFace({ r: 0.115, gap: 0.15, iris: 0x0284c7, skin: def.color, mouth: 'smile', bias: 0.05, body: { R, cy, sy, y0: 0.4 } });
+  } else if (type === 'catapult') {
+    // "Trebby": siege catapult operator with sturdy oak A-frame beams, iron bands, winch gears, and a pivoted boulder-hurling spoon arm!
+    const R = 0.36, cy = 0.36, sy = 0.94;
+    head.add(S(R, def.color, 0, cy, 0, { sy }));
+    // Wooden siege base collar & iron band
+    head.add(C(0.4, 0.43, 0.12, def.accent, 0, 0.14, 0, 14, { ol: true }));
+    head.add(B(0.56, 0.1, 0.44, 0x475569, 0, 0.58, -0.04, { ol: true }));
+    // Twin oak A-frame side uprights & spinning winch wheels
+    for (const sd of [-1, 1]) {
+      const post = B(0.09, 0.56, 0.14, def.accent, sd * 0.34, 0.48, -0.04, { ol: true });
+      post.rotation.x = 0.12;
+      head.add(post);
+      const brace = B(0.07, 0.44, 0.1, 0x92400e, sd * 0.34, 0.42, -0.2, { ol: true });
+      brace.rotation.x = -0.45;
+      head.add(brace);
+      // Winch wheel on each flank
+      const wheel = new THREE.Group();
+      wheel.name = sd === 1 ? 'gear' : 'gearL';
+      wheel.position.set(sd * 0.42, 0.34, -0.06);
+      wheel.add(tor(0.14, 0.035, 0x78350f, 0, 0, 0, { ry: Math.PI / 2 }));
+      wheel.add(B(0.04, 0.26, 0.04, 0x475569, 0, 0, 0));
+      wheel.add(B(0.04, 0.04, 0.26, 0x475569, 0, 0, 0));
+      head.add(wheel);
+    }
+    // Crossbar axle at top of A-frame
+    const crossbar = C(0.045, 0.045, 0.78, 0x334155, 0, 0.68, -0.02, 10, { ol: true });
+    crossbar.rotation.z = Math.PI / 2;
+    head.add(crossbar);
+    // Pivoted Catapult Throwing Arm + Spoon + Boulder
+    const catArm = new THREE.Group();
+    catArm.name = 'catArm';
+    catArm.position.set(0, 0.68, -0.02);
+    catArm.rotation.x = -0.35;
+    // Long timber throwing beam
+    catArm.add(B(0.11, 0.11, 0.86, 0xb45309, 0, 0.06, -0.22, { ol: true }));
+    catArm.add(B(0.13, 0.13, 0.12, 0x475569, 0, 0.06, 0.08)); // counterweight iron collar
+    // Heavy spoon / bucket at the back end of the arm
+    catArm.add(C(0.24, 0.16, 0.14, 0x78350f, 0, 0.12, -0.58, 12, { ol: true }));
+    catArm.add(tor(0.22, 0.03, 0x475569, 0, 0.17, -0.58, { rx: Math.PI / 2 }));
+    // Faceted grey boulder sitting in the spoon (hidden briefly right after firing)
+    const catRock = new THREE.Group();
+    catRock.name = 'catRock';
+    catRock.position.set(0, 0.26, -0.58);
+    const rCore = new THREE.Mesh(new THREE.DodecahedronGeometry(0.19), toon(0x78716c, 0.75, 0.05));
+    rCore.castShadow = true;
+    const rOl = new THREE.Mesh(rCore.geometry, OUTLINE_MAT); rOl.scale.setScalar(1.1); rCore.add(rOl);
+    catRock.add(rCore);
+    catRock.add(S(0.09, 0xa8a29e, 0.06, 0.07, 0.05, { ol: false }));
+    catArm.add(catRock);
+    head.add(catArm);
+
+    face = makeFace({ r: 0.115, gap: 0.15, iris: 0x78350f, skin: def.color, mouth: 'grin', bias: 0.18, brows: true, body: { R, cy, sy, y0: 0.36 } });
+    muzzle = makeBlast(0.45, 0xfef3c7, 0xd97706, 0xa8a29e);
+    muzzle.position.set(0, 1.08, 0.36);
+    head.add(muzzle);
   } else {
     // "Sir Bubbo": knight with a blue helmet & red plume, three orbiting shield plates and a protective dome
     const R = 0.37, cy = 0.38, sy = 0.95;
