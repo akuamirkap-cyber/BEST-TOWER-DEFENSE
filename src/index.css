@@ -157,9 +157,9 @@ html, body, #root { height: 100%; margin: 0; overflow: hidden; font-family: 'Fre
 /* ==========================================================================
    MAIN MENU (hero art rendered from the game's own 3D models)
    ========================================================================== */
-.menu-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 46%;
+.menu-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 32%;
   animation: menuKenBurns 52s ease-in-out infinite alternate; }
-@keyframes menuKenBurns { from { transform: scale(1.05); } to { transform: scale(1.14) translate3d(-1.4%, -1.8%, 0); } }
+@keyframes menuKenBurns { from { transform: scale(1.1); } to { transform: scale(1.19) translate3d(-1.2%, -1.6%, 0); } }
 
 .menu-vignette { position: absolute; inset: 0; pointer-events: none;
   background:
@@ -175,6 +175,40 @@ html, body, #root { height: 100%; margin: 0; overflow: hidden; font-family: 'Fre
 .menu-crenel { position: absolute; top: -15px; left: 7%; right: 7%; height: 19px; display: flex; justify-content: space-between; pointer-events: none; }
 .menu-crenel span { width: 10.5%; background: linear-gradient(180deg, #a3aec1, #6a7690); border: 3px solid #17202e; border-radius: 5px 5px 0 0; }
 
+/* ---- logo: castle wall + pennant flags + wooden ribbon ---- */
+.menu-wall { position: relative; border: 5px solid #1a2334; border-radius: 20px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.34) 0%, rgba(255,255,255,0) 16%, rgba(0,0,0,.08) 72%, rgba(0,0,0,.3) 100%),
+    repeating-linear-gradient(90deg, rgba(18,26,42,.17) 0 3px, rgba(0,0,0,0) 3px 64px),
+    repeating-linear-gradient(0deg, rgba(18,26,42,.17) 0 3px, rgba(0,0,0,0) 3px 42px),
+    linear-gradient(180deg, #d4dce8 0%, #9dabc1 52%, #6d7a94 100%);
+  box-shadow: 0 11px 0 #0d1420, 0 24px 42px rgba(0,0,0,.5), inset 0 4px 0 rgba(255,255,255,.42);
+}
+.menu-wall::after { content: ''; position: absolute; inset: 6px; border-radius: 14px; pointer-events: none;
+  border: 2px solid rgba(255,255,255,.16); box-shadow: inset 0 0 34px rgba(10,18,32,.4); }
+
+/* ---- wooden panels (ribbon, footer plaque, button tray) ---- */
+.menu-wood { border: 4px solid #17202e; border-radius: 14px;
+  background:
+    repeating-linear-gradient(0deg, rgba(0,0,0,.16) 0 2px, rgba(0,0,0,0) 2px 24px),
+    repeating-linear-gradient(90deg, rgba(0,0,0,.1) 0 2px, rgba(0,0,0,0) 2px 78px),
+    linear-gradient(180deg, #b98047 0%, #8d5d2c 55%, #5d3c1b 100%);
+  box-shadow: 0 7px 0 #2f1c0b, 0 12px 20px rgba(0,0,0,.35), inset 0 3px 0 rgba(255,255,255,.3), inset 0 -4px 0 rgba(0,0,0,.25);
+}
+
+/* ---- rounded-square tray buttons ---- */
+.menu-sq { display: grid; place-items: center; border-radius: 13px; border: 3px solid #17202e;
+  background: linear-gradient(180deg, #a9713a 0%, #7b4f22 60%, #553415 100%); color: #ffe9b8;
+  box-shadow: 0 4px 0 #2b1806, inset 0 2px 0 rgba(255,255,255,.3);
+  transition: transform .09s ease, filter .12s ease; }
+.menu-sq:hover { filter: brightness(1.12); }
+.menu-sq:active { transform: translateY(4px); box-shadow: 0 0 0 #2b1806, inset 0 2px 0 rgba(255,255,255,.25); }
+
+/* ---- profile medallion that carries a real rendered orc portrait ---- */
+.menu-avatar { position: relative; overflow: hidden; border-radius: 15px; border: 4px solid #e8b53d; outline: 3px solid #17202e;
+  background: radial-gradient(circle at 50% 26%, #b9f7d4 0%, #2fb87e 54%, #0a5c43 100%);
+  box-shadow: 0 5px 0 #0d1420, inset 0 -7px 12px rgba(0,0,0,.4), inset 0 5px 7px rgba(255,255,255,.45); }
+
 /* chunky menu buttons */
 .menu-btn { position: relative; display: flex; align-items: center; width: 100%; border-radius: 9999px;
   border: 4px solid #17202e; box-shadow: 0 7px 0 var(--sh, #0d1420), 0 14px 24px rgba(0,0,0,0.4), inset 0 3px 0 rgba(255,255,255,0.55);
@@ -186,8 +220,10 @@ html, body, #root { height: 100%; margin: 0; overflow: hidden; font-family: 'Fre
 
 .menu-medal { border-radius: 9999px; border: 4px solid #e8b53d; outline: 3px solid #17202e; flex-shrink: 0;
   box-shadow: 0 4px 0 rgba(0,0,0,0.35), 0 6px 14px rgba(0,0,0,0.3), inset 0 3px 4px rgba(255,255,255,0.85);
-  background: radial-gradient(circle at 35% 32%, #fffbeb 0%, #ffe28a 38%, #f59e0b 78%, #b45309 100%);
-  display: flex; align-items: center; justify-content: center; }
+  background: radial-gradient(circle at 34% 28%, #fffdf3 0%, #ffe9a0 30%, #f6b41c 66%, #c2740a 88%, #8a4b06 100%);
+  display: flex; align-items: center; justify-content: center; position: relative; }
+.menu-medal::after { content: ''; position: absolute; inset: 4px; border-radius: 9999px; pointer-events: none;
+  border: 2px solid rgba(255,255,255,.62); box-shadow: inset 0 -4px 7px rgba(120,60,0,.35); }
 
 /* floating / living pieces */
 @keyframes menuHeroBob { 0%, 100% { transform: translateY(0) rotate(-1.2deg); } 50% { transform: translateY(-11px) rotate(1.2deg); } }

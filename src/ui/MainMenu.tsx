@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from 'react';
-import type { CSSProperties } from 'react';
 import { TOWER_DEFS } from '../game/engine';
 import type { Game, GameState, TowerType } from '../game/engine';
 import { ENEMY_INFO } from '../game/roster';
@@ -28,11 +27,6 @@ const TIPS = [
 /** TOWER_DEFS stores colours as numbers – CSS wants a string */
 const hex = (n: number) => `#${n.toString(16).padStart(6, '0')}`;
 
-const menuText = (size: string, stroke = '#0b1220', shadow = '#05080f'): CSSProperties => ({
-  WebkitTextStroke: stroke, paintOrder: 'stroke fill', fontSize: size, lineHeight: 0.92,
-  textShadow: `0 4px 0 ${shadow}, 0 9px 16px rgba(0,0,0,0.55)`,
-});
-
 /**
  * THE MAIN MENU
  * Full-bleed hero render of the island (made from the game's own 3D models – see game/menuArt.ts) with the
@@ -60,6 +54,7 @@ export default function MainMenu({ s, g, portraits, enemyPortraits }: MainMenuPr
   const filteredTowers = towerKeys.filter(t => !q || TOWER_DEFS[t].name.toLowerCase().includes(q) || (NICK[t] || '').toLowerCase().includes(q) || TOWER_DEFS[t].tag.toLowerCase().includes(q));
   const filteredEnemies = enemyKeys.filter(k => !q || k.toLowerCase().includes(q) || ENEMY_INFO[k].note.toLowerCase().includes(q));
 
+  const avatar = enemyPortraits['boss'] || enemyPortraits['captain'] || enemyPortraits['normal'];
   const play = () => { g.sfx.resume(); g.sfx.click(); };
   const open = (m: ModalId) => { play(); setModal(m); };
   const toggleFullscreen = () => {
@@ -101,10 +96,17 @@ export default function MainMenu({ s, g, portraits, enemyPortraits }: MainMenuPr
 
       {/* ================= top bar ================= */}
       <div className="absolute inset-x-0 top-0 z-30 flex items-start justify-between gap-2 p-2 sm:p-4 pointer-events-none">
-        {/* player chip */}
-        <div className="pointer-events-auto flex items-center gap-2 rounded-2xl border-[3px] border-[#17202e] bg-gradient-to-b from-[#fdf3dc] to-[#f0d29a] px-2 py-1.5 sm:px-3 sm:py-2 shadow-[0_5px_0_#0d1420]">
-          <div className="grid h-8 w-8 sm:h-10 sm:w-10 place-items-center rounded-xl border-[3px] border-[#17202e] bg-gradient-to-b from-emerald-400 to-emerald-700 shadow-inner">
-            <Icon name="tower" className="h-5 w-5 text-white drop-shadow-[0_1px_0_rgba(0,0,0,0.5)] sm:h-6 sm:w-6" />
+        {/* player chip: the avatar is a real render of one of the game's orcs */}
+        <div className="pointer-events-auto flex items-center gap-2 rounded-2xl border-[3px] border-[#17202e] bg-gradient-to-b from-[#fdf3dc] to-[#e9c98a] p-1.5 pr-2.5 shadow-[0_5px_0_#0d1420] sm:pr-3.5">
+          <div className="relative shrink-0">
+            <div className="menu-avatar grid h-9 w-9 place-items-center sm:h-12 sm:w-12">
+              {avatar
+                ? <img src={avatar} alt="" draggable={false} className="h-full w-full translate-y-[14%] scale-[1.7] object-contain" />
+                : <Icon name="tower" className="h-5 w-5 text-white drop-shadow-[0_1px_0_rgba(0,0,0,0.5)]" />}
+            </div>
+            <span className="absolute -bottom-1 -right-1 grid h-4 w-4 place-items-center rounded-full border-2 border-[#17202e] bg-gradient-to-b from-amber-200 to-amber-500 sm:h-5 sm:w-5">
+              <Icon name="crown" className="h-2 w-2 text-amber-900 sm:h-2.5 sm:w-2.5" />
+            </span>
           </div>
           <div className="leading-tight">
             <div className="hidden font-display text-sm text-[#17202e] sm:block">KOMANDAN VOXEL</div>
@@ -116,42 +118,63 @@ export default function MainMenu({ s, g, portraits, enemyPortraits }: MainMenuPr
 
         {/* gold + settings */}
         <div className="pointer-events-auto flex items-center gap-2">
-          <div className="flex items-center gap-1.5 rounded-2xl border-[3px] border-[#17202e] bg-gradient-to-b from-[#ffe9a8] to-[#f0b429] px-2.5 py-1.5 shadow-[0_5px_0_#0d1420]">
-            <Icon name="coin" className="h-4 w-4 text-amber-500 drop-shadow sm:h-6 sm:w-6" />
-            <span className="font-display text-sm sm:text-xl text-[#3b1d00]">{s.gold >= 1000 ? `${(s.gold / 1000).toFixed(1)}k` : s.gold}</span>
+          <div className="flex items-center gap-1.5 rounded-2xl border-[3px] border-[#17202e] bg-gradient-to-b from-[#ffe9a8] to-[#e9a71a] py-1 pl-1 pr-3 shadow-[0_5px_0_#0d1420]">
+            <span className="grid h-7 w-7 place-items-center rounded-full border-2 border-[#8a5206] bg-gradient-to-b from-amber-100 to-amber-400 shadow-[inset_0_2px_0_rgba(255,255,255,.8)] sm:h-9 sm:w-9">
+              <Icon name="coin" className="h-4 w-4 text-amber-700 sm:h-5 sm:w-5" />
+            </span>
+            <span className="font-display text-sm text-[#3b1d00] sm:text-xl">{s.gold >= 1000 ? `${(s.gold / 1000).toFixed(1)}k` : s.gold}</span>
           </div>
           <button onClick={() => open('audio')} title="Audio & Info"
-            className="grid h-9 w-9 place-items-center rounded-full border-[3px] border-[#17202e] bg-gradient-to-b from-[#7dd3fc] to-[#0369a1] text-white shadow-[0_5px_0_#0d1420] transition-transform active:translate-y-1 sm:h-11 sm:w-11">
-            <Icon name="gear" className="h-4 w-4 drop-shadow-[0_1px_0_rgba(0,0,0,0.45)] sm:h-6 sm:w-6" /></button>
+            className="grid h-9 w-9 place-items-center rounded-full border-[3px] border-[#17202e] bg-gradient-to-b from-[#ffe9a8] to-[#e0a017] text-[#4a2a04] shadow-[0_5px_0_#0d1420] transition-transform active:translate-y-1 sm:h-11 sm:w-11">
+            <Icon name="gear" className="h-4 w-4 drop-shadow-[0_1px_0_rgba(255,255,255,0.6)] sm:h-6 sm:w-6" /></button>
         </div>
       </div>
 
       {/* ================= logo ================= */}
       <div className="pointer-events-none absolute inset-x-0 top-[12%] z-30 flex flex-col items-center px-4 sm:top-[5%]">
-        <div className="relative menu-plate px-4 py-2 text-center sm:px-10 sm:py-4">
-          <div className="absolute -top-6 left-1/2 -translate-x-1/2 sm:-top-8">
-            <Icon name="crown" className="h-7 w-7 text-amber-300 drop-shadow-[0_3px_0_rgba(0,0,0,0.5)] sm:h-10 sm:w-10" />
+        <div className="relative">
+          {/* pennant flags on the battlements */}
+          <div className="absolute -top-9 left-2 z-10 sm:-top-12 sm:left-5">
+            <Icon name="flag" className="h-7 w-7 text-rose-500 drop-shadow-[0_3px_0_rgba(0,0,0,0.5)] sm:h-11 sm:w-11" />
           </div>
+          <div className="absolute -top-9 right-2 z-10 sm:-top-12 sm:right-5">
+            <Icon name="flag" className="h-7 w-7 text-rose-500 drop-shadow-[0_3px_0_rgba(0,0,0,0.5)] sm:h-11 sm:w-11" />
+          </div>
+          <div className="menu-wall relative px-5 pb-3 pt-2 text-center sm:px-14 sm:pb-5 sm:pt-3">
+            {/* battlements */}
+            <div className="absolute -top-[15px] left-4 right-4 flex justify-between sm:-top-[19px]">
+              {Array.from({ length: 7 }, (_, i) => (
+                <span key={i} className="h-4 w-[11%] rounded-t-[4px] border-[3px] border-b-0 border-[#1a2334] bg-gradient-to-b from-[#dbe2ec] to-[#8d9ab0] sm:h-5" />
+              ))}
+            </div>
+            <div className="absolute -top-6 left-1/2 -translate-x-1/2 sm:-top-8">
+              <Icon name="crown" className="h-8 w-8 text-amber-300 drop-shadow-[0_3px_0_rgba(0,0,0,0.5)] sm:h-11 sm:w-11" />
+            </div>
           <div className="pointer-events-none absolute inset-0">
             {([[7, 12, '0s'], [93, 18, '1.4s'], [11, 80, '2.2s'], [89, 74, '0.8s'], [50, 4, '1.9s']] as const).map(([l, t, d], i) => (
               <span key={i} className="menu-spark absolute block h-1.5 w-1.5 rounded-full bg-amber-200 shadow-[0_0_9px_rgba(252,211,77,0.95)] sm:h-2 sm:w-2"
                 style={{ left: `${l}%`, top: `${t}%`, animationDelay: d }} />
             ))}
           </div>
-          <div className="font-display uppercase tracking-tight"
+          <div className="font-display uppercase leading-[0.84]"
             style={{
-              ...menuText('clamp(30px, 6.2vmin, 62px)', '3px #071529'),
-              background: 'linear-gradient(180deg,#ffffff 6%,#b7e6ff 34%,#4aa8e8 66%,#0b5b9c 100%)',
+              fontSize: 'clamp(34px, 7vmin, 76px)', fontWeight: 900,
+              WebkitTextStroke: '4px #08182b', paintOrder: 'stroke fill',
+              background: 'linear-gradient(180deg,#ffffff 4%,#8fd6ff 30%,#1f86dc 64%,#0a3f7a 100%)',
               WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent',
+              filter: 'drop-shadow(0 2px 0 #08182b) drop-shadow(0 4px 0 #08182b) drop-shadow(0 7px 0 #061423) drop-shadow(0 13px 12px rgba(0,0,0,0.45))',
             }}>TOWER</div>
-          <div className="font-display uppercase tracking-[0.05em] -mt-1"
+          <div className="font-display uppercase leading-[0.84]"
             style={{
-              ...menuText('clamp(38px, 8.4vmin, 86px)', '3.5px #2b0505'),
-              background: 'linear-gradient(180deg,#fffbeb 4%,#ffd166 26%,#f97316 62%,#c2410c 100%)',
+              fontSize: 'clamp(40px, 9vmin, 96px)', fontWeight: 900,
+              WebkitTextStroke: '4.5px #33110a', paintOrder: 'stroke fill',
+              background: 'linear-gradient(180deg,#fffceb 4%,#ffd75e 26%,#f97316 60%,#a8330b 100%)',
               WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent',
+              filter: 'drop-shadow(0 2px 0 #33110a) drop-shadow(0 4px 0 #33110a) drop-shadow(0 7px 0 #2a0d06) drop-shadow(0 13px 12px rgba(0,0,0,0.45))',
             }}>MASTER</div>
-          <div className="mx-auto mt-1 inline-block rounded-full border-[3px] border-[#17202e] bg-gradient-to-b from-[#a3703f] to-[#6b4423] px-3 py-0.5 sm:px-4 sm:py-1 shadow-[inset_0_2px_0_rgba(255,255,255,0.35)]">
-            <span className="font-display text-[10px] sm:text-sm text-amber-100" style={{ textShadow: '0 2px 0 #2a1708' }}>Epic 3D Voxel Tower Defense</span>
+            <div className="menu-wood mx-auto mt-2 inline-block rounded-xl px-3 py-1 sm:px-5 sm:py-1.5">
+              <span className="font-display text-[10px] text-amber-50 sm:text-base" style={{ textShadow: '0 2px 0 #3a2408' }}>Epic 3D Voxel Tower Defense</span>
+            </div>
           </div>
         </div>
       </div>
@@ -189,18 +212,20 @@ export default function MainMenu({ s, g, portraits, enemyPortraits }: MainMenuPr
 
       {/* ================= footer ================= */}
       <div className="absolute inset-x-0 bottom-0 z-30 flex items-end justify-between gap-2 p-2 sm:p-4">
-        <div className="pointer-events-none flex items-center gap-2 rounded-2xl border-[3px] border-[#17202e] bg-gradient-to-b from-[#8a6b3d] to-[#5b4325] px-2.5 py-1.5 shadow-[0_5px_0_#0d1420]">
-          <span className="grid h-7 w-7 place-items-center rounded-lg border-2 border-amber-200/70 bg-amber-400 text-[13px] shadow-inner">TM</span>
+        <div className="menu-wood pointer-events-none flex items-center gap-2 rounded-xl px-2 py-1.5 sm:px-3 sm:py-2">
+          <span className="grid h-7 w-7 place-items-center rounded-lg border-2 border-amber-200/80 bg-gradient-to-b from-amber-200 to-amber-500 shadow-[inset_0_2px_0_rgba(255,255,255,.7)] sm:h-9 sm:w-9">
+            <Icon name="crown" className="h-4 w-4 text-amber-900 sm:h-5 sm:w-5" />
+          </span>
           <div className="leading-tight">
-            <div className="font-display text-[10px] text-yellow-200 sm:text-xs">TOWERMASTER STUDIOS</div>
-            <div className="text-[9px] font-bold text-amber-100/80 sm:text-[10px]">VOXEL DEFENSE · v1.0 · 2026</div>
+            <div className="font-display text-[10px] text-yellow-100 sm:text-sm" style={{ textShadow: '0 2px 0 #3a2408' }}>TOWERMASTER STUDIOS</div>
+            <div className="text-[9px] font-bold text-amber-100/90 sm:text-[11px]">v1.0.0 · RELEASE 2026</div>
           </div>
         </div>
 
-        <div className="flex items-center gap-1.5 sm:gap-2">
-          <RoundBtn label="Musik" onClick={() => { play(); g.toggleMusic(); }}><Icon name={s.musicOn ? 'note' : 'mute'} className="h-4 w-4 sm:h-5 sm:w-5" /></RoundBtn>
-          <RoundBtn label="Efek suara" onClick={() => { play(); g.toggleMute(); }}><Icon name={s.muted ? 'mute' : 'sound'} className="h-4 w-4 sm:h-5 sm:w-5" /></RoundBtn>
-          <RoundBtn label="Layar penuh" onClick={toggleFullscreen}><Icon name="expand" className="h-4 w-4 sm:h-5 sm:w-5" /></RoundBtn>
+        <div className="menu-wood flex items-center gap-1.5 rounded-xl p-1.5 sm:gap-2 sm:p-2">
+          <SqBtn label="Musik" onClick={() => { play(); g.toggleMusic(); }}><Icon name={s.musicOn ? 'note' : 'mute'} className="h-4 w-4 sm:h-5 sm:w-5" /></SqBtn>
+          <SqBtn label="Efek suara" onClick={() => { play(); g.toggleMute(); }}><Icon name={s.muted ? 'mute' : 'sound'} className="h-4 w-4 sm:h-5 sm:w-5" /></SqBtn>
+          <SqBtn label="Layar penuh" onClick={toggleFullscreen}><Icon name="expand" className="h-4 w-4 sm:h-5 sm:w-5" /></SqBtn>
         </div>
       </div>
 
@@ -333,8 +358,8 @@ function MenuButton({ icon, label, sub, from, via, to, shadow, onClick, pulse }:
         ['--sh' as string]: shadow,
         background: `linear-gradient(180deg, ${from} 0%, ${via} 46%, ${to} 100%)`,
       }}>
-      <span className="menu-medal h-11 w-11 transition-transform group-hover:scale-105 sm:h-14 sm:w-14">
-        <Icon name={icon} className="h-5 w-5 text-white drop-shadow-[0_2px_0_rgba(90,50,0,0.55)] sm:h-7 sm:w-7" />
+      <span className="menu-medal h-12 w-12 transition-transform group-hover:scale-105 sm:h-[68px] sm:w-[68px]">
+        <Icon name={icon} className="relative z-10 h-6 w-6 text-white drop-shadow-[0_2px_0_rgba(90,50,0,0.6)] sm:h-8 sm:w-8" />
       </span>
       <span className="ml-2.5 sm:ml-4 min-w-0 flex-1 text-left">
         <span className="block font-display uppercase leading-none tracking-wide text-white sm:text-3xl"
@@ -346,11 +371,10 @@ function MenuButton({ icon, label, sub, from, via, to, shadow, onClick, pulse }:
   );
 }
 
-/** round icon button used in the footer */
-function RoundBtn({ label, onClick, children }: { label: string; onClick: () => void; children: React.ReactNode }) {
+/** rounded-square icon button used in the footer tray */
+function SqBtn({ label, onClick, children }: { label: string; onClick: () => void; children: React.ReactNode }) {
   return (
-    <button onClick={onClick} title={label} aria-label={label}
-      className="grid h-10 w-10 place-items-center rounded-full border-[3px] border-[#17202e] bg-gradient-to-b from-slate-700 to-slate-900 text-base text-white shadow-[0_5px_0_#0d1420] transition-transform active:translate-y-1 sm:h-12 sm:w-12 sm:text-xl">
+    <button onClick={onClick} title={label} aria-label={label} className="menu-sq h-9 w-9 text-amber-100 sm:h-11 sm:w-11">
       {children}
     </button>
   );
@@ -383,7 +407,7 @@ function ToggleRow({ title, hint, on, onLabel, offLabel, onClick }: { title: str
 
 
 /* ================= inline SVG icons (emoji fonts aren't guaranteed everywhere) ================= */
-type IconName = 'swords' | 'trophy' | 'tower' | 'note' | 'gear' | 'coin' | 'sound' | 'mute' | 'expand' | 'close' | 'crown' | 'arrow' | 'book';
+type IconName = 'swords' | 'trophy' | 'tower' | 'note' | 'gear' | 'coin' | 'sound' | 'mute' | 'expand' | 'close' | 'crown' | 'arrow' | 'book' | 'flag';
 
 function Icon({ name, className = '' }: { name: IconName; className?: string }) {
   const wrap = (children: React.ReactNode) => (
@@ -449,6 +473,11 @@ function Icon({ name, className = '' }: { name: IconName; className?: string }) 
       return wrap(<path d="M5.6 4.2l14.2 14.2-1.4 1.4L4.2 5.6z M18.4 4.2l1.4 1.4L5.6 19.8 4.2 18.4z" />);
     case 'crown':
       return wrap(<path d="M3 18.4 2.2 7.2l5 3.2L12 3.4l4.8 7 5-3.2-1 11.2H3z" />);
+    case 'flag':
+      return wrap(<>
+        <rect x="4.2" y="2.4" width="2.4" height="19.2" rx="1.2" />
+        <path d="M6.9 3.2h12.9l-3.1 3.9 3.1 3.9H6.9z" />
+      </>);
     case 'book':
       return wrap(<>
         <path d="M4 4.4h6.2c1 0 1.8.8 1.8 1.8v13c0-.9-.8-1.6-1.8-1.6H4V4.4z" />

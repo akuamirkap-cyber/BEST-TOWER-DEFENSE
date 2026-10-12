@@ -139,7 +139,7 @@ function renderAll() {
 
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true, powerPreference: 'high-performance' });
   renderer.setPixelRatio(1); renderer.setSize(RW, RH, false); renderer.setClearColor(0x000000, 0);
-  renderer.outputColorSpace = THREE.SRGBColorSpace; renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.14;
+  renderer.outputColorSpace = THREE.SRGBColorSpace; renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.24;
   renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
   const scene = new THREE.Scene();
@@ -178,6 +178,13 @@ function renderAll() {
     const c = cloudCluster(rng, B.cloud); const s = 1.5 + rng() * 1.6;
     c.scale.setScalar(s); c.position.set(-92 + rng() * 184, -6 - rng() * 16, -72 - rng() * 58); scene.add(c);
   }
+  // clouds high in the frame (just under the horizon line the camera is aimed at)
+  for (let i = 0; i < 5; i++) {
+    const c = cloudCluster(rng, B.cloud); const s = 1.1 + rng() * 1.1;
+    c.scale.setScalar(s);
+    c.position.set(-24 + rng() * 48, 1 + rng() * 5, -26 - rng() * 20);
+    scene.add(c);
+  }
   // small mid-distance clouds: they nestle around the island's sides and give the shot depth
   for (let i = 0; i < 8; i++) {
     const c = cloudCluster(rng, B.cloud); const s = 0.85 + rng() * 0.8;
@@ -185,6 +192,14 @@ function renderAll() {
     c.scale.setScalar(s);
     c.position.set(side * (26 + rng() * 44), -9 - rng() * 8, -34 - rng() * 30);
     scene.add(c);
+  }
+  // foreground framing islands: big brothers of the sky rocks, parked at the lower left/right corners of the shot
+  for (const [fx, fy, fz, fs] of [[-21, 1.5, -32, 1.5], [22, 0.5, -36, 1.35], [-17, -1.5, -20, 1.15], [18, -2.5, -22, 1.05]] as const) {
+    const f = floatingIsland(rng, B);
+    f.scale.setScalar(fs);
+    f.position.set(fx, fy, fz);
+    f.rotation.y = rng() * 6.28;
+    scene.add(f);
   }
   // floating voxel islands drifting far out in the sky (like the little floating rocks of the game's backgrounds)
   for (let i = 0; i < 5; i++) {
@@ -249,7 +264,7 @@ function renderAll() {
 
   // ---- camera: a low hero angle, castle on the right, gate on the left
   const cam = new THREE.PerspectiveCamera(24, RW / RH, 0.5, 400);
-  const look = new THREE.Vector3(1.4, 2.4, -0.2);
+  const look = new THREE.Vector3(1.5, 2.5, -0.2); // the castle keep stays in the right third of the frame
   cam.position.copy(look).addScaledVector(new THREE.Vector3(-0.07, 0.38, 0.925).normalize(), 37);
   cam.lookAt(look);
   cam.updateMatrixWorld(true);
