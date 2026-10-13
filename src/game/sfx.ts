@@ -389,6 +389,19 @@ export class Sfx {
   spawn() { if (!this.gate('spawn', 130)) return; this.tone({ f: rnd(190, 260), to: rnd(380, 460), dur: 0.14, type: 'sine', vol: 0.03, pan: rnd(-0.6, 0.6), prio: 0 }); }
   enemyShot() { if (!this.gate('eshot', 60)) return; this.tone({ f: 900, to: 300, dur: 0.08, type: 'square', vol: 0.03, lp: 2500, prio: 0 }); this.noise({ dur: 0.03, vol: 0.02, f: 4000, type: 'highpass', prio: 0 }); }
   launch() { this.noise({ dur: 0.5, vol: 0.07, f: 500, to: 3000, attack: 0.05, type: 'bandpass' }); this.tone({ f: 160, to: 880, dur: 0.5, type: 'sawtooth', vol: 0.05, lp: 1500, rev: 0.3 }); }
+  /** high-tech plasma blaster shot: crisp laser pew */
+  blasterLaser() {
+    if (!this.gate('blaster_laser', 50)) return;
+    this.tone({ f: 1750, to: 380, dur: 0.12, type: 'sawtooth', vol: 0.08, lp: 4600, prio: 1 });
+    this.tone({ f: 2400, to: 650, dur: 0.07, type: 'sine', vol: 0.05, delay: 0.01 });
+    this.noise({ dur: 0.06, vol: 0.04, f: 6500, type: 'highpass', prio: 0 });
+  }
+  /** rocket jetpack burst thruster boost */
+  jetpackBurst() {
+    if (!this.gate('jetpack_burst', 120)) return;
+    this.noise({ dur: 0.38, vol: 0.12, f: 1200, to: 2800, type: 'bandpass', q: 1.1, attack: 0.03 });
+    this.tone({ f: 220, to: 640, dur: 0.32, type: 'sawtooth', vol: 0.07, lp: 1800, rev: 0.25 });
+  }
   crack() { this.noise({ dur: 0.18, vol: 0.14, f: 3000, to: 400, type: 'bandpass' }); this.tone({ f: 200, to: 90, dur: 0.22, type: 'triangle', vol: 0.1 }); this.noise({ dur: 0.3, vol: 0.06, f: 900, to: 200, delay: 0.1 }); }
   hurt() {
     this.tone({ f: 260, to: 120, dur: 0.32, type: 'sawtooth', vol: 0.09, lp: 900 }); this.noise({ dur: 0.22, vol: 0.07, f: 700, to: 200 });

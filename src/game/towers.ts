@@ -31,6 +31,7 @@ export const MUZZLE: Record<TowerType, { y: number; f: number; x?: number }> = {
   meteor_v2: { y: 1.0, f: 0.2 }, draco_v2: { y: 0.83, f: 0.72 },
   sol: { y: 0.95, f: 0.4 }, chroma_v2: { y: 1.02, f: 0 }, frostbite_v2: { y: 1.5, f: 0 },
   catapult: { y: 1.08, f: 0.36 },
+  aero: { y: 0.72, f: 0.35 },
 };
 
 export interface TowerModel { group: THREE.Group; head: THREE.Group; muzzle?: THREE.Object3D; beam?: THREE.Mesh; beamGlow?: THREE.Mesh }
@@ -59,9 +60,13 @@ function C(rt: number, rb: number, h: number, color: number, x = 0, y = 0, z = 0
   if (o.ol !== false) { const h2 = new THREE.Mesh(m.geometry, OUTLINE_MAT); h2.scale.set(1.09, 1.03, 1.09); m.add(h2); }
   return m;
 }
-function B(w: number, h: number, d: number, color: number, x = 0, y = 0, z = 0, o: { ol?: boolean; lit?: boolean } = {}) {
+function B(w: number, h: number, d: number, color: number, x = 0, y = 0, z = 0, o: { ol?: boolean; lit?: boolean; rx?: number; ry?: number; rz?: number } = {}) {
   const m = new THREE.Mesh(BOX, new THREE.MeshStandardMaterial({ color, roughness: 0.55, emissive: color, emissiveIntensity: o.lit ? 1 : 0.08 }));
-  m.scale.set(w, h, d); m.position.set(x, y, z); m.castShadow = true; m.receiveShadow = true;
+  m.scale.set(w, h, d); m.position.set(x, y, z);
+  if (o.rx) m.rotation.x = o.rx;
+  if (o.ry) m.rotation.y = o.ry;
+  if (o.rz) m.rotation.z = o.rz;
+  m.castShadow = true; m.receiveShadow = true;
   if (o.ol) { const h2 = new THREE.Mesh(BOX, OUTLINE_MAT); h2.scale.setScalar(1.14); m.add(h2); }
   return m;
 }
@@ -1022,6 +1027,167 @@ export function buildTowerModel(type: TowerType, level: number, def: { color: nu
     muzzle = makeBlast(0.45, 0xfef3c7, 0xd97706, 0xa8a29e);
     muzzle.position.set(0, 1.08, 0.36);
     head.add(muzzle);
+  } else if (type === 'aero') {
+    // "Istana Megah Aero Hunter": Istana Kastil Megah Pemburu Bintang (Bukan Celengan!).
+    // Megah dengan 4 menara sudut beratap kubah runcing, gerbang istana berpelengkung emas,
+    // dinding benteng ber-merlon (crenellation), donjon utama, serta balkon & landasan terbang istana.
+    // PENTING: Istana ini menancap kokoh pada tanah benteng (g) dan TIDAK IKUT BEROTASI!
+    const palace = new THREE.Group();
+    palace.name = 'mandalorianPalace';
+    palace.position.y = 0.3;
+    g.add(palace);
+
+    // 1. Pelataran & Fondasi Megah Istana (Polished Beskar Stone Courtyard)
+    palace.add(B(0.86, 0.22, 0.86, 0xe2e8f0, 0, 0.11, 0, { ol: true }));
+    palace.add(B(0.92, 0.06, 0.92, 0xd97706, 0, 0.03, 0, { ol: true })); // royal gold plinth rim
+    palace.add(tor(0.42, 0.025, 0x38bdf8, 0, 0.23, 0, { rx: Math.PI / 2, glow: 0.8 })); // magic conduit ring
+
+    // 2. 4 Menara Sudut Istana (4 Grand Royal Castle Turrets & Spires)
+    const corners = [
+      [-0.36, -0.36],
+      [0.36, -0.36],
+      [-0.36, 0.36],
+      [0.36, 0.36],
+    ];
+    for (const [cx, cz] of corners) {
+      // Menara silinder batu perak Beskar
+      palace.add(C(0.13, 0.14, 0.64, 0xf1f5f9, cx, 0.32, cz, 14, { ol: true }));
+      // Cincin corbel emas / perunggu di leher menara
+      palace.add(tor(0.14, 0.024, 0xd97706, cx, 0.62, cz, { rx: Math.PI / 2 }));
+
+      // Mahkota benteng / Crenellated merlons di atas menara
+      palace.add(C(0.15, 0.14, 0.08, 0xe2e8f0, cx, 0.66, cz, 12, { ol: true }));
+      for (let m = 0; m < 4; m++) {
+        const a = (m * Math.PI) / 2;
+        palace.add(B(0.06, 0.06, 0.06, 0xd97706, cx + Math.cos(a) * 0.13, 0.72, cz + Math.sin(a) * 0.13, { ol: false }));
+      }
+
+      // Atap kubah kerucut runcing istana warna biru kerajaan (Royal Blue Palace Spire Cone)
+      palace.add(cone(0.15, 0.36, 0x0284c7, cx, 0.86, cz, 12));
+      // Mahkota puncak menara & Kristal plasma bercahaya
+      palace.add(C(0.02, 0.02, 0.12, 0xd97706, cx, 1.06, cz, 8, { ol: false }));
+      // Posisi kristal tepat di puncak menara sudut
+      const crys = shard(0.045, 0x67e8f9, 1.6);
+      crys.position.set(cx, 1.12, cz);
+      palace.add(crys);
+    }
+
+    // 3. Tembok Pertahanan Istana Ber-merlon (Curtain Walls & Ramparts)
+    // Dinding kiri & kanan
+    palace.add(B(0.10, 0.44, 0.60, 0xe2e8f0, -0.36, 0.22, 0, { ol: true }));
+    palace.add(B(0.10, 0.44, 0.60, 0xe2e8f0, 0.36, 0.22, 0, { ol: true }));
+    // Dinding belakang
+    palace.add(B(0.60, 0.44, 0.10, 0xe2e8f0, 0, 0.22, -0.36, { ol: true }));
+
+    // Merlon / gerigi benteng istana di sepanjang tembok luar
+    for (let i = -2; i <= 2; i++) {
+      if (Math.abs(i) <= 1) {
+        palace.add(B(0.07, 0.06, 0.05, 0xd97706, -0.38, 0.47, i * 0.13));
+        palace.add(B(0.07, 0.06, 0.05, 0xd97706, 0.38, 0.47, i * 0.13));
+        palace.add(B(0.05, 0.06, 0.07, 0xd97706, i * 0.13, 0.47, -0.38));
+      }
+    }
+
+    // 4. Gerbang Keagungan Istana (Grand Arched Royal Palace Gatehouse)
+    // Gapura pelengkung megah depan
+    palace.add(B(0.42, 0.48, 0.16, 0xf1f5f9, 0, 0.24, 0.36, { ol: true }));
+    // Pelengkung gapura kerajaan (Arched Portal Moulding)
+    palace.add(tor(0.16, 0.03, 0xd97706, 0, 0.28, 0.44, { rz: Math.PI / 2 }));
+    // Lorong gerbang istana bercahaya emas & sian di dalam
+    palace.add(B(0.24, 0.30, 0.12, 0x0f172a, 0, 0.15, 0.42, { ol: false }));
+    // Pintu kisi-kisi jeruji emas istana (Golden Royal Portcullis Grill)
+    palace.add(B(0.22, 0.03, 0.04, 0xfbbf24, 0, 0.24, 0.43, { lit: true }));
+    palace.add(B(0.03, 0.26, 0.04, 0xfbbf24, -0.06, 0.13, 0.43, { lit: true }));
+    palace.add(B(0.03, 0.26, 0.04, 0xfbbf24, 0.06, 0.13, 0.43, { lit: true }));
+    // Karpet merah / landasan peluncuran sian bercahaya keluar dari gerbang
+    palace.add(B(0.18, 0.02, 0.26, 0x38bdf8, 0, 0.02, 0.44, { lit: true }));
+
+    // 2 Spanduk Kerajaan (Royal Heraldry Banners) berkibar di kanan & kiri gerbang
+    for (const sd of [-1, 1]) {
+      const banner = new THREE.Group();
+      banner.position.set(sd * 0.25, 0.32, 0.44);
+      banner.add(B(0.09, 0.30, 0.03, 0x0284c7, 0, -0.06, 0, { ol: true })); // royal blue cloth
+      banner.add(B(0.07, 0.05, 0.035, 0xfbbf24, 0, -0.04, 0)); // golden crest embroidery
+      banner.add(B(0.11, 0.03, 0.04, 0xd97706, 0, 0.09, 0)); // hanging rod
+      palace.add(banner);
+    }
+
+    // Perisai lambang keagungan istana di atas pelengkung gerbang
+    const shieldEmblem = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.14, 0.04), toon(0xd97706, 0.3, 0.4));
+    shieldEmblem.position.set(0, 0.44, 0.44);
+    palace.add(shieldEmblem);
+    const shieldStar = shard(0.04, 0x38bdf8, 1.5);
+    shieldStar.position.set(0, 0.44, 0.47);
+    palace.add(shieldStar);
+
+    // 5. Donjon Utama & Balkon Keagungan Istana (Central Keep & Royal Flight Balcony)
+    // Menara donjon utama menjulang di tengah
+    palace.add(C(0.28, 0.32, 0.48, 0xf8fafc, 0, 0.48, 0, 16, { ol: true }));
+    // Jendela-jendela istana melengkung dengan cahaya hangat di dalam
+    for (const a of [Math.PI * 0.25, Math.PI * 0.75, Math.PI * 1.25, Math.PI * 1.75]) {
+      const wx = Math.sin(a) * 0.28;
+      const wz = Math.cos(a) * 0.28;
+      palace.add(B(0.07, 0.13, 0.05, 0xfef08a, wx, 0.52, wz, { ry: a, lit: true }));
+      palace.add(B(0.08, 0.02, 0.06, 0xd97706, wx, 0.45, wz, { ry: a }));
+    }
+
+    // Balkon & Landasan Terbang Istana di Atap Donjon (Royal Palace Flight Balcony)
+    palace.add(C(0.36, 0.36, 0.07, 0xe2e8f0, 0, 0.72, 0, 18, { ol: true }));
+    palace.add(tor(0.35, 0.025, 0xd97706, 0, 0.75, 0, { rx: Math.PI / 2 }));
+
+    // Balustrade / pagar hias pembatas balkon istana
+    for (let b = 0; b < 8; b++) {
+      const ba = (b * Math.PI) / 4;
+      palace.add(B(0.04, 0.07, 0.04, 0xd97706, Math.sin(ba) * 0.33, 0.79, Math.cos(ba) * 0.33));
+    }
+
+    // Mosaik lambang surya emas landasan pendaratan di lantai balkon
+    palace.add(tor(0.22, 0.02, 0x38bdf8, 0, 0.76, 0, { rx: Math.PI / 2, glow: 1.0 }));
+    palace.add(B(0.18, 0.015, 0.04, 0xfbbf24, 0, 0.765, 0, { lit: true }));
+    palace.add(B(0.04, 0.015, 0.18, 0xfbbf24, 0, 0.765, 0, { lit: true }));
+
+    // 6. Paviliun Kubah Keagungan & Menara Puncak Istana (Royal Imperial Spire & Banner)
+    // Tiang-tiang kanopi paviliun di belakang balkon
+    for (const [px, pz] of [[-0.16, -0.16], [0.16, -0.16]]) {
+      palace.add(C(0.025, 0.025, 0.28, 0xd97706, px, 0.88, pz, 8, { ol: false }));
+    }
+    // Kubah menara istana utama menjulang tinggi di belakang
+    const highSpire = new THREE.Group();
+    highSpire.position.set(0, 0.88, -0.16);
+    highSpire.add(C(0.14, 0.16, 0.24, 0xf1f5f9, 0, 0, 0, 12, { ol: true }));
+    highSpire.add(cone(0.16, 0.44, 0x0284c7, 0, 0.30, 0, 12)); // Atap kubah biru kerajaan utama
+    highSpire.add(C(0.02, 0.02, 0.26, 0xd97706, 0, 0.58, 0, 8, { ol: false })); // Tiang bendera istana
+    // Bendera pataka istana berkibar (Royal Pennant Flag)
+    highSpire.add(B(0.18, 0.09, 0.02, 0xfbbf24, 0.09, 0.62, 0, { lit: true }));
+    // Bintang kristal keagungan istana di puncak tertinggi
+    const starCrown = shard(0.065, 0x38bdf8, 1.8);
+    starCrown.position.set(0, 0.74, 0);
+    highSpire.add(starCrown);
+    palace.add(highSpire);
+
+    // 7. Wajah Imut Komandan Penjaga Istana (Cute Royal Castle Commander Face)
+    // Tampil manis & ramah di balkon istana dengan mahkota emas kerajaan
+    face = makeFace({
+      r: 0.115,
+      gap: 0.155,
+      iris: 0x0284c7,
+      skin: 0xf1f5f9,
+      mouth: 'smile',
+      bias: 0.22,
+      brows: 0xd97706,
+      body: { kind: 'cyl', R: 0.28, cy: 0.48, y0: 0.58 },
+    });
+
+    // Mahkota emas kerajaan mungil di dahi/atas wajah komandan istana
+    const crown = new THREE.Group();
+    crown.position.set(0, 0.68, 0.25);
+    crown.add(C(0.09, 0.08, 0.05, 0xfbbf24, 0, 0, 0, 12, { glow: 0.4 }));
+    for (let c = 0; c < 5; c++) {
+      const ca = (c / 5) * Math.PI - Math.PI / 2;
+      crown.add(cone(0.022, 0.06, 0xfbbf24, Math.sin(ca) * 0.08, 0.05, Math.cos(ca) * 0.08, 5));
+    }
+    crown.add(shard(0.025, 0x38bdf8, 1.5).rotateX(0.2));
+    palace.add(crown);
   } else {
     // "Sir Bubbo": knight with a blue helmet & red plume, three orbiting shield plates and a protective dome
     const R = 0.37, cy = 0.38, sy = 0.95;

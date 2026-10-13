@@ -40,13 +40,13 @@ export function makeKnight(tint: number, plumeColor: number): KnightModel {
   body.add(S(0.05, gold, 0, 0.05, 0.27, { sz: 0.5 }));
   body.add(tor(0.255, 0.028, gold, 0, -0.12, 0, { rx: Math.PI / 2 }));
   body.add(cyl(0.24, 0.33, 0.16, blue, 0, -0.2, 0, { ol: true, cast: true }));
-  const shield = new THREE.Group(); shield.position.set(-0.27, 0.0, 0.2); shield.rotation.y = 0.35; body.add(shield);
+  const shield = new THREE.Group(); shield.position.set(0.27, 0.0, 0.2); shield.rotation.y = -0.35; body.add(shield);
   shield.add(cyl(0.2, 0.2, 0.05, plume, 0, 0, 0, { rx: Math.PI / 2, ol: true, cast: true, seg: 20 }));
   shield.add(tor(0.2, 0.03, steel, 0, 0, 0.03, {})); shield.add(S(0.06, gold, 0, 0, 0.05, { sz: 0.6, ol: true }));
   shield.add(box(0.34, 0.05, 0.02, gold, 0, 0, 0.04)); shield.add(box(0.05, 0.34, 0.02, gold, 0, 0, 0.04));
 
-  // arms
-  const armL = orcArm(skin), armR = orcArm(skin); armL.position.set(-0.31, 0.7, 0); armR.position.set(0.31, 0.7, 0);
+  // arms: armR on right (-X), armL on left (+X)
+  const armL = orcArm(skin), armR = orcArm(skin); armR.position.set(-0.31, 0.7, 0); armL.position.set(0.31, 0.7, 0);
 
   // head: peach face with big tower-style eyes, steel helmet with a red plume and a golden brim
   const head = new THREE.Group(); head.position.y = 1.0;
@@ -77,10 +77,10 @@ export function poseKnight(L: Limbs, rig: THREE.Group, ph: number, moving: boole
   else if (phase === 'thrust') { const s = k * k; ta = lerp(-0.3, -1.45, s); sa = lerp(1.85, 0.1, s); lunge = lerp(-0.06, 0.3, s); }
   else if (phase === 'recover') { const s = e1(k); ta = lerp(-1.45, -1.0, s); sa = lerp(0.1, 1.25, s); lunge = lerp(0.3, 0, s); }
   else ta = -1.0 + Math.sin(time * 1.6) * 0.04;
-  L.armR.rotation.set(ta, 0, 0.1); L.spear.rotation.x = sa; rig.position.z = lunge;
+  L.armR.rotation.set(ta, 0, -0.1); L.spear.rotation.x = sa; rig.position.z = lunge;
   const sw = moving ? Math.sin(ph) * 0.8 : Math.sin(time * 1.3) * 0.04;
   L.legL.rotation.x = sw; L.legR.rotation.x = -sw;
-  L.armL.rotation.set(-0.6 + (moving ? -Math.sin(ph) * 0.3 : Math.sin(time * 1.5) * 0.03), 0, -0.25);
+  L.armL.rotation.set(-0.6 + (moving ? -Math.sin(ph) * 0.3 : Math.sin(time * 1.5) * 0.03), 0, 0.25);
   L.body.rotation.z = moving ? Math.sin(ph) * 0.05 : 0; L.body.scale.y = 1 + Math.sin(time * 2.2) * 0.02;
   L.head.rotation.z = moving ? Math.sin(ph * 0.5) * 0.06 : Math.sin(time * 0.9) * 0.03; L.head.rotation.x = phase === 'thrust' ? 0.1 : 0;
 }

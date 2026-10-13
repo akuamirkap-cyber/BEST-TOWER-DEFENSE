@@ -587,14 +587,14 @@ export class HordeView {
       if (CHEER.has(type)) { // every ~9 seconds the orc raises its weapon and roars
         const c = (tt * 0.11) % 1, w = 0.16; cheer = c < w ? Math.sin((c / w) * Math.PI) : 0;
         if (cheer > 0) {
-          L.armR.rotation.x = lerp(L.armR.rotation.x, -2.7, cheer); L.armR.rotation.z = 0.15 + Math.sin(t * 16) * 0.18 * cheer;
-          if (BOTH_ARMS.has(type)) { L.armL.rotation.x = lerp(L.armL.rotation.x, -2.5, cheer); L.armL.rotation.z = -0.15 - Math.sin(t * 16 + 1) * 0.18 * cheer; }
+          L.armR.rotation.x = lerp(L.armR.rotation.x, -2.7, cheer); L.armR.rotation.z = -0.15 - Math.sin(t * 16) * 0.18 * cheer;
+          if (BOTH_ARMS.has(type)) { L.armL.rotation.x = lerp(L.armL.rotation.x, -2.5, cheer); L.armL.rotation.z = 0.15 + Math.sin(t * 16 + 1) * 0.18 * cheer; }
         }
       }
       if (type === 'archer') { // draws the bow, lets go, nocks the next arrow
         const c = (tt * 0.26) % 1; let d = 0, nock = false, aim = false;
         if (c < 0.6) { aim = true; d = Math.min(1, c / 0.5); nock = true; } else if (c < 0.7) aim = true; else nock = c > 0.85;
-        if (aim) { L.armL.rotation.set(-1.55, 0, 0.05); L.armR.rotation.set(-1.5 - d * 0.15, 0, 0.5 + d * 0.3); }
+        if (aim) { L.armL.rotation.set(-1.55, 0, 0.05); L.armR.rotation.set(-1.5 - d * 0.15, 0, -(0.5 + d * 0.3)); }
         if (L.bow) setBowDraw(L.bow, d, nock);
       }
       if (type === 'dread') { // practises its overhead chop now and then

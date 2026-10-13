@@ -52,5 +52,5 @@ export const slotsFor = (level: number) => Math.min(10, 6 + Math.floor((level - 
 /** the first level that has more slots than `level` does (null = already at the maximum) */
 export const nextSlotLevel = (level: number): number | null => { const now = slotsFor(level); if (now >= 10) return null; let l = level + 1; while (slotsFor(l) <= now) l++; return l; };
 
-/** a balanced all-round line-up, best first (damage, slow, area, anti-air, income, stun, chain, aura, buff) */
-export const SUGGESTED: TowerType[] = ['cannon', 'frost', 'blaster', 'cactus', 'piggy', 'trap', 'tesla', 'clock', 'golem', 'banner'];
+/** a balanced all-round line-up, best first (damage, slow, area, airborne bounty barracks, income, stun, chain, aura, buff) */
+export const SUGGESTED: TowerType[] = ['cannon', 'frost', 'blaster', 'aero', 'cactus', 'piggy', 'trap', 'tesla', 'clock', 'golem'];

@@ -320,6 +320,27 @@ export const CARD_INFO: Record<TowerType, CardData> = {
     rateLabel: 'Lontaran / detik',
     extra: [{ label: 'Radius ledakan batu', vals: ['1.5 petak', '1.7 petak', '1.9 petak'] }],
   },
+  aero: {
+    role: 'Prajurit Terbang Ber-Jetpack',
+    bars: [{ label: 'Kekuatan', v: 4 }, { label: 'Jangkauan', v: 4 }, { label: 'Mobilitas', v: 5 }],
+    skills: [
+      { icon: '🚀', title: 'Aero Hunter Melayang', text: 'Menerbangkan 1 prajurit pemburu bintang di Lv1 (Lv2: 2, Lv3: 3) yang terbang bebas di udara dengan jetpack berkecepatan tinggi.' },
+      { icon: '🔫', title: 'Tembakan Laser Plasma Indah', text: 'Menembakkan laser plasma beruntun ke musuh darat maupun musuh terbang (Naga & Balon). Laser menembus armor dan menghasilkan ledakan percikan plasma indah.' },
+      { icon: '💨', title: 'Burst Jetpack Dahsyat', text: 'Melakukan akselerasi burst kilat menyemburkan lidah api roket & jejak partikel plasma saat menyergap musuh dan bermanuver di udara!' },
+    ],
+    good: ['Musuh terbang (Naga & Balon)', 'Orc berarmor tebal', 'Musuh cepat'],
+    weak: ['Kerumunan raksasa sekaligus'],
+    tip: 'Pasang di dekat jalur utama: Aero Hunter bisa terbang bebas menembak musuh darat dan udara dari atas tanpa terhalang!',
+    rows: [
+      { label: 'Jumlah Prajurit', vals: ['1 Pemburu', '2 Pemburu', '3 Pemburu'] },
+      { label: 'Tembakan Beruntun', vals: ['1 laser / burst', '2 laser / burst', '3 laser / burst'] },
+      { label: 'Nyawa / Perisai', vals: ['16 HP', '24 HP', '34 HP'] },
+      { label: 'Damage Plasma', vals: L3(l => String(towerStatsOf('aero', l).dmg)) },
+      { label: 'Jangkauan Patroli', vals: L3(l => f1(towerStatsOf('aero', l).range)) },
+      { label: 'Jeda Tembak', vals: ['0.65 dtk', '0.48 dtk', '0.35 dtk'] },
+      { label: 'Waktu Bangkit', vals: ['4.5 dtk', '3.8 dtk', '3.0 dtk'] },
+    ],
+  },
 };
 
 /** the rows of the Lv1 / Lv2 / Lv3 table: damage, range, rate (or custom rows) + the upgrade costs */

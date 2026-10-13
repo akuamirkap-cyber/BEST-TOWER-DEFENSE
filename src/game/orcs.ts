@@ -95,8 +95,8 @@ const CFG: Record<OrcKind, Cfg> = {
   punk: { ...N, bodyS: 0.94, bodyY: 0.58, headS: 1.0, headY: 1.06, armX: 0.3, armY: 0.72, eye: 0.13, iris: 0xdc2626, bias: 0.1, ears: 1.3, tusk: 1.1, brows: 0x991b1b, hpY: 2.15 },
   shield: { ...N, bodyS: 1.24, bodyY: 0.64, headY: 1.14, armX: 0.42, armY: 0.8, eye: 0.118, iris: 0x64748b, bias: 0.25, ears: 0.9, tusk: 1.1, brows: 0x1e293b, hpY: 2.25 },
   toxic: { ...N, bodyS: 0.96, bodyY: 0.57, headY: 1.05, armX: 0.3, armY: 0.72, eye: 0.13, iris: 0x16a34a, bias: 0.45, ears: 1.0, tusk: 0.8, brows: 0x14532d, hpY: 2.05 },
-  bat: { ...N, bodyS: 0.86, bodyY: 0.54, headS: 0.95, headY: 1.0, armX: 0.27, armY: 0.67, eye: 0.135, iris: 0xa855f7, bias: 0.1, ears: 1.6, tusk: 1.4, brows: 0x581c87, hpY: 2.05 },
-  troll: { ...N, legH: 0.38, bodyS: 1.38, bodyY: 0.72, headS: 1.1, headY: 1.26, armX: 0.45, armY: 0.86, eye: 0.12, iris: 0x15803d, bias: 0.35, ears: 1.2, tusk: 1.5, brows: 0x064e3b, hpY: 2.5 },
+  bat: { ...N, bodyS: 0.86, bodyY: 0.54, headS: 0.95, headY: 1.0, armX: 0.27, armY: 0.67, eye: 0.135, iris: 0xa855f7, bias: 0.1, ears: 1.6, tusk: 0, brows: 0x581c87, hpY: 2.05 },
+  troll: { ...N, legH: 0.38, bodyS: 1.38, bodyY: 0.72, headS: 1.1, headY: 1.26, armX: 0.45, armY: 0.86, eye: 0.12, iris: 0x15803d, bias: 0.35, ears: 1.2, tusk: 1.1, brows: 0x064e3b, hpY: 2.5 },
   gargantuar: { ...N, legH: 0.38, bodyS: 1.42, bodyY: 0.74, headS: 1.12, headY: 1.28, armX: 0.46, armY: 0.88, eye: 0.125, iris: 0xd97706, bias: 0.08, ears: 1.1, tusk: 1.6, brows: 0x1c1917, hpY: 2.65 },
   imp: { ...N, legH: 0.26, bodyS: 0.8, bodyY: 0.46, headS: 1.28, headY: 1.04, armX: 0.24, armY: 0.58, eye: 0.15, gap: 0.175, iris: 0xf59e0b, bias: 0.15, ears: 1.5, tusk: 0.6, brows: 0x3f6212, hpY: 2.0 },
   bungee: { ...N, bodyS: 0.92, bodyY: 0.56, headS: 0.98, headY: 1.04, armX: 0.29, armY: 0.7, eye: 0.13, iris: 0x0284c7, bias: 0.3, ears: 1.2, tusk: 0.9, brows: 0x1e293b, hpY: 2.35 },
@@ -120,11 +120,12 @@ function orcHead(kind: OrcKind, def: Def, skinMat: THREE.MeshStandardMaterial, m
   head.add(face);
   const eyes = face.userData.eyes as { eye: THREE.Group; lid: THREE.Mesh }[];
   mats.push(eyes[0].lid.material as THREE.MeshStandardMaterial);
-  head.add(S(0.045, M(shade(def.skin, -0.12)), 0, -0.1, 0.425, { sx: 1.3, sy: 0.9, sz: 0.9 }));
+  head.add(S(0.045, M(shade(def.skin, -0.12)), 0, -0.09, 0.425, { sx: 1.3, sy: 0.9, sz: 0.9 }));
   if (c.tusk > 0) {
     const toothMat = M(0xfffff2, 0.15, 0.3);
+    const tw = 0.036 * Math.min(1.1, c.tusk), th = 0.10 * Math.min(1.15, c.tusk);
     for (const sd of [-1, 1]) {
-      head.add(cone(0.045 * c.tusk, 0.15 * c.tusk, toothMat, sd * 0.125, -0.17, 0.41, { rx: 0.22, rz: -sd * 0.15, ol: true }));
+      head.add(cone(tw, th, toothMat, sd * 0.14, -0.21, 0.41, { rx: 0.16, rz: -sd * 0.18, ol: true }));
     }
   }
 
@@ -332,12 +333,9 @@ function orcHead(kind: OrcKind, def: Def, skinMat: THREE.MeshStandardMaterial, m
           head.add(cone(0.09, 0.38, hornBone, sd * 0.38, 0.34, 0.04, { rz: -sd * 0.78, rx: 0.15, ol: true }));
           head.add(cone(0.05, 0.18, hornBone, sd * 0.48, 0.56, 0.12, { rz: -sd * 0.45, rx: 0.3 }));
         }
-        // 4. Sturdy iron chin-strap and extra large lower jaw tusks
+        // 4. Sturdy iron chin-strap
         head.add(cyl(0.03, 0.03, 0.36, iron, -0.38, 0.06, 0.12, { rx: 0.4 }));
         head.add(cyl(0.03, 0.03, 0.36, iron, 0.38, 0.06, 0.12, { rx: 0.4 }));
-        for (const sd of [-1, 1]) {
-          head.add(cone(0.065, 0.26, hornBone, sd * 0.22, -0.22, 0.38, { rz: -sd * 0.22, rx: 0.18, ol: true }));
-        }
         break;
       }
       case 'imp': // mischievous patched beanie cap with a little pom-pom

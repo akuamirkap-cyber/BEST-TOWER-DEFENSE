@@ -1,0 +1,571 @@
+import * as THREE from 'three';
+import { OUTLINE_MAT, BOX, SPH } from './voxel';
+
+export interface AeroHunterModel {
+  group: THREE.Group;
+  rig: THREE.Group;
+  limbs: Record<string, THREE.Group>;
+  jetFlames: THREE.Object3D[];
+  blasterMuzzle: THREE.Object3D;
+  visor: THREE.Mesh;
+}
+
+const toon = (color: number, rough = 0.35, glow = 0.08) =>
+  new THREE.MeshStandardMaterial({
+    color,
+    roughness: rough,
+    emissive: color,
+    emissiveIntensity: glow,
+  });
+
+function S(r: number, color: number, x = 0, y = 0, z = 0, o: { sx?: number; sy?: number; sz?: number; ol?: boolean; glow?: number; rough?: number } = {}) {
+  const m = new THREE.Mesh(SPH, toon(color, o.rough ?? 0.35, o.glow ?? 0.08));
+  m.scale.set(r * (o.sx ?? 1), r * (o.sy ?? 1), r * (o.sz ?? 1));
+  m.position.set(x, y, z);
+  m.castShadow = true;
+  m.receiveShadow = true;
+  if (o.ol !== false) {
+    const h = new THREE.Mesh(SPH, OUTLINE_MAT);
+    h.scale.setScalar(1.075);
+    m.add(h);
+  }
+  return m;
+}
+
+function C(rt: number, rb: number, h: number, color: number, x = 0, y = 0, z = 0, seg = 14, o: { ol?: boolean; glow?: number; rx?: number; ry?: number; rz?: number; rough?: number } = {}) {
+  const m = new THREE.Mesh(new THREE.CylinderGeometry(rt, rb, h, seg), toon(color, o.rough ?? 0.35, o.glow ?? 0.08));
+  m.position.set(x, y, z);
+  if (o.rx) m.rotation.x = o.rx;
+  if (o.ry) m.rotation.y = o.ry;
+  if (o.rz) m.rotation.z = o.rz;
+  m.castShadow = true;
+  m.receiveShadow = true;
+  if (o.ol !== false) {
+    const h2 = new THREE.Mesh(m.geometry, OUTLINE_MAT);
+    h2.scale.set(1.08, 1.03, 1.08);
+    m.add(h2);
+  }
+  return m;
+}
+
+function B(w: number, h: number, d: number, color: number, x = 0, y = 0, z = 0, o: { ol?: boolean; lit?: boolean; glow?: number; rx?: number; ry?: number; rz?: number; rough?: number } = {}) {
+  const m = new THREE.Mesh(BOX, new THREE.MeshStandardMaterial({
+    color,
+    roughness: o.rough ?? 0.38,
+    emissive: color,
+    emissiveIntensity: o.lit ? 0.95 : o.glow ?? 0.08,
+  }));
+  m.scale.set(w, h, d);
+  m.position.set(x, y, z);
+  if (o.rx) m.rotation.x = o.rx;
+  if (o.ry) m.rotation.y = o.ry;
+  if (o.rz) m.rotation.z = o.rz;
+  m.castShadow = true;
+  m.receiveShadow = true;
+  if (o.ol) {
+    const h2 = new THREE.Mesh(BOX, OUTLINE_MAT);
+    h2.scale.setScalar(1.10);
+    m.add(h2);
+  }
+  return m;
+}
+
+function cone(r: number, h: number, color: number, x: number, y: number, z: number, seg = 10, glow = 0.2) {
+  const m = new THREE.Mesh(new THREE.ConeGeometry(r, h, seg), toon(color, 0.3, glow));
+  m.position.set(x, y, z);
+  m.castShadow = true;
+  return m;
+}
+
+function tor(r: number, tube: number, color: number, x = 0, y = 0, z = 0, o: { rx?: number; ry?: number; rz?: number; glow?: number; rough?: number } = {}) {
+  const m = new THREE.Mesh(new THREE.TorusGeometry(r, tube, 8, 20), toon(color, o.rough ?? 0.35, o.glow ?? 0.12));
+  m.position.set(x, y, z);
+  if (o.rx) m.rotation.x = o.rx;
+  if (o.ry) m.rotation.y = o.ry;
+  if (o.rz) m.rotation.z = o.rz;
+  m.castShadow = true;
+  return m;
+}
+
+/**
+ * Creates the original "Aero Hunter" space bounty hunter character model.
+ * Specially updated to user brief:
+ * - Cute, big astronaut bubble helmet with shiny reflective faceplate & iconic Mandalorian T-visor framing
+ * - Huge chunky dual-rocket jetpack with flared booster bells and massive dynamic burst flames
+ * - Chubby heroic chibi body with Beskar silver plating and warm leather belt
+ * - Heavy plasma blaster carbine with visible hollow muzzle hole
+ */
+export function makeAeroHunter(tint = 0x38bdf8, accent = 0xd97706): AeroHunterModel {
+  // --- High-contrast, iconic Beskar & Astronaut palette ---
+  const beskar = 0xe2e8f0;       // shining polished Beskar silver-steel
+  const beskarLight = 0xf8fafc;  // high-specular chrome highlight
+  const beskarTrim = 0x94a3b8;   // brushed titanium trim
+  const flightSuit = 0x334155;   // tactical deep slate-blue undersuit
+  const leather = 0x78350f;      // rich warm leather belt & straps
+  const darkCape = 0x1e293b;     // textured graphite combat half-cape
+  const bronze = accent;         // cyber-bronze / gold trim (0xd97706)
+  const cyanCore = tint;         // luminous cyan plasma energy (0x38bdf8)
+  const visorBlack = 0x09090b;   // deep glossy obsidian space helmet glass
+
+  const group = new THREE.Group();
+  const rig = new THREE.Group();
+  group.add(rig);
+
+  const limbs: Record<string, THREE.Group> = {};
+  const jetFlames: THREE.Object3D[] = [];
+
+  // ==================== LEGS (Chubby Beskar Armored Boots) ====================
+  const mkLeg = (sd: number) => {
+    const leg = new THREE.Group();
+    leg.position.set(sd * 0.17, 0.30, 0);
+
+    // Dark flightsuit thigh
+    leg.add(C(0.10, 0.09, 0.18, flightSuit, 0, -0.06, 0, 12, { ol: true }));
+    // Segmented Beskar silver thigh armor plate
+    leg.add(B(0.13, 0.12, 0.06, beskar, 0, -0.05, 0.08, { ol: false }));
+
+    // Reinforced bronze/gold knee guard
+    leg.add(B(0.15, 0.09, 0.10, bronze, 0, -0.14, 0.07, { ol: true }));
+    leg.add(B(0.04, 0.03, 0.04, beskarLight, 0, -0.14, 0.12, { ol: false }));
+
+    // Gleaming silver greave
+    leg.add(C(0.10, 0.11, 0.18, beskar, 0, -0.23, 0, 12, { ol: true }));
+    leg.add(B(0.08, 0.14, 0.04, beskarLight, 0, -0.23, 0.09, { ol: false }));
+
+    // Armored combat boot with bronze toe cap
+    leg.add(B(0.17, 0.10, 0.24, flightSuit, 0, -0.33, 0.05, { ol: true }));
+    leg.add(B(0.14, 0.07, 0.08, bronze, 0, -0.33, 0.14, { ol: false }));
+
+    // Heel micro-thruster nozzle
+    leg.add(C(0.05, 0.04, 0.07, bronze, 0, -0.31, -0.09, 10, { ol: false }));
+
+    return leg;
+  };
+
+  const legL = mkLeg(-1);
+  const legR = mkLeg(1);
+  rig.add(legL);
+  rig.add(legR);
+  limbs.legL = legL;
+  limbs.legR = legR;
+
+  // ==================== BODY (Chubby Segmented Beskar Cuirass) ====================
+  const body = new THREE.Group();
+  body.position.y = 0.58;
+  rig.add(body);
+  limbs.body = body;
+
+  // Tactical slate undersuit (chubby rounded belly & chest)
+  body.add(S(0.35, flightSuit, 0, 0.02, 0, { sx: 1.18, sy: 0.98, sz: 1.05, ol: true }));
+
+  // Segmented Beskar silver cuirass (chest armor plates)
+  for (const sd of [-1, 1]) {
+    body.add(B(0.20, 0.16, 0.10, beskar, sd * 0.12, 0.11, 0.22, { ry: sd * 0.12, ol: true }));
+    body.add(B(0.16, 0.12, 0.04, beskarLight, sd * 0.12, 0.11, 0.26, { ry: sd * 0.12, ol: false }));
+  }
+
+  // Central Beskar diamond collar emblem connecting the chest plates
+  const diamondMat = new THREE.MeshStandardMaterial({ color: bronze, roughness: 0.3, emissive: bronze, emissiveIntensity: 0.2 });
+  const diamond = new THREE.Mesh(BOX, diamondMat);
+  diamond.scale.set(0.10, 0.10, 0.06);
+  diamond.rotation.z = Math.PI / 4;
+  diamond.position.set(0, 0.13, 0.26);
+  body.add(diamond);
+
+  // Glowing cyan arc reactor power core
+  const coreMat = new THREE.MeshStandardMaterial({
+    color: cyanCore,
+    roughness: 0.1,
+    emissive: cyanCore,
+    emissiveIntensity: 1.6,
+  });
+  const coreMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.045, 0.07, 16), coreMat);
+  coreMesh.rotation.x = Math.PI / 2;
+  coreMesh.position.set(0, 0.13, 0.28);
+  body.add(coreMesh);
+
+  // Segmented abdominal Beskar ab-plate
+  body.add(B(0.34, 0.12, 0.10, beskar, 0, -0.04, 0.24, { ol: true }));
+  body.add(B(0.26, 0.08, 0.04, beskarLight, 0, -0.04, 0.28, { ol: false }));
+
+  // Heavy brown leather utility belt with gleaming silver buckle
+  body.add(C(0.36, 0.36, 0.09, leather, 0, -0.16, 0, 18, { ol: true }));
+  body.add(B(0.14, 0.11, 0.06, beskarLight, 0, -0.16, 0.36, { ol: true }));
+  body.add(B(0.08, 0.06, 0.04, bronze, 0, -0.16, 0.38, { ol: false }));
+  // Tactical ammo pouches
+  for (const sd of [-1, 1]) {
+    body.add(B(0.10, 0.09, 0.07, leather, sd * 0.25, -0.16, 0.27, { ol: false }));
+    body.add(C(0.025, 0.025, 0.08, bronze, sd * 0.34, -0.16, 0.16, 8, { rx: Math.PI / 2 }));
+    body.add(C(0.025, 0.025, 0.08, bronze, sd * 0.36, -0.16, 0.08, 8, { rx: Math.PI / 2 }));
+  }
+
+  // Combat half-cape draped over left shoulder
+  const cape = new THREE.Group();
+  cape.position.set(-0.20, 0.16, -0.08);
+  cape.add(B(0.22, 0.40, 0.04, darkCape, 0, -0.18, 0, { rx: 0.14, rz: 0.12 }));
+  cape.add(B(0.20, 0.05, 0.045, bronze, 0, 0.02, 0));
+  body.add(cape);
+  limbs.cape = cape;
+
+  // ==================== ENLARGED HEAVY ROCKET JETPACK ====================
+  // Significantly enlarged & beefed up per user request ("tolong jetpacknya besarin")!
+  const jetpack = new THREE.Group();
+  jetpack.name = 'jetpack';
+  jetpack.position.set(0, 0.08, -0.28);
+  body.add(jetpack);
+  limbs.jetpack = jetpack;
+
+  // Heavy Beskar jetpack main housing chassis (wider, chunkier, deeper)
+  jetpack.add(B(0.54, 0.46, 0.22, beskar, 0, 0.04, 0, { ol: true }));
+  jetpack.add(B(0.36, 0.34, 0.08, beskarTrim, 0, 0.05, -0.11, { ol: false }));
+
+  // Glowing hyperdrive cyan core reactor cell on center back
+  const jetCell = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.20, 0.06), coreMat);
+  jetCell.position.set(0, 0.04, -0.14);
+  jetpack.add(jetCell);
+
+  // Twin upper exhaust heat dissipation vents
+  for (const sd of [-1, 1]) {
+    jetpack.add(B(0.12, 0.04, 0.14, bronze, sd * 0.16, 0.27, -0.02, { rx: -0.2, ol: false }));
+    jetpack.add(B(0.08, 0.02, 0.10, cyanCore, sd * 0.16, 0.28, -0.02, { lit: true }));
+  }
+
+  // Center rocket missile launcher pod (iconic heavy rocket missile with bronze warhead & fins)
+  const centerRocket = new THREE.Group();
+  centerRocket.position.set(0, 0.22, -0.04);
+  centerRocket.add(C(0.08, 0.09, 0.46, beskarLight, 0, 0, 0, 14, { ol: true }));
+  centerRocket.add(cone(0.095, 0.22, bronze, 0, 0.28, 0, 12, 0.35));
+  // 4 Stabilizer fins on missile tip
+  for (let f = 0; f < 4; f++) {
+    const fin = B(0.02, 0.10, 0.08, bronze, 0, 0.16, 0);
+    fin.rotation.y = (f * Math.PI) / 2;
+    centerRocket.add(fin);
+  }
+  jetpack.add(centerRocket);
+
+  // Twin Giant Rocket Booster Turbines (Left & Right - Massive & Flared)
+  const mkThruster = (sd: number) => {
+    const thruster = new THREE.Group();
+    thruster.position.set(sd * 0.30, 0.02, 0);
+
+    // Thick polished Beskar rocket turbine cylinder (radius 0.14, height 0.48)
+    thruster.add(C(0.13, 0.14, 0.48, beskar, 0, 0.08, 0, 16, { ol: true }));
+    thruster.add(B(0.04, 0.38, 0.04, beskarLight, sd * 0.14, 0.08, 0, { ol: false }));
+
+    // Top aerodynamic bronze air-intake dome & grille
+    thruster.add(S(0.13, bronze, 0, 0.33, 0, { sy: 0.7, ol: false }));
+    thruster.add(C(0.10, 0.10, 0.04, cyanCore, 0, 0.38, 0, 12, { glow: 1.2 }));
+
+    // Heavy flared rocket exhaust bell nozzle (wide diameter for dramatic burst flames!)
+    thruster.add(C(0.14, 0.18, 0.16, 0x1e293b, 0, -0.20, 0, 16, { ol: true }));
+    thruster.add(tor(0.17, 0.03, bronze, 0, -0.18, 0, { rx: Math.PI / 2 }));
+
+    // Glowing superheated orange combustion chamber throat ring inside the nozzle
+    thruster.add(tor(0.12, 0.024, 0xf97316, 0, -0.23, 0, { rx: Math.PI / 2, glow: 1.5 }));
+
+    // Dynamic 3D Triple-Layer Rocket Flame Plumes
+    const flameGroup = new THREE.Group();
+    flameGroup.position.set(0, -0.26, 0);
+
+    // Layer 1: Huge outer billowing plasma fire plume (amber/orange)
+    const flameOuter = cone(0.16, 0.58, 0xf97316, 0, -0.28, 0, 14, 1.5);
+    flameOuter.rotation.x = Math.PI;
+    flameGroup.add(flameOuter);
+
+    // Layer 2: Intense middle hot-combustion core (bright yellow/gold)
+    const flameMid = cone(0.11, 0.44, 0xfbbf24, 0, -0.21, 0, 12, 1.8);
+    flameMid.rotation.x = Math.PI;
+    flameGroup.add(flameMid);
+
+    // Layer 3: Ultra-hot central plasma laser core (vivid cyan/white)
+    const flameInner = cone(0.065, 0.32, 0x38bdf8, 0, -0.15, 0, 10, 2.2);
+    flameInner.rotation.x = Math.PI;
+    flameGroup.add(flameInner);
+
+    thruster.add(flameGroup);
+    jetFlames.push(flameGroup);
+
+    return thruster;
+  };
+
+  jetpack.add(mkThruster(-1));
+  jetpack.add(mkThruster(1));
+
+  // ==================== ASTRONAUT + MANDALORIAN BUBBLE HELMET ====================
+  // ==================== AUTHENTIC MANDALORIAN BESKAR HELMET ====================
+  // Designed exactly per user's reference image ("helm mandalorian kek gini aja"):
+  // - Sleek Beskar silver chrome helmet dome with chibi/orc warrior proportions
+  // - Bold Royal Cobalt Blue central crest mohawk stripe running front-to-back over the crown
+  // - Vibrant Royal Blue angled cheek plates flanking the visor with Mandalorian chamfers
+  // - Iconic pitch-black glossy Mandalorian T-Visor (horizontal brow slit + vertical stem)
+  // - Dual ear stalks on both sides with distinctive golden/bronze tips
+  // - Right-side rangefinder targeting antenna stalk with optic viewfinder
+  // - Angled Mandalorian chin guard and bronze rebreather aerators
+  const head = new THREE.Group();
+  head.position.set(0, 0.42, 0.02);
+  body.add(head);
+  limbs.head = head;
+
+  const mandoBlue = 0x1d4ed8;     // iconic Royal Cobalt Blue from reference image
+  const mandoBlueDark = 0x1e3a8a; // deep navy shadow for cheek bevels
+
+  // Airtight neck sealing collar ring
+  head.add(tor(0.31, 0.035, bronze, 0, -0.25, 0, { rx: Math.PI / 2 }));
+  head.add(C(0.30, 0.32, 0.08, flightSuit, 0, -0.25, 0, 16, { ol: true }));
+
+  // 1. Sleek Beskar Silver Helmet Dome
+  const helm = S(0.41, beskar, 0, 0.07, 0, { sx: 1.05, sy: 1.05, sz: 1.08, ol: true });
+  head.add(helm);
+
+  // Flared rear neck guard plate
+  head.add(B(0.44, 0.16, 0.10, beskar, 0, -0.10, -0.36, { rx: -0.22, ol: true }));
+  head.add(B(0.36, 0.04, 0.05, beskarTrim, 0, -0.16, -0.37));
+
+  // 2. Bold Royal Cobalt Blue Center Crest / Mohawk Stripe (Matches Image!)
+  // Top crown strip running from brow to back
+  head.add(B(0.12, 0.05, 0.64, mandoBlue, 0, 0.48, -0.01, { ol: false }));
+  // Front apex crest block above brow
+  head.add(B(0.12, 0.09, 0.10, mandoBlue, 0, 0.36, 0.30, { ol: false }));
+  // Rear spine stripe down the back of the helmet
+  head.add(B(0.12, 0.30, 0.04, mandoBlue, 0, 0.22, -0.42, { ol: false }));
+  // Subtle glowing center diode on top crest
+  head.add(B(0.04, 0.02, 0.38, cyanCore, 0, 0.51, -0.02, { lit: true }));
+
+  // 3. Forehead Brow Band (Beskar Brow Ridge framing upper visor)
+  head.add(B(0.48, 0.085, 0.16, beskarLight, 0, 0.20, 0.24, { ol: true }));
+  head.add(B(0.42, 0.03, 0.06, beskarTrim, 0, 0.145, 0.30, { ol: false }));
+
+  // 4. Iconic Royal Cobalt Blue Cheek Plates & Mandibular Bevels (Matches Image!)
+  for (const sd of [-1, 1]) {
+    // Primary Royal Blue cheek armor plate
+    head.add(B(0.13, 0.24, 0.15, mandoBlue, sd * 0.24, -0.04, 0.21, { rx: 0.16, ry: sd * 0.26, ol: true }));
+    // Inner dark navy recessed cheek chamfer
+    head.add(B(0.08, 0.18, 0.08, mandoBlueDark, sd * 0.18, -0.05, 0.27, { rx: 0.14, ry: sd * 0.18, ol: false }));
+    // Outer Beskar jaw / cheek contour rim
+    head.add(B(0.06, 0.22, 0.14, beskar, sd * 0.33, -0.04, 0.18, { ry: sd * 0.18, ol: false }));
+  }
+
+  // 5. Pitch-Black Glossy Mandalorian T-Visor
+  const visorHorizMat = new THREE.MeshStandardMaterial({
+    color: visorBlack,
+    roughness: 0.04,
+    emissive: 0x0284c7,
+    emissiveIntensity: 0.35,
+  });
+
+  // Horizontal eye slit
+  const visorHoriz = new THREE.Mesh(BOX, visorHorizMat);
+  visorHoriz.scale.set(0.38, 0.085, 0.08);
+  visorHoriz.position.set(0, 0.085, 0.355);
+  head.add(visorHoriz);
+
+  // Cyan HUD scanline inside the eye slit
+  const scanline = new THREE.Mesh(BOX, coreMat);
+  scanline.scale.set(0.36, 0.022, 0.085);
+  scanline.position.set(0, 0.085, 0.36);
+  head.add(scanline);
+
+  // Vertical nose/mouth slit forming the iconic "T"
+  const visorVert = new THREE.Mesh(BOX, visorHorizMat);
+  visorVert.scale.set(0.09, 0.21, 0.08);
+  visorVert.position.set(0, -0.05, 0.365);
+  head.add(visorVert);
+
+  // Cyan vertical power slit
+  const vertLight = new THREE.Mesh(BOX, coreMat);
+  vertLight.scale.set(0.028, 0.19, 0.085);
+  vertLight.position.set(0, -0.05, 0.37);
+  head.add(vertLight);
+
+  // 6. Mandalorian Tapered Beskar Chin & Rebreathers
+  head.add(B(0.18, 0.12, 0.12, beskar, 0, -0.19, 0.30, { ol: true }));
+  head.add(B(0.12, 0.08, 0.04, beskarLight, 0, -0.19, 0.36, { ol: false }));
+  // Rebreather aerator cylinders on bottom chin
+  head.add(C(0.035, 0.035, 0.05, bronze, -0.08, -0.22, 0.33, 10, { rx: Math.PI / 2 }));
+  head.add(C(0.035, 0.035, 0.05, bronze, 0.08, -0.22, 0.33, 10, { rx: Math.PI / 2 }));
+
+  // 7. Dual Symmetrical Ear Stalk Modules with Golden/Bronze Tips (Matches Image!)
+  for (const sd of [-1, 1]) {
+    // Silver rectangular ear module housing
+    head.add(B(0.08, 0.32, 0.14, beskarLight, sd * 0.44, 0.06, 0.02, { ol: true }));
+    // Distinctive GOLDEN / BRONZE TOP CAP on both ear modules (as in image)
+    head.add(B(0.085, 0.08, 0.145, bronze, sd * 0.44, 0.24, 0.02, { ol: false }));
+    // Golden / Bronze lower trim band
+    head.add(B(0.085, 0.04, 0.145, bronze, sd * 0.44, -0.08, 0.02, { ol: false }));
+    // Circular com disc in the center of ear stalk
+    head.add(C(0.045, 0.045, 0.02, beskarTrim, sd * 0.485, 0.08, 0.02, 12, { rz: Math.PI / 2 }));
+    head.add(C(0.02, 0.02, 0.025, cyanCore, sd * 0.49, 0.08, 0.02, 10, { rz: Math.PI / 2, glow: 1.0 }));
+  }
+
+  // 8. Right-Side Rangefinder Targeting Antenna
+  const antenna = new THREE.Group();
+  antenna.name = 'antenna';
+  antenna.position.set(0.48, 0.06, 0.03);
+  // Cylindrical base pivot joint
+  antenna.add(C(0.03, 0.03, 0.05, bronze, 0, 0, 0, 10, { rz: Math.PI / 2 }));
+  // Vertical antenna stalk
+  antenna.add(B(0.022, 0.32, 0.025, beskarLight, 0.02, 0.16, 0));
+  // Rangefinder optical viewfinder block
+  antenna.add(B(0.05, 0.08, 0.11, bronze, 0.02, 0.32, 0.04));
+  antenna.add(B(0.04, 0.05, 0.02, cyanCore, 0.02, 0.32, 0.10, { lit: true })); // cyan targeting optic
+  antenna.add(S(0.018, 0xef4444, 0.02, 0.36, 0.04, { glow: 1.2, ol: false })); // red tracking diode
+  head.add(antenna);
+
+  // ==================== LEFT ARM (Beskar Gauntlet & Stabilizer) ====================
+  const armL = new THREE.Group();
+  armL.position.set(0.48, 0.14, 0);
+  body.add(armL);
+  limbs.armL = armL;
+
+  // Gleaming Beskar shoulder pauldron
+  armL.add(S(0.17, beskar, 0, 0.06, 0, { sx: 1.15, sy: 0.95, sz: 1.15, ol: true }));
+  armL.add(B(0.18, 0.05, 0.18, bronze, 0, 0.11, 0));
+  // Flightsuit bicep
+  armL.add(C(0.09, 0.085, 0.18, flightSuit, 0, -0.07, 0, 12, { ol: true }));
+  // Tactical Beskar gauntlet with whistler bird missile tubes
+  armL.add(B(0.14, 0.16, 0.13, beskar, 0, -0.22, 0.03, { ol: true }));
+  armL.add(C(0.02, 0.02, 0.10, bronze, -0.03, -0.16, 0.10, 8, { rx: Math.PI / 2 }));
+  armL.add(C(0.02, 0.02, 0.10, bronze, 0.03, -0.16, 0.10, 8, { rx: Math.PI / 2 }));
+  // Glowing blue wrist communicator display
+  const wristDisplay = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.08, 0.03), coreMat);
+  wristDisplay.position.set(0, -0.21, 0.10);
+  armL.add(wristDisplay);
+  // Armored glove fist
+  armL.add(S(0.085, leather, 0, -0.34, 0.03, { ol: true }));
+
+  // ==================== RIGHT ARM & PLASMA CARBINE ====================
+  const armR = new THREE.Group();
+  armR.position.set(-0.48, 0.14, 0);
+  body.add(armR);
+  limbs.armR = armR;
+
+  // Gleaming Beskar shoulder pauldron
+  armR.add(S(0.17, beskar, 0, 0.06, 0, { sx: 1.15, sy: 0.95, sz: 1.15, ol: true }));
+  armR.add(B(0.18, 0.05, 0.18, bronze, 0, 0.11, 0));
+  // Flightsuit bicep
+  armR.add(C(0.09, 0.085, 0.18, flightSuit, 0, -0.07, 0, 12, { ol: true }));
+  // Forearm & combat grip
+  armR.add(C(0.085, 0.085, 0.18, beskar, 0, -0.22, 0, 12, { ol: true }));
+
+  // ---------- Heavy Plasma Blaster Carbine ----------
+  const blaster = new THREE.Group();
+  blaster.name = 'blaster';
+  blaster.position.set(0, -0.28, 0.16);
+  blaster.rotation.x = Math.PI / 2; // point forward along +Z
+  armR.add(blaster);
+  limbs.blaster = blaster;
+
+  // Polished receiver body
+  blaster.add(B(0.12, 0.14, 0.44, 0x1e293b, 0, 0.02, 0, { ol: true }));
+  blaster.add(B(0.09, 0.06, 0.22, beskarLight, 0, 0.08, -0.08, { ol: false }));
+  // Ergonomic combat grip
+  blaster.add(B(0.08, 0.16, 0.09, leather, 0, -0.11, -0.08, { rx: -0.2, ol: true }));
+
+  // Barrel cylinder (polished Beskar heat shroud)
+  blaster.add(C(0.07, 0.07, 0.36, beskarTrim, 0, 0.03, 0.30, 14, { rx: Math.PI / 2, ol: true }));
+  // Glowing cyan plasma charging rings along barrel
+  for (let k = 0; k < 3; k++) {
+    const pRing = new THREE.Mesh(new THREE.TorusGeometry(0.075, 0.016, 6, 16), coreMat);
+    pRing.position.set(0, 0.03, 0.20 + k * 0.10);
+    blaster.add(pRing);
+  }
+  // Muzzle brake outer sleeve
+  blaster.add(C(0.065, 0.07, 0.14, bronze, 0, 0.03, 0.52, 14, { rx: Math.PI / 2, ol: true }));
+
+  // Visible Hollow Barrel Bore / Hole ("LUBANG SENAPAN"):
+  const boreMat = new THREE.MeshStandardMaterial({
+    color: 0x050508,
+    roughness: 0.9,
+    emissive: 0x020204,
+  });
+  const boreHole = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.045, 0.08, 14), boreMat);
+  boreHole.rotation.x = Math.PI / 2;
+  boreHole.position.set(0, 0.03, 0.58);
+  blaster.add(boreHole);
+
+  // Glowing cyan muzzle ring rim right at the barrel opening
+  const muzzleRim = new THREE.Mesh(new THREE.TorusGeometry(0.046, 0.012, 6, 16), coreMat);
+  muzzleRim.position.set(0, 0.03, 0.60);
+  blaster.add(muzzleRim);
+
+  // Holographic targeting sight on top of receiver
+  blaster.add(B(0.05, 0.06, 0.12, bronze, 0, 0.12, 0.02, { ol: false }));
+  const sightDot = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.03, 0.02), coreMat);
+  sightDot.position.set(0, 0.13, 0.07);
+  blaster.add(sightDot);
+
+  // Muzzle output point (for laser projectile spawn)
+  const blasterMuzzle = new THREE.Object3D();
+  blasterMuzzle.name = 'muzzle';
+  blasterMuzzle.position.set(0, 0.03, 0.61);
+  blaster.add(blasterMuzzle);
+
+  return {
+    group,
+    rig,
+    limbs,
+    jetFlames,
+    blasterMuzzle,
+    visor: scanline,
+  };
+}
+
+/**
+ * Poses the Aero Hunter in flight:
+ * - Natural jetpack hover dynamics (smooth bobbing, feet hanging relaxed, body forward tilt)
+ * - Jetpack flames pulsating & dramatically flaring upon burst boost
+ * - Right arm and blaster dynamically aiming towards target
+ * - Left arm stabilizer pose
+ */
+export function poseAeroHunter(
+  limbs: Record<string, THREE.Group>,
+  rig: THREE.Group,
+  jetFlames: THREE.Object3D[],
+  state: 'launch' | 'hover' | 'burst' | 'shoot' | 'down',
+  speedK: number,
+  burstActive: boolean,
+  aimPitch: number,
+  time: number
+) {
+  // Rig forward tilt during flight
+  const tilt = state === 'down' ? 1.4 : burstActive ? 0.52 : 0.16 + speedK * 0.24;
+  rig.rotation.x = THREE.MathUtils.lerp(rig.rotation.x, tilt, 0.2);
+
+  // Hover leg dynamics (dangling back like a flying jetpack commando with natural knee flex)
+  const legBob = Math.sin(time * 3) * 0.06;
+  if (limbs.legL && limbs.legR) {
+    limbs.legL.rotation.x = 0.40 + legBob + speedK * 0.30;
+    limbs.legR.rotation.x = 0.50 - legBob + speedK * 0.30;
+    limbs.legL.rotation.z = -0.10;
+    limbs.legR.rotation.z = 0.10;
+  }
+
+  // Arm & Blaster Aiming
+  if (limbs.armR) {
+    const baseArmX = -0.52 + (aimPitch || 0) * 0.95;
+    limbs.armR.rotation.x = THREE.MathUtils.lerp(limbs.armR.rotation.x, baseArmX, 0.3);
+    limbs.armR.rotation.y = 0.08;
+    limbs.armR.rotation.z = -0.12;
+  }
+
+  if (limbs.armL) {
+    limbs.armL.rotation.x = -0.28 + Math.sin(time * 2.5) * 0.08;
+    limbs.armL.rotation.y = -0.14;
+    limbs.armL.rotation.z = 0.24;
+  }
+
+  // Jetpack Thruster Flame Scaling & Flare Burst:
+  // When burstActive is true, expand flame plumes dramatically (up to 3.2x height and 2.4x width!)
+  const flamePulse = Math.sin(time * 32) * 0.25;
+  const flameScaleY = burstActive ? 3.2 : state === 'launch' ? 2.6 : 1.25 + flamePulse;
+  const flameScaleXZ = burstActive ? 2.2 : state === 'launch' ? 1.7 : 1.1 + flamePulse * 0.4;
+
+  for (const f of jetFlames) {
+    f.scale.set(flameScaleXZ, flameScaleY, flameScaleXZ);
+  }
+
+  // Head looks forward and tracks aim pitch
+  if (limbs.head) {
+    limbs.head.rotation.x = (aimPitch || 0) * 0.5;
+  }
+}

@@ -17,6 +17,7 @@ export const TOWER_COL: Record<TowerType, [string, string]> = {
   meteor_v2: ['#fca5a5', '#dc2626'], draco_v2: ['#fca5a5', '#b91c1c'],
   sol: ['#fde68a', '#d97706'], chroma_v2: ['#f0abfc', '#c026d3'], frostbite_v2: ['#bae6fd', '#0284c7'],
   catapult: ['#fcd34d', '#b45309'],
+  aero: ['#f1f5f9', '#0284c7'],
 };
 export const TOWER_BG = Object.fromEntries((Object.keys(TOWER_COL) as TowerType[]).map(k => [k, `linear-gradient(180deg,${TOWER_COL[k][0]},${TOWER_COL[k][1]})`])) as Record<TowerType, string>;
 /** every tower is a "Penjaga Kristal" with its own nickname */
@@ -27,7 +28,7 @@ export const NICK: Record<TowerType, string> = {
   naga: 'Draco', storm: 'Thorin',
   gravity: 'Gav', tornado: 'Twisty', meteor_v2: 'Comet V2',
   draco_v2: 'Draco V2', sol: 'Sol V2', chroma_v2: 'Chroma V2', frostbite_v2: 'Frostbite V2',
-  catapult: 'Trebby',
+  catapult: 'Trebby', aero: 'Vanguard',
 };
 export const portraitBg = (t: TowerType) => `radial-gradient(circle at 50% 62%, ${TOWER_COL[t][0]} 0%, ${TOWER_COL[t][1]} 85%)`;
 

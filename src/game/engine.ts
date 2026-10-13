@@ -1,9 +1,10 @@
 import * as THREE from 'three';
 import { Sfx } from './sfx';
 import type { MusicMode } from './sfx';
-import { BOX, RING, DISC, mat, mkBox, mkSphere, makeFlame, flickerFlame, updateFace, OUTLINE_MAT } from './voxel';
+import { BOX, SPH, RING, DISC, mat, mkBox, mkSphere, makeFlame, flickerFlame, updateFace, OUTLINE_MAT } from './voxel';
 import { buildTowerModel, MUZZLE, makeBoomerang, spiralTexture } from './towers';
 import { makeKnight, poseKnight } from './knights';
+import { makeAeroHunter, poseAeroHunter } from './aeroHunter';
 import { makeBee, makeNeedle, makeHeart, makeHeartArrow, makeBowlingBall, makeHook, makeSnowball } from './critters';
 import { buildElite, isElite, poseElite, poseDread, setBowDraw, makeArrow } from './elites';
 import { Ragdoll } from './ragdoll';
@@ -20,7 +21,7 @@ import type { World } from './world';
 import { buildOrc, buildLog, poseOrc } from './orcs';
 import type { OrcKind } from './orcs';
 
-export type TowerType = 'cannon' | 'frost' | 'blaster' | 'tesla' | 'sniper' | 'catapult' | 'poison' | 'banner' | 'flame' | 'trap' | 'repair' | 'shield' | 'plasma' | 'piggy' | 'wind' | 'boomer' | 'mine' | 'cactus' | 'hive' | 'golem' | 'clock' | 'prism' | 'cupid' | 'hook' | 'bowl' | 'barracks' | 'mind' | 'vortex' | 'meteor' | 'orbital' | 'naga' | 'storm' | 'gravity' | 'tornado' | 'meteor_v2' | 'draco_v2' | 'sol' | 'chroma_v2' | 'frostbite_v2';
+export type TowerType = 'cannon' | 'frost' | 'blaster' | 'tesla' | 'sniper' | 'catapult' | 'poison' | 'banner' | 'flame' | 'trap' | 'repair' | 'shield' | 'plasma' | 'piggy' | 'wind' | 'boomer' | 'mine' | 'cactus' | 'hive' | 'golem' | 'clock' | 'prism' | 'cupid' | 'hook' | 'bowl' | 'barracks' | 'mind' | 'vortex' | 'meteor' | 'orbital' | 'naga' | 'storm' | 'gravity' | 'tornado' | 'meteor_v2' | 'draco_v2' | 'sol' | 'chroma_v2' | 'frostbite_v2' | 'aero';
 export interface TowerDef {
   name: string; cost: number; dmg: number; range: number; rate: number;
   color: number; accent: number; desc: string; icon: string; air: boolean; ground: boolean; tag: string;
@@ -65,6 +66,7 @@ export const TOWER_DEFS: Record<TowerType, TowerDef> = {
   sol: { name: 'Matahari V2', cost: 150, dmg: 28, range: 2.8, rate: 3.0, color: 0xd97706, accent: 0xfde68a, desc: 'Sinar surya bunga menembus lurus', icon: '🌻', air: true, ground: true, tag: 'Sinar Tembus' },
   chroma_v2: { name: 'Prisma V2', cost: 125, dmg: 18, range: 3.2, rate: 1.3, color: 0xdb2777, accent: 0xfbcfe8, desc: 'Cahaya pink memantul antar musuh', icon: '💎', air: true, ground: true, tag: 'Pantulan' },
   frostbite_v2: { name: 'Beku V2', cost: 110, dmg: 7, range: 2.8, rate: 0.4, color: 0x0284c7, accent: 0xbae6fd, desc: 'Semburan salju: kurung orc di balok es', icon: '❄️', air: true, ground: true, tag: 'Balok Es' },
+  aero: { name: 'Istana Aero Hunter', cost: 135, dmg: 20, range: 3.8, rate: 0.65, color: 0xe2e8f0, accent: 0xd97706, desc: 'Istana megah spawn Pemburu Bintang ber-helm Mandalorian & jetpack burst', icon: '🏰', air: true, ground: true, tag: 'Terbang·Laser' },
 };
 export const TOWER_HP = 20;
 /** the stats of a tower at a given level (+ banner buff) – shared by the game AND the card-info screen, so both always agree */
@@ -170,12 +172,13 @@ interface Tower {
   hp: number; hpBar?: THREE.Mesh; hpBarBg?: THREE.Mesh; shielded: boolean; dead?: boolean;
   arc?: Bolt; lockT?: number; lockId?: number; arcT?: number; idleYaw?: number; gaze?: Enemy | null;
   soldiers?: Soldier[]; posts?: THREE.Vector3[]; postYaw?: number[];
+  aeroHunters?: AeroTrooper[];
   frozenT?: number; iceBlock?: THREE.Mesh;
   orbitalTarget?: Enemy | null; orbitalLockT?: number; orbitalBeam?: THREE.Mesh; orbitalRings?: THREE.Mesh;
   gravStage?: number;
 }
 interface EnemyShot { pos: THREE.Vector3; vel: THREE.Vector3; target: Tower; mesh: THREE.Object3D; life: number; dmg: number; kind: 'bullet' | 'cannonball' | 'arrow'; start?: THREE.Vector3; goal?: THREE.Vector3; t?: number }
-interface Projectile { kind: 'tracer' | 'mortar' | 'glob' | 'needle' | 'bee' | 'heart' | 'fireball' | 'meteor' | 'snowball' | 'boulder'; seed?: number; pos: THREE.Vector3; start: THREE.Vector3; t: number; target: Enemy; speed: number; dmg: number; mesh: THREE.Object3D; splash?: number; arc?: number; level: number }
+interface Projectile { kind: 'tracer' | 'mortar' | 'glob' | 'needle' | 'bee' | 'heart' | 'fireball' | 'meteor' | 'snowball' | 'boulder' | 'aero_laser'; seed?: number; pos: THREE.Vector3; start: THREE.Vector3; t: number; target: Enemy; speed: number; dmg: number; mesh: THREE.Object3D; splash?: number; arc?: number; level: number }
 interface TornadoFx { obj: THREE.Group; s: number; life: number; dmg: number; radius: number; spin: number }
 interface BurnFx { mesh: THREE.Mesh; pos: THREE.Vector3; r: number; dps: number; life: number; max: number }
 interface MeteorV2Fx { obj: THREE.Object3D; pos: THREE.Vector3; to: THREE.Vector3; t: number; dmg: number; splash: number }
@@ -194,6 +197,34 @@ interface Soldier {
   state: 'spawn' | 'idle' | 'windup' | 'thrust' | 'recover' | 'down'; t: number; hp: number; maxHp: number; target: Enemy | null; cd: number; yaw: number; hit: boolean; acc: number; hurtT: number; ph: number; seed: number;
 }
 const KNIGHT_SCALE = 0.55;
+
+/** an airborne space bounty hunter of the Aero Hunter Barracks tower */
+interface AeroTrooper {
+  id: number; group: THREE.Group; rig: THREE.Group; limbs: Record<string, THREE.Group>;
+  jetFlames: THREE.Object3D[]; blasterMuzzle: THREE.Object3D; visor: THREE.Mesh;
+  state: 'launch' | 'hover' | 'burst' | 'shoot' | 'down';
+  t: number; hp: number; maxHp: number; target: Enemy | null;
+  cd: number; burstCd: number; burstT: number;
+  pos: THREE.Vector3; vel: THREE.Vector3; yaw: number; pitch: number; bankRoll: number; orbitAngle: number;
+  hurtT: number; ph: number; seed: number;
+}
+const AERO_SCALE = 0.58;
+
+/**
+ * Aero Hunter Barracks balance:
+ * Level 1: exactly 1 trooper!
+ * Level 2: 2 troopers!
+ * Level 3: exactly 3 troopers!
+ */
+export const AERO_HUNTER = {
+  n: [1, 2, 3],               // troopers: 1 at Lv1, 2 at Lv2, 3 at Lv3!
+  hp: [16, 24, 34],           // shields & armor
+  dmg: [20, 32, 48],          // plasma laser blaster damage
+  burstRate: [0.65, 0.48, 0.35], // fire rate
+  burstCount: [1, 2, 3],      // shots fired per burst attack
+  respawn: [4.5, 3.8, 3.0],   // respawn time
+};
+
 /** Barracks balance, per tower level [Lv1, Lv2, Lv3]: Lv1 is deliberately modest (the old, humble strength); the big power only comes with upgrades */
 export const BARRACKS = {
   n: [2, 3, 5],            // knights
@@ -411,9 +442,12 @@ export class Game {
   readLoadout(): TowerType[] {
     try {
       const raw = JSON.parse(localStorage.getItem('voxeltd_loadout') || '[]') as unknown;
-      if (Array.isArray(raw)) return Array.from(new Set(raw.filter((t): t is TowerType => typeof t === 'string' && t in TOWER_DEFS))).slice(0, 10);
+      if (Array.isArray(raw) && raw.length > 0) {
+        const validated = Array.from(new Set(raw.filter((t): t is TowerType => typeof t === 'string' && t in TOWER_DEFS))).slice(0, 10);
+        if (validated.length > 0) return validated;
+      }
     } catch { /* ignore a corrupt value */ }
-    return [];
+    return SUGGESTED.slice(0, 6);
   }
   toggleLoadout(t: TowerType) {
     const s = this.state; const i = s.loadout.indexOf(t);
@@ -722,7 +756,7 @@ export class Game {
     this.ring(center.clone().setY(0.06), def.color, 0.3, 1.2, 0.4);
     this.sfx.build(); this.dirty = true;
   }
-  removeTowerMeshes(t: Tower, keepSoldiers = false) { if (t.iceBlock) { t.group.remove(t.iceBlock); t.iceBlock = undefined; } if (!keepSoldiers) this.clearSoldiers(t); if (t.arc) { this.releaseBolt(t.arc); t.arc = undefined; } this.scene.remove(t.group); if (t.beam) this.scene.remove(t.beam); if (t.beamGlow) this.scene.remove(t.beamGlow); }
+  removeTowerMeshes(t: Tower, keepSoldiers = false) { if (t.iceBlock) { t.group.remove(t.iceBlock); t.iceBlock = undefined; } if (!keepSoldiers) { this.clearSoldiers(t); this.clearAeroHunters(t); } if (t.arc) { this.releaseBolt(t.arc); t.arc = undefined; } this.scene.remove(t.group); if (t.beam) this.scene.remove(t.beam); if (t.beamGlow) this.scene.remove(t.beamGlow); }
   towerAt(c: number, r: number) { return this.towers.find(t => t.c === c && t.r === r); }
   selectTower(t: Tower | null) {
     this.selectedTowerId = t ? t.id : null;
@@ -737,7 +771,7 @@ export class Game {
     this.state.gold -= cost; t.invested += cost; t.level++;
     const pos = t.group.position.clone(); const tg = t.group.userData.target; this.removeTowerMeshes(t, true); // the knights keep standing while their barracks is upgraded
     const m = this.buildTowerMesh(t.type, t.level); m.group.position.copy(pos); m.group.scale.setScalar(0.6); m.group.userData.target = tg;
-    m.head.rotation.y = t.head.rotation.y; // keep facing the same way after the upgrade
+    m.head.rotation.y = t.type === 'aero' ? 0 : t.head.rotation.y; // keep facing the same way after the upgrade (aero always 0)
     t.group = m.group; t.head = m.head; t.muzzle = m.muzzle; t.beam = m.beam; t.beamGlow = m.beamGlow; t.hpBar = m.hpBar; t.hpBarBg = m.hpBarBg; this.scene.add(m.group);
     this.setTowerHp(t, TOWER_HP); this.recomputeBuffs();
     this.particles.emit(pos.clone().setY(0.6), TOWER_DEFS[t.type].color, 20, 2.5, 0.13, 0.6, 3);
@@ -1272,6 +1306,388 @@ export class Game {
     t.target = seen;
   }
 
+  // ---------- AERO HUNTER (Airborne Jetpack Space Bounty Hunter) ----------
+  clearAeroHunters(t: Tower) {
+    if (!t.aeroHunters) return;
+    for (const h of t.aeroHunters) this.scene.remove(h.group);
+    t.aeroHunters = undefined;
+  }
+
+  spawnAeroHunter(t: Tower) {
+    const m = makeAeroHunter(TOWER_DEFS.aero.color, TOWER_DEFS.aero.accent);
+    const g = m.group;
+    g.scale.setScalar(0.001);
+    const tp = t.group.position;
+    const yaw = t.head.rotation.y;
+    const spawnPos = new THREE.Vector3(tp.x, tp.y + 0.72, tp.z);
+    g.position.copy(spawnPos);
+    g.rotation.y = yaw;
+    this.scene.add(g);
+
+    if (!t.aeroHunters) t.aeroHunters = [];
+    const idx = t.aeroHunters.length;
+    const orbitAngle = yaw + (idx * Math.PI * 2) / Math.max(1, AERO_HUNTER.n[t.level - 1]);
+
+    t.aeroHunters.push({
+      id: this.nextId++,
+      group: g,
+      rig: m.rig,
+      limbs: m.limbs,
+      jetFlames: m.jetFlames,
+      blasterMuzzle: m.blasterMuzzle,
+      visor: m.visor,
+      state: 'launch',
+      t: 0,
+      hp: AERO_HUNTER.hp[t.level - 1],
+      maxHp: AERO_HUNTER.hp[t.level - 1],
+      target: null,
+      cd: 0.35,
+      burstCd: 0.8,
+      burstT: 0.5,
+      pos: spawnPos.clone(),
+      vel: new THREE.Vector3(),
+      yaw,
+      pitch: 0,
+      bankRoll: 0,
+      orbitAngle,
+      hurtT: 0,
+      ph: Math.random() * 6,
+      seed: Math.random() * 50,
+    });
+
+    this.particles.emit(spawnPos.clone().setY(spawnPos.y + 0.2), 0x38bdf8, 10, 2.2, 0.08, 0.5, 2.5);
+    this.particles.emit(spawnPos.clone().setY(spawnPos.y + 0.2), 0xfbbf24, 6, 1.8, 0.07, 0.4, 2.0);
+    this.ring(spawnPos.clone().setY(spawnPos.y + 0.05), 0x38bdf8, 0.15, 1.2, 0.35, RING, 0.85);
+    this.sfx.launch();
+  }
+
+  fireAeroLaser(t: Tower, sd: AeroTrooper, target: Enemy, st: { dmg: number }) {
+    if (!target || target.dead) return;
+    // Ensure all limb matrices and world transforms are 100% up-to-date
+    sd.group.updateMatrixWorld(true);
+    // World coordinates of the hollow rifle barrel hole
+    const from = sd.blasterMuzzle.getWorldPosition(new THREE.Vector3());
+    const goal = this.enemyCenter(target);
+
+    // Laser projectile mesh:
+    // Aligned with the barrel opening at from, extending forward towards goal
+    const boltGroup = new THREE.Group();
+    const core = new THREE.Mesh(BOX, new THREE.MeshBasicMaterial({ color: 0xffffff }));
+    core.scale.set(0.08, 0.08, 0.65);
+    core.position.set(0, 0, -0.325); // tail at z=0 (muzzle hole), extending forward towards -Z
+    boltGroup.add(core);
+
+    const corona = new THREE.Mesh(BOX, new THREE.MeshBasicMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.75, depthWrite: false }));
+    corona.scale.set(0.18, 0.18, 0.75);
+    corona.position.set(0, 0, -0.375);
+    boltGroup.add(corona);
+
+    const flare = new THREE.Mesh(SPH, new THREE.MeshBasicMaterial({ color: 0x7dd3fc, transparent: true, opacity: 0.85 }));
+    flare.scale.set(0.14, 0.14, 0.14);
+    flare.position.set(0, 0, -0.68); // front plasma flare tip
+    boltGroup.add(flare);
+
+    boltGroup.position.copy(from);
+    boltGroup.lookAt(goal);
+    this.scene.add(boltGroup);
+
+    this.projectiles.push({
+      kind: 'aero_laser',
+      pos: from.clone(),
+      start: from.clone(),
+      t: 0,
+      target,
+      speed: 24,
+      dmg: st.dmg,
+      mesh: boltGroup,
+      level: t.level,
+    });
+
+    // Radiant muzzle flash ring and spark burst emerging right at the barrel hole
+    this.flash(from, 0x38bdf8, 2.5, 2.5);
+    this.ring(from, 0x38bdf8, 0.08, 0.42, 0.18, RING, 0.95);
+    this.particles.emit(from, 0x38bdf8, 6, 2.2, 0.06, 0.25, 0.8, 0);
+    this.particles.emit(from, 0xfde047, 4, 1.5, 0.05, 0.2, 0.5, 0);
+    this.sfx.blasterLaser();
+  }
+
+  updateAeroTower(t: Tower, st: { dmg: number; rate: number; range: number }, dt: number) {
+    const tp = t.group.position;
+    const lv = t.level - 1;
+    const want = AERO_HUNTER.n[lv]; // Exactly 1 at Lv1, 2 at Lv2, 3 at Lv3!
+    const R = st.range;
+
+    if (!t.aeroHunters) t.aeroHunters = [];
+    while (t.aeroHunters.length < want) this.spawnAeroHunter(t);
+    while (t.aeroHunters.length > want) {
+      const removed = t.aeroHunters.pop();
+      if (removed) this.scene.remove(removed.group);
+    }
+
+    let seen: Enemy | null = null;
+    for (let i = 0; i < t.aeroHunters.length; i++) {
+      const sd = t.aeroHunters[i];
+      const g = sd.group;
+      if (!sd.vel) sd.vel = new THREE.Vector3();
+      if (sd.bankRoll === undefined) sd.bankRoll = 0;
+
+      sd.t += dt;
+      sd.cd -= dt;
+      sd.burstCd -= dt;
+      sd.burstT = Math.max(0, sd.burstT - dt);
+      sd.hurtT = Math.max(0, sd.hurtT - dt);
+
+      const mh = AERO_HUNTER.hp[lv];
+      if (sd.maxHp !== mh) {
+        sd.hp += mh - sd.maxHp;
+        sd.maxHp = mh;
+      }
+
+      if (sd.state === 'launch') {
+        const k = Math.min(1, sd.t / 0.5);
+        const easeK = 1 - Math.pow(1 - k, 3);
+        g.scale.setScalar(Math.max(0.001, AERO_SCALE * easeK));
+        sd.pos.y = tp.y + 0.72 + easeK * 0.95;
+        sd.pos.x = THREE.MathUtils.lerp(sd.pos.x, tp.x + Math.sin(sd.orbitAngle) * 1.5, dt * 5.0);
+        sd.pos.z = THREE.MathUtils.lerp(sd.pos.z, tp.z + Math.cos(sd.orbitAngle) * 1.5, dt * 5.0);
+        g.position.copy(sd.pos);
+        if (Math.random() < 0.6) {
+          this.particles.emit(sd.pos.clone().setY(sd.pos.y - 0.2), 0x38bdf8, 1, 0.8, 0.05, 0.3, -1.2, 0);
+        }
+        if (k >= 1) {
+          sd.state = 'hover';
+          sd.t = 0;
+        }
+        poseAeroHunter(sd.limbs, sd.rig, sd.jetFlames, 'launch', 0.8, true, 0, this.time);
+        continue;
+      }
+
+      if (sd.state === 'down') {
+        const rs = AERO_HUNTER.respawn[lv];
+        if (sd.t > rs - 0.5) {
+          g.scale.setScalar(Math.max(0.001, AERO_SCALE * (1 - (sd.t - (rs - 0.5)) / 0.5)));
+        }
+        if (sd.t >= rs) {
+          sd.hp = sd.maxHp;
+          sd.pos.set(tp.x, tp.y + 0.72, tp.z);
+          sd.vel.set(0, 0, 0);
+          g.position.copy(sd.pos);
+          sd.state = 'launch';
+          sd.t = 0;
+          sd.target = null;
+          this.particles.emit(sd.pos.clone().setY(tp.y + 0.5), 0x38bdf8, 8, 1.8, 0.08, 0.4, 2.5);
+          this.sfx.launch();
+        }
+        continue;
+      }
+
+      // Smooth hover altitude tracking with natural harmonic bobbing
+      const groundH = this.world?.heightAt(sd.pos.x, sd.pos.z) ?? tp.y;
+      const hoverAltitude = groundH + 1.55 + Math.sin(this.time * 2.5 + sd.seed) * 0.12;
+      sd.pos.y = THREE.MathUtils.lerp(sd.pos.y, hoverAltitude, dt * 5.0);
+
+      // Jet thruster wake particles (enhanced fiery plume trail)
+      if (sd.burstT > 0) {
+        // High-power continuous rocket burst flame trail
+        this.particles.emit(sd.pos.clone().add(new THREE.Vector3(0, -0.24, 0)), 0xf97316, 2, 0.9, 0.07, 0.38, -2.4, 0);
+        this.particles.emit(sd.pos.clone().add(new THREE.Vector3(0, -0.24, 0)), 0xfbbf24, 2, 0.75, 0.06, 0.32, -2.0, 0);
+        this.particles.emit(sd.pos.clone().add(new THREE.Vector3(0, -0.24, 0)), 0x38bdf8, 1, 0.65, 0.05, 0.28, -1.8, 0);
+      } else {
+        if (Math.random() < 0.5) {
+          this.particles.emit(sd.pos.clone().add(new THREE.Vector3(0, -0.18, 0)), 0x38bdf8, 1, 0.45, 0.045, 0.30, -1.5, 0);
+        }
+        if (Math.random() < 0.3) {
+          this.particles.emit(sd.pos.clone().add(new THREE.Vector3(0, -0.18, 0)), 0xf97316, 1, 0.40, 0.05, 0.28, -1.3, 0);
+        }
+      }
+
+      // Damage from close enemies
+      let touching = 0;
+      for (const e of this.enemies) {
+        if (e.dead) continue;
+        const d3 = e.group.position.distanceTo(sd.pos);
+        if (d3 < 1.0) {
+          touching += e.type === 'boss' || e.type === 'dread' || e.type === 'dragon' ? 3 : 1;
+        }
+      }
+      if (touching > 0) {
+        sd.hp -= touching * dt * 2;
+        sd.hurtT = 0.3;
+        this.ring(sd.pos, 0x38bdf8, 0.15, 0.9, 0.25, RING, 0.8);
+        if (sd.hp <= 0) {
+          sd.state = 'down';
+          sd.t = 0;
+          sd.target = null;
+          this.particles.emit(sd.pos, 0x38bdf8, 10, 2.2, 0.08, 0.5, 2);
+          this.float('HUNTER RETREAT! 🛡️', sd.pos.clone().setY(sd.pos.y + 0.8), '#38bdf8');
+          continue;
+        }
+      }
+
+      // Target selection: stay locked on valid target for efficiency, or acquire nearest in range
+      let tgt = sd.target;
+      if (tgt && (tgt.dead || Math.hypot(tgt.group.position.x - tp.x, tgt.group.position.z - tp.z) > R + 1.2)) {
+        tgt = null;
+      }
+      if (!tgt) {
+        let bestDist = 1e9;
+        const maxRangeSq = (R + 0.6) * (R + 0.6);
+        for (const e of this.enemies) {
+          if (e.dead) continue;
+          const dToTowerSq = (e.group.position.x - tp.x) ** 2 + (e.group.position.z - tp.z) ** 2;
+          if (dToTowerSq > maxRangeSq) continue;
+          const distToHunter = sd.pos.distanceTo(e.group.position) - (e.flying ? 1.5 : 0);
+          if (distToHunter < bestDist) {
+            bestDist = distToHunter;
+            tgt = e;
+          }
+        }
+      }
+      sd.target = tgt;
+      if (tgt && !seen) seen = tgt;
+
+      let faceYaw = sd.yaw;
+      let aimPitch = 0;
+      let isBursting = sd.burstT > 0;
+
+      if (tgt) {
+        const tgCenter = this.enemyCenter(tgt);
+        const dx = tgCenter.x - sd.pos.x;
+        const dz = tgCenter.z - sd.pos.z;
+        const dy = tgCenter.y - (sd.pos.y + 0.25);
+        const horizDist = Math.hypot(dx, dz) || 1;
+
+        faceYaw = Math.atan2(dx, dz);
+        aimPitch = Math.atan2(dy, horizDist);
+
+        // Optimal tactical engagement standoff distance (ideal distance: 2.1 units)
+        // Multiple hunters flank at complementary angles for tactical efficiency
+        const flankSpread = want > 1 ? (i - (want - 1) * 0.5) * 0.65 : 0;
+        const angleFromEnemy = faceYaw + Math.PI + flankSpread;
+        const idealStandoff = 2.1;
+        const targetX = tgCenter.x + Math.sin(angleFromEnemy) * idealStandoff;
+        const targetZ = tgCenter.z + Math.cos(angleFromEnemy) * idealStandoff;
+        const diffX = targetX - sd.pos.x;
+        const diffZ = targetZ - sd.pos.z;
+        const toIdealDist = Math.hypot(diffX, diffZ);
+
+        // Dramatic Jetpack Burst Booster activation
+        if (toIdealDist > 1.8 && sd.burstCd <= 0) {
+          sd.burstCd = 2.5;
+          sd.burstT = 0.52;
+          isBursting = true;
+          this.particles.emit(sd.pos.clone().add(new THREE.Vector3(0, -0.24, 0)), 0xf97316, 14, 2.8, 0.09, 0.55, -2.4, 0);
+          this.particles.emit(sd.pos.clone().add(new THREE.Vector3(0, -0.24, 0)), 0xfbbf24, 10, 2.4, 0.08, 0.48, -2.0, 0);
+          this.particles.emit(sd.pos.clone().add(new THREE.Vector3(0, -0.24, 0)), 0x38bdf8, 10, 2.2, 0.08, 0.45, -1.8, 0);
+          this.ring(sd.pos.clone().setY(sd.pos.y - 0.12), 0xf97316, 0.22, 1.6, 0.38, RING, 0.9);
+          this.ring(sd.pos.clone().setY(sd.pos.y - 0.18), 0x38bdf8, 0.18, 1.3, 0.32, RING, 0.85);
+          if (Math.random() < 0.45) {
+            this.float('JET BURST! 🚀', sd.pos.clone().setY(sd.pos.y + 0.65), '#f97316');
+          }
+          this.sfx.jetpackBurst();
+        }
+
+        // Smooth velocity acceleration & damping towards tactical position
+        const maxSpd = sd.burstT > 0 ? 8.6 : 4.6;
+        const speedMag = Math.min(maxSpd, toIdealDist * 3.8);
+        const desiredVx = toIdealDist > 0.06 ? (diffX / toIdealDist) * speedMag : 0;
+        const desiredVz = toIdealDist > 0.06 ? (diffZ / toIdealDist) * speedMag : 0;
+
+        sd.vel.x = THREE.MathUtils.lerp(sd.vel.x, desiredVx, dt * 5.5);
+        sd.vel.z = THREE.MathUtils.lerp(sd.vel.z, desiredVz, dt * 5.5);
+
+        // Blaster firing: precision plasma bolts straight from the rifle barrel hole
+        if (sd.cd <= 0 && horizDist <= R + 0.6) {
+          sd.cd = AERO_HUNTER.burstRate[lv];
+          sd.state = 'shoot';
+          const burstShots = AERO_HUNTER.burstCount[lv];
+          for (let b = 0; b < burstShots; b++) {
+            const delay = b * 95;
+            if (delay === 0) {
+              this.fireAeroLaser(t, sd, tgt, st);
+            } else {
+              setTimeout(() => {
+                if (!sd.group.parent || sd.state === 'down') return;
+                this.fireAeroLaser(t, sd, tgt, st);
+              }, delay);
+            }
+          }
+        }
+      } else {
+        // Idle formation: smooth, graceful circular patrol around tower
+        sd.orbitAngle += dt * 0.65;
+        const radius = 1.7 + 0.3 * (i % 2);
+        const angle = sd.orbitAngle + (i * Math.PI * 2) / want;
+        const targetX = tp.x + Math.sin(angle) * radius;
+        const targetZ = tp.z + Math.cos(angle) * radius;
+        const dX = targetX - sd.pos.x;
+        const dZ = targetZ - sd.pos.z;
+        const dist = Math.hypot(dX, dZ);
+
+        const patrolSpd = Math.min(3.4, dist * 3.0);
+        const desiredVx = dist > 0.06 ? (dX / dist) * patrolSpd : 0;
+        const desiredVz = dist > 0.06 ? (dZ / dist) * patrolSpd : 0;
+
+        sd.vel.x = THREE.MathUtils.lerp(sd.vel.x, desiredVx, dt * 4.5);
+        sd.vel.z = THREE.MathUtils.lerp(sd.vel.z, desiredVz, dt * 4.5);
+
+        if (sd.vel.lengthSq() > 0.05) {
+          faceYaw = Math.atan2(sd.vel.x, sd.vel.z);
+        }
+        aimPitch = 0;
+      }
+
+      // Apply smooth velocity integration
+      sd.pos.x += sd.vel.x * dt;
+      sd.pos.z += sd.vel.z * dt;
+
+      // Smooth collision separation between hunters (no harsh overlapping)
+      for (const o of t.aeroHunters) {
+        if (o === sd || o.state === 'down') continue;
+        const dX = sd.pos.x - o.pos.x;
+        const dZ = sd.pos.z - o.pos.z;
+        const dist = Math.hypot(dX, dZ);
+        if (dist < 0.65 && dist > 1e-4) {
+          const push = (0.65 - dist) * 0.4;
+          sd.pos.x += (dX / dist) * push * dt * 6.0;
+          sd.pos.z += (dZ / dist) * push * dt * 6.0;
+        }
+      }
+
+      // Smooth facing rotation (yaw) without abrupt snapping
+      let dy = faceYaw - sd.yaw;
+      dy = Math.atan2(Math.sin(dy), Math.cos(dy));
+      sd.yaw += dy * Math.min(1, dt * 8.5);
+
+      // Smooth aerodynamic flight banking roll (banking naturally into turns)
+      const targetBank = THREE.MathUtils.clamp(-dy * 0.9, -0.32, 0.32);
+      sd.bankRoll = THREE.MathUtils.lerp(sd.bankRoll, targetBank, dt * 6.5);
+
+      // Smooth aim pitch
+      sd.pitch = THREE.MathUtils.lerp(sd.pitch, aimPitch, dt * 10.0);
+
+      // Apply transformations to Three.js group
+      g.position.copy(sd.pos);
+      g.rotation.y = sd.yaw;
+      g.rotation.z = sd.bankRoll;
+
+      // Animate flight pose with dynamic thrust and target tracking
+      const flightSpeedRatio = Math.min(1, sd.vel.length() / 5.0);
+      poseAeroHunter(
+        sd.limbs,
+        sd.rig,
+        sd.jetFlames,
+        sd.state,
+        flightSpeedRatio,
+        isBursting,
+        sd.pitch,
+        this.time
+      );
+    }
+
+    t.target = seen;
+  }
+
   // ---------- MIND CONTROL ----------
   /** the mind laser: a bright violet beam with a white-hot core from the jewel to the victim (fades in ~0.45 s), glowing balls at both ends and a ring on the ground */
   mindLaser(a: THREE.Vector3, b: THREE.Vector3) {
@@ -1464,7 +1880,7 @@ export class Game {
     const L = e.limbs; const ph = e.atkPhase ?? 'walk'; const at = e.atkT ?? 0;
     if (e.type === 'archer') {
       const aim = ph === 'aim', rest = ph === 'rest'; const d = aim ? Math.min(1, Math.max(0, 1 - at / 0.65)) : 0;
-      if (aim || rest) { L.armL.rotation.set(-1.55, 0, 0.05); L.armR.rotation.set(-1.5 - d * 0.15, 0, 0.5 + d * 0.3); setBowDraw(L.bow, d, aim || at < 0.45); }
+      if (aim || rest) { L.armL.rotation.set(-1.55, 0, 0.05); L.armR.rotation.set(-1.5 - d * 0.15, 0, -(0.5 + d * 0.3)); setBowDraw(L.bow, d, aim || at < 0.45); }
       else setBowDraw(L.bow, 0, false);
     } else if (e.type === 'dread' && ph !== 'walk') {
       const k = ph === 'wind' ? 1 - at / 0.55 : ph === 'swing' ? 1 - at / 0.14 : 1 - at / 0.7; poseDread(L, ph, Math.min(1, Math.max(0, k)));
@@ -1550,6 +1966,10 @@ export class Game {
   }
   /** EVERY tower (shooters and supports alike) keeps its head and eyes on whatever walks or flies past: its target, else the nearest enemy of ANY kind, else the road. */
   gazeTower(t: Tower, dt: number) {
+    if (t.type === 'aero') {
+      t.head.rotation.set(0, 0, 0);
+      return; // Istana Mandalorian tetap kokoh megah & tidak ikut berotasi!
+    }
     const tp = t.group.position;
     // quiet: the camera is in the south, so look only PART of the way toward the road (0 = face the viewer) – the cute face never turns its back on the player
     if (t.idleYaw === undefined) { t.idleYaw = this.roadYaw(tp) * 0.4; t.head.rotation.y = t.idleYaw; }
@@ -2158,8 +2578,13 @@ export class Game {
       // living body: breathing, little sway, squash when shooting
       const rc = t.recoil, br = Math.sin(this.time * 2.2 + t.id) * 0.015;
       const headSz = (hd.sz as number | undefined) ?? 1;
-      t.head.scale.set(headSz * (1 + rc * 0.06), headSz * (1 - rc * 0.08 + br), headSz * (1 + rc * 0.06));
-      t.head.rotation.z = Math.sin(this.time * 1.6 + t.id) * 0.025;
+      if (t.type === 'aero') {
+        t.head.scale.set(headSz, headSz, headSz);
+        t.head.rotation.set(0, 0, 0);
+      } else {
+        t.head.scale.set(headSz * (1 + rc * 0.06), headSz * (1 - rc * 0.08 + br), headSz * (1 + rc * 0.06));
+        t.head.rotation.z = Math.sin(this.time * 1.6 + t.id) * 0.025;
+      }
       // face: blink, look around / at target, focus, squint when firing, worry when hurt
       if (hd.face) {
         const gz = t.target && !t.target.dead ? t.target : t.gaze; // eyes follow the shooting target, else whoever is walking past
@@ -2865,6 +3290,7 @@ export class Game {
         const funnel = t.head.getObjectByName('funnel'); if (funnel) funnel.rotation.y -= dt * 2.2;
         const coin = t.head.getObjectByName('coin'); if (coin) { coin.rotation.y += dt * 3; coin.position.y = 1.05 + Math.sin(this.time * 3 + t.id) * 0.05; }
         const wandStar = t.head.getObjectByName('wandStar'); if (wandStar) wandStar.rotation.y += dt * 3.2;
+        const radar = t.head.getObjectByName('radar'); if (radar) radar.rotation.y += dt * 2.2;
         if (t.type === 'banner') continue;
         if (t.type === 'piggy') { // Pinky: pays gold every few seconds (more with upgrades and banners)
           if (t.cooldown <= 0) {
@@ -2901,6 +3327,7 @@ export class Game {
           continue;
         }
         if (t.type === 'barracks') { this.updateBarracks(t, st, dt); continue; } // Barry: the knights do the fighting
+        if (t.type === 'aero') { this.updateAeroTower(t, st, dt); continue; } // Vanguard: the aero hunters do the flying & fighting
         if (t.type === 'golem') { // Rocky: when a ground orc is close it raises its fists (0.22s windup) and then slams the ground
           let near: Enemy | null = null, nd = 1e9;
           for (const e of this.enemies) { if (e.flying || e.dead) continue; const d = Math.hypot(e.group.position.x - tp.x, e.group.position.z - tp.z); if (d <= st.range && d < nd) { nd = d; near = e; } }
@@ -3225,6 +3652,38 @@ export class Game {
           } else if (p.kind === 'mortar') { this.particles.emit(p.pos, 0x9a9aa5, 1, 0.3, 0.09, 0.7, 0.4, -0.5); if (Math.random() < 0.6) this.particles.emit(p.pos, 0xffb347, 1, 0.5, 0.05, 0.25, 0.2, 0); }
           else if (p.kind === 'glob' && Math.random() < 0.5) this.particles.emit(p.pos, 0xa3e635, 1, 0.2, 0.05, 0.4, 0.2, 0);
           if (p.t >= 1) { this.scene.remove(p.mesh); this.explode(goal.clone().setY(0.1), p); return false; }
+          return true;
+        }
+        if (p.kind === 'aero_laser') {
+          if (p.target.dead) {
+            let best: Enemy | null = null, bd = 3.8;
+            for (const e of this.enemies) { if (e.dead) continue; const d = e.group.position.distanceTo(p.pos); if (d < bd) { bd = d; best = e; } }
+            if (!best) { this.scene.remove(p.mesh); this.particles.emit(p.pos, 0x38bdf8, 3, 1.0, 0.05, 0.25, 0.8); return false; }
+            p.target = best;
+          }
+          const gl = this.enemyCenter(p.target);
+          dir.subVectors(gl, p.pos);
+          const dist2 = dir.length();
+          const step2 = p.speed * dt;
+          if (dist2 <= step2 + 0.22) {
+            this.scene.remove(p.mesh);
+            this.particles.emit(gl, 0x38bdf8, 12, 2.6, 0.08, 0.45, 2.2, 0);
+            this.particles.emit(gl, 0xfde047, 8, 2.0, 0.06, 0.35, 1.8, 0);
+            this.particles.emit(gl, 0xffffff, 4, 1.4, 0.05, 0.25, 1.2, 0);
+            this.ring(gl, 0x38bdf8, 0.12, 0.85, 0.22, RING, 0.9);
+            this.flash(gl, 0x7dd3fc, 2.5, 3.5);
+            this.damage(p.target, p.dmg, { hitPos: gl, pierce: true });
+            if (!p.target.dead) {
+              const pops = ['PEW! ⚡', 'DOR! 💥', 'PLASMAX!', 'CRIT!'];
+              if (Math.random() < 0.6) this.float(pops[Math.floor(Math.random() * pops.length)], gl.clone().setY(gl.y + 0.55), '#38bdf8');
+            }
+            this.sfx.zap();
+            return false;
+          }
+          p.pos.addScaledVector(dir.normalize(), step2);
+          p.mesh.position.copy(p.pos);
+          p.mesh.lookAt(gl);
+          if (Math.random() < 0.75) this.particles.emit(p.pos, 0x38bdf8, 1, 0.3, 0.045, 0.2, 0, 0);
           return true;
         }
         if (p.target.dead) { this.scene.remove(p.mesh); this.particles.emit(p.pos, 0x4f8cff, 3, 1, 0.06, 0.3, 1); return false; }

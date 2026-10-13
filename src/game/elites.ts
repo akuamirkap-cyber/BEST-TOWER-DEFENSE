@@ -58,8 +58,9 @@ function eliteHead(def: Def, skinMat: THREE.MeshStandardMaterial, mats: THREE.Me
   const tk = o.tusk ?? 1;
   if (tk > 0) {
     const toothMat = M(0xfffff2, 0.15, 0.3);
+    const tw = 0.036 * Math.min(1.1, tk), th = 0.10 * Math.min(1.15, tk);
     for (const sd of [-1, 1]) {
-      head.add(cone(0.045 * tk, 0.15 * tk, toothMat, sd * 0.125, -0.17, 0.41, { rx: 0.22, rz: -sd * 0.15, ol: true }));
+      head.add(cone(tw, th, toothMat, sd * 0.14, -0.21, 0.41, { rx: 0.16, rz: -sd * 0.18, ol: true }));
     }
   }
   return { head, face, earL, earR };
@@ -161,7 +162,7 @@ function buildArcher(def: Def): OrcBuild {
   head.add(dome(hood, 0.46, 0.38, 0.45, 0, 0.18, -0.02)); head.add(tor(0.4, 0.04, hoodD, 0, 0.17, 0, { rx: Math.PI / 2 }));
   head.add(cone(0.2, 0.42, hood, 0, 0.12, -0.38, { rx: -2.0, ol: true }));
   head.add(S(0.05, A_F1, 0.3, 0.55, -0.05, { sy: 3.2, sz: 0.4, rz: -0.5 })); head.add(S(0.04, A_F2, 0.37, 0.7, -0.05, { sy: 1.6, sz: 0.4, rz: -0.5 }));
-  const armL = orcArm(skinMat), armR = orcArm(skinMat); armL.position.set(-0.28, 0.7, 0); armR.position.set(0.28, 0.7, 0);
+  const armL = orcArm(skinMat), armR = orcArm(skinMat); armR.position.set(-0.28, 0.7, 0); armL.position.set(0.28, 0.7, 0);
   const bow = makeBow(); bow.position.set(0, -0.3, 0.01); bow.rotation.x = Math.PI / 2; armL.add(bow);
   Object.assign(limbs, { legL, legR, body, armL, armR, head, face: hd.face, earL: hd.earL, earR: hd.earR, bow });
   return { parts: [legL, legR, body, armL, armR, head], debris: [legL, legR, body, armL, armR, head, bow], limbs, skinMats, hpY: 1.85 };
@@ -190,7 +191,7 @@ function buildDread(def: Def): OrcBuild {
   body.add(box(0.8 * bs, 0.85, 0.05, dark, 0, -0.02, -0.36 * bs, { rx: 0.1, ol: true, cast: true })); body.add(box(0.8 * bs, 0.05, 0.06, trim, 0, -0.45, -0.37 * bs, { rx: 0.1 }));
 
   const armL = orcArm(skinMat), armR = orcArm(skinMat);
-  armL.scale.setScalar(1.25); armR.scale.setScalar(1.25); armL.position.set(-0.52, 0.84, 0); armR.position.set(0.52, 0.84, 0);
+  armL.scale.setScalar(1.25); armR.scale.setScalar(1.25); armR.position.set(-0.52, 0.84, 0); armL.position.set(0.52, 0.84, 0);
 
   // head: sleek black obsidian plate knight helmet with glowing emerald visor slits & horned crest
   const head = new THREE.Group(); head.position.y = 1.22; head.scale.setScalar(1.18);
@@ -255,7 +256,7 @@ function buildCaptain(def: Def): OrcBuild {
   head.add(box(0.07, 0.2, 0.06, steel, 0, 0.1, 0.42, { ol: true })); // nose guard
   for (const sd of [-1, 1]) head.add(box(0.07, 0.24, 0.26, steel, sd * 0.4, 0.06, 0.05, { ol: true })); // cheek plates
   head.add(cap(0.075, 0.55, red, 0, 0.62, -0.12, { rx: 1.25, ol: true })); head.add(S(0.1, red, 0, 0.66, 0.1, { ol: true })); head.add(cone(0.06, 0.2, red, 0, 0.6, 0.12, {}));
-  const armL = orcArm(skinMat), armR = orcArm(skinMat); armL.position.set(-0.4, 0.82, 0); armR.position.set(0.4, 0.82, 0);
+  const armL = orcArm(skinMat), armR = orcArm(skinMat); armR.position.set(-0.4, 0.82, 0); armL.position.set(0.4, 0.82, 0);
   const sword = longsword(); sword.position.set(0, -0.3, 0.01); sword.rotation.x = 1.15; armR.add(sword);
   Object.assign(limbs, { legL, legR, body, armL, armR, head, face: hd.face, earL: hd.earL, earR: hd.earR, flag, sword });
   return { parts: [legL, legR, body, armL, armR, head], debris: [legL, legR, body, armL, armR, head, sword], limbs, skinMats, hpY: 2.5 };
@@ -273,7 +274,7 @@ function buildLegion(def: Def): OrcBuild {
   for (const y of [0.12, 0.0, -0.1]) body.add(tor(0.27 * bs, 0.022, blue, 0, y * bs, 0.02, { rx: Math.PI / 2 })); // segmented plates
   body.add(cyl(0.25 * bs, 0.35 * bs, 0.2 * bs, red, 0, -0.2 * bs, 0, { ol: true, cast: true })); body.add(tor(0.3 * bs, 0.03, M(0x3b2a1a), 0, -0.1 * bs, 0, { rx: Math.PI / 2 }));
   for (const sd of [-1, 1]) body.add(S(0.14 * bs, steel, sd * 0.34 * bs, 0.2 * bs, 0, { ol: true, cast: true }));
-  const shield = new THREE.Group(); shield.position.set(-0.34 * bs, 0.0, 0.3 * bs); shield.rotation.set(0, 0.3, 0); body.add(shield);
+  const shield = new THREE.Group(); shield.position.set(0.34 * bs, 0.0, 0.3 * bs); shield.rotation.set(0, -0.3, 0); body.add(shield);
   shield.add(cyl(0.3, 0.3, 0.07, red, 0, 0, 0, { rx: Math.PI / 2, ol: true, cast: true, seg: 22 })); shield.add(tor(0.3, 0.035, steel, 0, 0, 0.035, {}));
   shield.add(S(0.1, gold, 0, 0, 0.07, { sz: 0.6, ol: true })); shield.add(box(0.5, 0.06, 0.02, gold, 0, 0, 0.05)); shield.add(box(0.06, 0.5, 0.02, gold, 0, 0, 0.05));
   const hd = eliteHead(def, skinMat, skinMats, { eye: 0.125, gap: 0.175, iris: 0x0ea5e9, brows: 0x365314, tusk: 0.9 });
@@ -286,7 +287,7 @@ function buildLegion(def: Def): OrcBuild {
   head.add(box(0.06, 0.08, 0.52, gold, 0, 0.46, -0.05));
   head.add(cap(0.075, 0.52, red, 0, 0.58, -0.05, { rx: Math.PI / 2, ol: true }));
   head.add(cone(0.065, 0.22, red, 0, 0.56, 0.22, { rx: 0.35 }));
-  const armL = orcArm(skinMat), armR = orcArm(skinMat); armL.position.set(-0.32, 0.76, 0); armR.position.set(0.32, 0.76, 0);
+  const armL = orcArm(skinMat), armR = orcArm(skinMat); armR.position.set(-0.32, 0.76, 0); armL.position.set(0.32, 0.76, 0);
   const spear = new THREE.Group(); spear.position.set(0, -0.3, 0.01); spear.rotation.x = 0.35; armR.add(spear);
   // Grip centered around y = 0 inside hand, shaft extends down and up
   spear.add(cap(0.03, 1.35, wood, 0, 0.25, 0, { ol: true, cast: true }));
@@ -323,7 +324,7 @@ function buildKing(def: Def): OrcBuild {
 
   const armL = orcArm(skinMat), armR = orcArm(skinMat);
   for (const a of [armL, armR]) { a.scale.setScalar(1.2); a.add(tor(0.105, 0.03, gold, 0, -0.2, 0, { rx: Math.PI / 2 })); } // gold bracers
-  armL.position.set(-0.56, 0.9, 0); armR.position.set(0.56, 0.9, 0);
+  armR.position.set(-0.56, 0.9, 0); armL.position.set(0.56, 0.9, 0);
 
   // head: a regal orc – amber eyes under thick brows, big tusks, a goatee, golden earrings and a tall jewelled crown
   const hd = eliteHead(def, skinMat, skinMats, { eye: 0.13, gap: 0.18, iris: 0xfbbf24, brows: 0x2a1a0a, tusk: 1.9, ears: 0.85, bias: 0.45 });
@@ -371,11 +372,11 @@ export function poseElite(kind: EliteKind, L: Limbs, ph: number, time: number) {
   if (L.earL) { L.earL.rotation.z = EAR + Math.sin(ph * 2) * 0.12; L.earR.rotation.z = -EAR - Math.sin(ph * 2 + 1) * 0.12; }
   if (L.flag) { L.flag.rotation.y = Math.sin(time * 5 + ph * 0.1) * 0.22; L.flag.rotation.z = Math.sin(time * 3.1) * 0.05; }
   switch (kind) {
-    case 'archer': L.armL.rotation.set(-1.25, 0, 0.2); L.armR.rotation.set(-0.5 + Math.sin(ph * 0.5) * 0.2, 0, 0.12); break;
-    case 'dread': L.armR.rotation.set(-2.0 + Math.sin(ph * 0.5) * 0.07, 0, 0.12); L.armL.rotation.set(-sw * 0.6, 0, -0.15); break;
-    case 'captain': L.armR.rotation.set(-1.1 + Math.sin(ph * 0.5) * 0.1, 0, 0.12); L.armL.rotation.set(-sw * 0.8, 0, -0.12); break;
-    case 'boss': L.armR.rotation.set(-0.9 + Math.sin(ph * 0.5) * 0.08, 0, 0.12); L.armL.rotation.set(-sw * 0.5, 0, -0.12); break;
-    default: L.armR.rotation.set(-0.5 + Math.sin(ph * 0.5) * 0.1, 0, 0.12); L.armL.rotation.set(-0.9, 0, -0.5); break;
+    case 'archer': L.armL.rotation.set(-1.25, 0, 0.2); L.armR.rotation.set(-0.5 + Math.sin(ph * 0.5) * 0.2, 0, -0.12); break;
+    case 'dread': L.armR.rotation.set(-2.0 + Math.sin(ph * 0.5) * 0.07, 0, -0.12); L.armL.rotation.set(-sw * 0.6, 0, 0.15); break;
+    case 'captain': L.armR.rotation.set(-1.1 + Math.sin(ph * 0.5) * 0.1, 0, -0.12); L.armL.rotation.set(-sw * 0.8, 0, 0.12); break;
+    case 'boss': L.armR.rotation.set(-0.9 + Math.sin(ph * 0.5) * 0.08, 0, -0.12); L.armL.rotation.set(-sw * 0.5, 0, 0.12); break;
+    default: L.armR.rotation.set(-0.5 + Math.sin(ph * 0.5) * 0.1, 0, -0.12); L.armL.rotation.set(-0.9, 0, 0.5); break;
   }
 }
 /** the Dread Knight's attack: wind-up (sword over the head, leaning back) -> a fast overhead chop -> rest, then the sword rises again */
@@ -385,6 +386,6 @@ export function poseDread(L: Limbs, phase: string, k: number) {
   if (phase === 'wind') { const t = e1(clamp(k)); th = -2.0 - 1.1 * t; lean = -0.28 * t; }
   else if (phase === 'swing') { const s = clamp(k) * clamp(k); th = -3.1 + 2.7 * s; lean = -0.28 + 0.66 * s; }
   else if (phase === 'rest') { const t = e1(clamp(k)); th = -0.4 - 1.6 * t; lean = 0.38 * (1 - t); }
-  L.armR.rotation.set(th, 0, 0.1); L.armL.rotation.set(th * 0.55, 0, -0.25);
+  L.armR.rotation.set(th, 0, -0.1); L.armL.rotation.set(th * 0.55, 0, 0.25);
   L.body.rotation.x = lean; L.head.rotation.x = lean * 0.5;
 }

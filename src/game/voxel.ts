@@ -5,7 +5,7 @@ export const BOX = new THREE.BoxGeometry(1, 1, 1);
 export const SPH = new THREE.SphereGeometry(1, 18, 14);
 export const RING = new THREE.RingGeometry(0.8, 1, 48); RING.rotateX(-Math.PI / 2);
 export const DISC = new THREE.CircleGeometry(1, 24); DISC.rotateX(-Math.PI / 2);
-const LID_GEO = new THREE.SphereGeometry(1, 14, 8, 0, Math.PI * 2, 0, Math.PI / 2);
+const LID_GEO = new THREE.SphereGeometry(1, 20, 12, 0, Math.PI * 2, 0, Math.PI / 2);
 const FLAME_GEO = new THREE.ConeGeometry(0.5, 1, 6).translate(0, 0.5, 0);
 
 /** Dark inverted-hull material: gives toon characters their signature thick outline. */
@@ -74,7 +74,7 @@ export interface FaceBody { kind?: 'sphere' | 'cyl'; R: number; cy: number; sy?:
 export interface FaceOpts { r?: number; gap?: number; iris?: number; skin: number; mouth?: 'smile' | 'grin' | 'none'; mouthY?: number; cheeks?: boolean; round?: boolean; bias?: number; body?: FaceBody; brows?: number | boolean }
 interface EyeRef { eye: THREE.Group; pupil: THREE.Group; pivot: THREE.Group; lid: THREE.Mesh; side: number }
 
-/** Big glossy eyes (outlined sclera, iris, pupil, 2 highlights, eyelids), cheeks, mouth and a sweat drop. */
+/** Big glossy eyes (outlined sclera, iris, pupil, 2 highlights, clean eyelids), cheeks, mouth and a sweat drop. */
 export function makeFace(o: FaceOpts): THREE.Group {
   const r = o.r ?? 0.12, gap = o.gap ?? 0.15; const g = new THREE.Group(); g.name = 'face';
   const b = o.body;
@@ -91,20 +91,33 @@ export function makeFace(o: FaceOpts): THREE.Group {
   const irisM = new THREE.MeshStandardMaterial({ color: irisC, roughness: 0.3, emissive: irisC, emissiveIntensity: 0.4 });
   const darkM = new THREE.MeshStandardMaterial({ color: 0x120a1f, roughness: 0.25 });
   const hlM = new THREE.MeshBasicMaterial({ color: 0xffffff });
-  const lidM = new THREE.MeshStandardMaterial({ color: o.skin, roughness: 0.5, emissive: o.skin, emissiveIntensity: 0.1 });
-  const zs = o.round ? 0.95 : 0.72; const eyes: EyeRef[] = [];
+  const lidM = new THREE.MeshStandardMaterial({ color: o.skin, roughness: 0.5, emissive: o.skin, emissiveIntensity: 0.1, side: THREE.DoubleSide });
+  const zs = o.round ? 0.9 : 0.65; const eyes: EyeRef[] = [];
 
   for (const side of [-1, 1]) {
-    const x = side * gap; const eye = new THREE.Group(); eye.position.set(x, 0, sz(x, 0) - r * 0.1);
-    const ball = new THREE.Mesh(SPH, white); ball.scale.set(r, r * 1.12, r * zs); eye.add(ball);
-    const rim = new THREE.Mesh(SPH, OUTLINE_MAT); rim.scale.set(r * 1.11, r * 1.23, r * zs * 1.06); eye.add(rim);
+    const x = side * gap;
+    // Eye group positioned slightly recessed into face socket to avoid bulging bug-eyes
+    const eye = new THREE.Group(); eye.position.set(x, 0, sz(x, 0) - r * 0.22);
+    const ball = new THREE.Mesh(SPH, white); ball.scale.set(r, r * 1.08, r * zs); eye.add(ball);
+    const rim = new THREE.Mesh(SPH, OUTLINE_MAT); rim.scale.set(r * 1.08, r * 1.16, r * zs * 1.04); eye.add(rim);
+
+    // Pupil, Iris, and Highlights on eyeball front
     const pupil = new THREE.Group(); pupil.position.z = r * zs * 0.72;
-    const iris = new THREE.Mesh(SPH, irisM); iris.scale.set(r * 0.68, r * 0.76, r * 0.26); pupil.add(iris);
-    const dark = new THREE.Mesh(SPH, darkM); dark.scale.set(r * 0.42, r * 0.48, r * 0.24); dark.position.z = r * 0.1; pupil.add(dark);
-    const h1 = new THREE.Mesh(SPH, hlM); h1.scale.setScalar(r * 0.21); h1.position.set(r * 0.2, r * 0.27, r * 0.3); pupil.add(h1);
-    const h2 = new THREE.Mesh(SPH, hlM); h2.scale.setScalar(r * 0.09); h2.position.set(-r * 0.23, -r * 0.2, r * 0.28); pupil.add(h2);
+    const iris = new THREE.Mesh(SPH, irisM); iris.scale.set(r * 0.64, r * 0.72, r * 0.18); pupil.add(iris);
+    const dark = new THREE.Mesh(SPH, darkM); dark.scale.set(r * 0.38, r * 0.44, r * 0.18); dark.position.z = r * 0.06; pupil.add(dark);
+    const h1 = new THREE.Mesh(SPH, hlM); h1.scale.setScalar(r * 0.19); h1.position.set(r * 0.18, r * 0.24, r * 0.18); pupil.add(h1);
+    const h2 = new THREE.Mesh(SPH, hlM); h2.scale.setScalar(r * 0.08); h2.position.set(-r * 0.2, -r * 0.18, r * 0.16); pupil.add(h2);
     eye.add(pupil);
-    const pivot = new THREE.Group(); const lid = new THREE.Mesh(LID_GEO, lidM); lid.scale.set(r * 1.14, r * 1.24, r * zs * 1.14); lid.rotation.x = -Math.PI / 2; pivot.add(lid); eye.add(pivot);
+
+    // Smooth eyelid: hidden when wide open, closes cleanly over eyeball without diagonal distortion
+    const pivot = new THREE.Group();
+    const lid = new THREE.Mesh(LID_GEO, lidM);
+    lid.scale.set(r * 1.04, r * 1.12, r * zs * 1.04);
+    lid.rotation.x = -Math.PI / 2;
+    lid.visible = false;
+    pivot.add(lid);
+    eye.add(pivot);
+
     eyes.push({ eye, pupil, pivot, lid, side }); g.add(eye);
   }
 
@@ -122,18 +135,17 @@ export function makeFace(o: FaceOpts): THREE.Group {
     const browColor = typeof o.brows === 'number' ? o.brows : 0x451a03;
     const bm = new THREE.MeshStandardMaterial({ color: browColor, roughness: 0.6 });
     for (const side of [-1, 1]) {
-      const x = side * gap, y = r * 1.5; const m = new THREE.Mesh(SPH, bm);
+      const x = side * gap, y = r * 1.45; const m = new THREE.Mesh(SPH, bm);
       m.scale.set(r * 1.05, r * 0.22, r * 0.3); m.position.set(x, y, sz(x, y) - r * 0.02); g.add(m); brows.push({ m, side, y0: y });
     }
   }
 
   let smile: THREE.Mesh | undefined, open: THREE.Mesh | undefined;
-  // Garis mulut dihapus agar wajah bersih dan gigi tampak rapi
 
   const sweat = new THREE.Mesh(SPH, new THREE.MeshBasicMaterial({ color: 0x7dd3fc })); sweat.scale.set(r * 0.26, r * 0.4, r * 0.2);
   const sx = gap + r * 1.5; sweat.position.set(sx, r * 1.2, sz(sx, r * 1.2) + r * 0.2); sweat.userData.y0 = r * 1.2; sweat.visible = false; g.add(sweat);
 
-  g.userData = { r, bias: o.bias ?? 0, eyes, smile, open, sweat, brows, blinkT: 0.8 + Math.random() * 3, blinkP: 0 };
+  g.userData = { r, bias: o.bias ?? 0, eyes, smile, open, sweat, brows, blinkT: 1.0 + Math.random() * 3, blinkP: 0 };
   return g;
 }
 
@@ -142,21 +154,33 @@ export function updateFace(face: THREE.Object3D, dt: number, time: number, m: Fa
   const u = face.userData as { r: number; bias: number; eyes: EyeRef[]; smile?: THREE.Mesh; open?: THREE.Mesh; sweat: THREE.Mesh; brows?: { m: THREE.Mesh; side: number; y0: number }[]; blinkT: number; blinkP: number };
   if (!u.eyes) return;
   u.blinkT -= dt;
-  if (u.blinkT <= 0 && u.blinkP <= 0) { u.blinkP = 0.001; u.blinkT = Math.random() < 0.22 ? 0.28 : 2 + Math.random() * 3.2; }
+  if (u.blinkT <= 0 && u.blinkP <= 0) { u.blinkP = 0.001; u.blinkT = Math.random() < 0.22 ? 0.28 : 2.5 + Math.random() * 3.5; }
   let blink = 0;
   if (u.blinkP > 0) { u.blinkP += dt / 0.17; if (u.blinkP >= 1) u.blinkP = 0; else blink = Math.sin(u.blinkP * Math.PI); }
-  const foc = m.focus + u.bias;
-  const close = Math.min(1, Math.max(blink, m.squint * 0.8, foc * 0.3, m.worry * 0.18));
-  const tilt = foc * 0.38 + m.squint * 0.3 - m.worry * 0.55;
-  const a = -Math.PI / 2 + close * Math.PI; const r = u.r;
+
+  // Eyelids close cleanly on blink or when squinting from damage/shout
+  const close = Math.min(1, Math.max(blink, m.squint * 0.85, m.worry > 0.6 ? 0.35 : 0));
+  const r = u.r;
   const shake = m.worry * Math.sin(time * 38) * r * 0.06;
+
   for (const e of u.eyes) {
-    e.lid.rotation.x = a; e.pivot.rotation.z = e.side * tilt;
-    e.pupil.position.x = m.lookX * r * 0.34 + shake; e.pupil.position.y = m.lookY * r * 0.3;
+    if (close > 0.05) {
+      e.lid.visible = true;
+      e.lid.rotation.x = -Math.PI / 2 + close * Math.PI;
+    } else {
+      e.lid.visible = false;
+      e.lid.rotation.x = -Math.PI / 2;
+    }
+    e.pivot.rotation.z = 0; // Clean vertical closing without awkward polygon twisting
+    e.pupil.position.x = m.lookX * r * 0.28 + shake;
+    e.pupil.position.y = m.lookY * r * 0.25;
   }
+
+  // Eyebrows express attitude (focus/bias, anger, fear) cleanly
+  const foc = m.focus + u.bias;
   if (u.brows) for (const b of u.brows) {
-    b.m.rotation.z = b.side * (foc * 0.6 + m.squint * 0.2 - m.worry * 0.55);
-    b.m.position.y = b.y0 + (m.worry * 0.3 - foc * 0.18 + m.squint * 0.12) * r;
+    b.m.rotation.z = b.side * (foc * 0.42 + m.squint * 0.2 - m.worry * 0.45);
+    b.m.position.y = b.y0 + (m.worry * 0.22 - foc * 0.14 + m.squint * 0.1) * r;
   }
   const shout = m.squint > 0.35;
   if (u.open) { u.open.visible = shout; if (u.smile) u.smile.visible = !shout; }
