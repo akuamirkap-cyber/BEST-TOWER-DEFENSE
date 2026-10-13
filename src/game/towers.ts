@@ -18,7 +18,7 @@ export interface IdleArc { bolt: Bolt; a: THREE.Vector3; b: THREE.Vector3; t: nu
 /** muzzle position in head-local space (y = height, f = forward distance) – used for projectiles / beams */
 /** x = sideways offset (+ = the tower's right) for weapons held to one side (Amor's bow, Froggy's rod, Pino's ball) */
 export const MUZZLE: Record<TowerType, { y: number; f: number; x?: number }> = {
-  cannon: { y: 0.26, f: 0.84 }, frost: { y: 1.08, f: 0.2 }, blaster: { y: 1.19, f: 0.34 }, tesla: { y: 1.36, f: 0 },
+  cannon: { y: 0.28, f: 0.85 }, frost: { y: 1.08, f: 0.2 }, blaster: { y: 1.19, f: 0.47 }, tesla: { y: 1.36, f: 0 },
   sniper: { y: 0.42, f: 1.16 }, poison: { y: 0.74, f: 0.04 }, banner: { y: 0.6, f: 0 }, flame: { y: 0.22, f: 0.88 },
   trap: { y: 0.2, f: 0 }, repair: { y: 0.6, f: 0 }, shield: { y: 0.5, f: 0 }, plasma: { y: 0.2, f: 0.88 },
   piggy: { y: 0.6, f: 0 }, wind: { y: 0.4, f: 0 }, boomer: { y: 1.0, f: 0 }, mine: { y: 0.3, f: 0 },
@@ -36,7 +36,16 @@ export const MUZZLE: Record<TowerType, { y: number; f: number; x?: number }> = {
 
 export interface TowerModel { group: THREE.Group; head: THREE.Group; muzzle?: THREE.Object3D; beam?: THREE.Mesh; beamGlow?: THREE.Mesh }
 
-const toon = (color: number, rough = 0.5, glow = 0.1) => new THREE.MeshStandardMaterial({ color, roughness: rough, emissive: color, emissiveIntensity: glow });
+const TOON_CACHE = new Map<number, THREE.MeshStandardMaterial>();
+const toon = (color: number, rough = 0.5, glow = 0.1) => {
+  const key = ((color & 0xffffff) << 8) ^ (Math.round(rough * 50) << 4) ^ Math.round(glow * 50);
+  let m = TOON_CACHE.get(key);
+  if (!m) {
+    m = new THREE.MeshStandardMaterial({ color, roughness: rough, emissive: color, emissiveIntensity: glow });
+    TOON_CACHE.set(key, m);
+  }
+  return m;
+};
 
 export function tor(r: number, tube: number, color: number, x = 0, y = 0, z = 0, o: { rx?: number; ry?: number; rz?: number; ol?: boolean; glow?: number } = {}) {
   const m = new THREE.Mesh(new THREE.TorusGeometry(r, tube, 8, 24), toon(color, 0.4, o.glow ?? 0.1));
@@ -188,20 +197,71 @@ export function buildTowerModel(type: TowerType, level: number, def: { color: nu
   let muzzle: THREE.Object3D | undefined, beam: THREE.Mesh | undefined, beamGlow: THREE.Mesh | undefined, face: THREE.Object3D | undefined;
 
   if (type === 'cannon') {
-    // "Bolo": round blue buddy, cannon barrel as its snout, little sailor cap with a fuse
-    const R = 0.38, cy = 0.4;
+    // "Bolo" (Tower Meriam): Adorable, polished naval cannon buddy with sailor cap, wooden carriage wheels & golden brass barrel
+    const R = 0.38, cy = 0.42;
     head.add(S(R, def.color, 0, cy, 0));
-    head.add(S(0.2, 0xe3f0ff, 0, 0.22, 0.27, { sy: 0.8, sz: 0.5, ol: false }));
-    head.add(S(0.31, def.accent, 0, 0.7, -0.02, { sy: 0.55 }));
-    head.add(S(0.055, 0xfbbf24, 0, 0.855, -0.02));
-    for (const sd of [-1, 1]) head.add(C(0.085, 0.085, 0.12, 0xfbbf24, sd * 0.4, 0.42, 0, 10).rotateZ(Math.PI / 2));
-    head.add(C(0.1, 0.13, 0.52, 0x374151, 0, 0.26, 0.5, 12).rotateX(Math.PI / 2));
-    head.add(C(0.155, 0.155, 0.07, 0xfbbf24, 0, 0.26, 0.77, 12).rotateX(Math.PI / 2));
-    head.add(C(0.08, 0.08, 0.02, 0x0b0b12, 0, 0.26, 0.806, 12, { ol: false }).rotateX(Math.PI / 2));
-    head.add(C(0.014, 0.014, 0.16, 0x9ca3af, 0, 0.93, -0.02, 6, { ol: false }));
-    const fl = makeFlame(0.09); fl.position.set(0, 1.0, -0.02); head.add(fl); flames.push(fl);
-    face = makeFace({ r: 0.13, gap: 0.16, iris: 0x1d4ed8, skin: def.color, mouth: 'none', body: { R, cy, y0: 0.55 } });
-    muzzle = makeBlast(0.5); muzzle.position.set(0, 0.26, 0.82); head.add(muzzle);
+    // Soft creamy light-blue belly patch
+    head.add(S(0.22, 0xdbeafe, 0, 0.25, 0.26, { sy: 0.82, sz: 0.5, ol: false }));
+
+    // Cute naval carriage mount: chunky wooden side cheeks with polished golden rivets & wheel hubs
+    for (const sd of [-1, 1]) {
+      // Wooden carriage cheek
+      head.add(B(0.065, 0.2, 0.28, 0x78350f, sd * 0.37, 0.22, -0.02, { ol: true }));
+      // Golden axle bolt
+      head.add(S(0.048, 0xfbbf24, sd * 0.41, 0.22, -0.02, { glow: 0.3 }));
+      // Cute wooden cannon wheel with golden hubcap
+      const wheel = C(0.145, 0.145, 0.055, 0x92400e, sd * 0.42, 0.17, -0.02, 14, { ol: true });
+      wheel.rotation.z = Math.PI / 2;
+      head.add(wheel);
+      head.add(S(0.055, 0xfbbf24, sd * 0.46, 0.17, -0.02, { glow: 0.3 }));
+      // Cute chubby little blue hands resting on the carriage
+      head.add(S(0.075, def.color, sd * 0.35, 0.28, 0.2, { ol: true }));
+    }
+
+    // Stylized, heavy cast-iron cannon barrel with golden trimmings
+    // Cascabel sphere at the back of the cannon
+    head.add(S(0.095, 0x0f172a, 0, 0.28, 0.14, { ol: true }));
+    // Tapered gunmetal barrel
+    const barrel = C(0.115, 0.155, 0.56, 0x1e293b, 0, 0.28, 0.48, 14, { ol: true });
+    barrel.rotation.x = Math.PI / 2;
+    head.add(barrel);
+    // Golden flared muzzle ring
+    const muzzleRing = C(0.175, 0.175, 0.09, 0xfbbf24, 0, 0.28, 0.76, 14, { glow: 0.25 });
+    muzzleRing.rotation.x = Math.PI / 2;
+    head.add(muzzleRing);
+    // Golden reinforcement band in the middle
+    const band = C(0.16, 0.16, 0.05, 0xfbbf24, 0, 0.28, 0.44, 14, { glow: 0.2 });
+    band.rotation.x = Math.PI / 2;
+    head.add(band);
+    // Dark hollow interior bore
+    const bore = C(0.095, 0.095, 0.02, 0x030712, 0, 0.28, 0.81, 12, { ol: false });
+    bore.rotation.x = Math.PI / 2;
+    head.add(bore);
+
+    // Extra level upgrades: golden stars and extra bands
+    if (level >= 2) {
+      const band2 = C(0.165, 0.165, 0.04, 0xfbbf24, 0, 0.28, 0.32, 14, { glow: 0.3 });
+      band2.rotation.x = Math.PI / 2;
+      head.add(band2);
+    }
+    if (level >= 3) {
+      head.add(S(0.06, 0xfde047, 0, 0.43, 0.58, { glow: 0.6 })); // Golden star crest on the barrel
+    }
+
+    // Cute sailor captain hat
+    const hatBrim = C(0.32, 0.32, 0.05, 0x1e3a8a, 0, 0.73, -0.02, 16);
+    head.add(hatBrim);
+    head.add(S(0.28, 0xffffff, 0, 0.82, -0.02, { sy: 0.65 }));
+    // Gold anchor/star badge on the front of the cap
+    head.add(S(0.055, 0xfbbf24, 0, 0.78, 0.26, { glow: 0.4 }));
+    head.add(B(0.07, 0.025, 0.02, 0xfbbf24, 0, 0.75, 0.265));
+    // Cute curling wick fuse at the back
+    head.add(C(0.015, 0.015, 0.16, 0xa8a29e, 0, 0.98, -0.05, 6, { ol: false }));
+    const fl = makeFlame(0.095); fl.position.set(0, 1.06, -0.05); head.add(fl); flames.push(fl);
+
+    // Cute expressive face with cheerful smile and blushing pink cheeks
+    face = makeFace({ r: 0.135, gap: 0.17, iris: 0x2563eb, skin: def.color, mouth: 'smile', cheeks: true, brows: 0x1e3a8a, body: { R, cy, y0: 0.58 } });
+    muzzle = makeBlast(0.55); muzzle.position.set(0, 0.28, 0.83); head.add(muzzle);
   } else if (type === 'frost') {
     // "Pingu": snowman with a cyan scarf, carrot nose and a spinning ice crown that fires the beam
     const R2 = 0.23, c2 = 0.66;
@@ -217,20 +277,92 @@ export function buildTowerModel(type: TowerType, level: number, def: { color: nu
     face = makeFace({ r: 0.1, gap: 0.1, iris: 0x0ea5e9, skin: 0xf6fdff, mouth: 'none', body: { R: R2, cy: c2, y0: 0.72 } });
     muzzle = makeBlast(0.48, 0xffffff, 0xbbf2f6, 0x38bdf8); muzzle.position.set(0, 1.08, 0.2); head.add(muzzle);
   } else if (type === 'blaster') {
-    // "Boomy": squat orange bomb-buddy wearing a belt, mortar tube as a chimney hat with a lit fuse
-    const R = 0.42, cy = 0.38, sy = 0.88;
+    // "Boomy" (Tower Mortir): Super cute chubby bomb-artillery buddy with aviator goggles, utility belt & wide-bore mortar launcher
+    const R = 0.42, cy = 0.38, sy = 0.92;
     head.add(S(R, def.color, 0, cy, 0, { sy }));
-    const belt = new THREE.Mesh(new THREE.TorusGeometry(0.365, 0.05, 8, 22), toon(0xfbbf24, 0.4, 0.15)); belt.rotation.x = Math.PI / 2; belt.position.y = 0.2; belt.castShadow = true; head.add(belt);
-    head.add(B(0.1, 0.1, 0.04, 0xfde68a, 0, 0.2, 0.375, { lit: true }));
-    const pivot = new THREE.Group(); pivot.position.set(0, 0.62, -0.14); pivot.rotation.x = 0.7; head.add(pivot);
-    pivot.add(C(0.17, 0.22, 0.7, 0x2d3340, 0, 0.35, 0, 12));
-    pivot.add(C(0.24, 0.24, 0.06, 0xfbbf24, 0, 0.2, 0, 12));
-    pivot.add(C(0.235, 0.235, 0.09, def.accent, 0, 0.7, 0, 12, { glow: 0.3 }));
-    pivot.add(C(0.15, 0.15, 0.02, 0x07070c, 0, 0.745, 0, 12, { ol: false }));
-    muzzle = makeBlast(0.65, 0xfff3b0, 0xffa11f, 0xff5a1a, 'y'); muzzle.position.set(0, 0.78, 0); pivot.add(muzzle);
-    head.add(C(0.02, 0.02, 0.2, 0x9ca3af, 0, 0.7, -0.34, 6, { ol: false }));
-    const fl = makeFlame(0.1); fl.position.set(0, 0.8, -0.34); head.add(fl); flames.push(fl);
-    face = makeFace({ r: 0.13, gap: 0.17, iris: 0x7c2d12, skin: def.color, mouth: 'grin', body: { R, cy, sy, y0: 0.5 } });
+    // Sunny cream belly patch
+    head.add(S(0.24, 0xfef08a, 0, 0.24, 0.29, { sy: 0.85, sz: 0.5, ol: false }));
+
+    // Leather demolition utility belt with golden buckle & mini mortar cartridges
+    const belt = tor(0.38, 0.045, 0x451a03, 0, 0.18, 0, { rx: Math.PI / 2 });
+    head.add(belt);
+    // Gold buckle
+    head.add(B(0.12, 0.09, 0.04, 0xfbbf24, 0, 0.18, 0.39, { lit: true }));
+    head.add(B(0.06, 0.045, 0.05, 0x27272a, 0, 0.18, 0.4));
+    // Mini mortar cartridges on sides
+    for (const sd of [-1, 1]) {
+      const shell = C(0.045, 0.045, 0.12, 0xf97316, sd * 0.28, 0.18, 0.33, 8);
+      shell.rotation.x = -0.2;
+      head.add(shell);
+      head.add(S(0.045, 0xfbbf24, sd * 0.28, 0.24, 0.33, { glow: 0.3 }));
+      // Cute chubby hands resting proudly on its belt/hips
+      head.add(S(0.08, def.color, sd * 0.38, 0.24, 0.16, { ol: true }));
+    }
+
+    // Demolition aviator goggles pushed up on forehead
+    const strap = tor(0.4, 0.028, 0x451a03, 0, 0.62, 0, { rx: Math.PI / 2 });
+    head.add(strap);
+    for (const sd of [-1, 1]) {
+      // Brass goggle rim
+      const rim = C(0.1, 0.1, 0.045, 0xfbbf24, sd * 0.18, 0.64, 0.34, 12, { glow: 0.2 });
+      rim.rotation.x = 0.4;
+      head.add(rim);
+      // Glowing sky-blue glass lens
+      head.add(S(0.075, 0x38bdf8, sd * 0.18, 0.64, 0.36, { glow: 0.6, ol: false }));
+    }
+
+    // Sturdy mortar swivel base collar
+    head.add(C(0.24, 0.27, 0.12, 0x27272a, 0, 0.64, -0.06, 14, { ol: true }));
+    // Elevation quadrant gears & trunnion pivot bolts on sides
+    for (const sd of [-1, 1]) {
+      const gear = C(0.12, 0.12, 0.04, 0xd97706, sd * 0.25, 0.72, -0.06, 10, { ol: true });
+      gear.rotation.z = Math.PI / 2;
+      head.add(gear);
+      head.add(S(0.048, 0xfbbf24, sd * 0.28, 0.72, -0.06, { glow: 0.3 }));
+    }
+
+    // Heavy wide-bore siege mortar tube angled upward at ~60° high artillery arc
+    const pivot = new THREE.Group();
+    pivot.position.set(0, 0.72, -0.06);
+    pivot.rotation.x = 0.85; // angled high for mortar lob
+    head.add(pivot);
+
+    // Chunky wide-bore tube
+    pivot.add(C(0.22, 0.26, 0.62, 0x1f242d, 0, 0.32, 0, 14, { ol: true }));
+    // Thick golden reinforced muzzle ring
+    pivot.add(C(0.275, 0.275, 0.09, 0xfbbf24, 0, 0.62, 0, 14, { glow: 0.3 }));
+    // Accent ring with warm glow
+    pivot.add(C(0.255, 0.255, 0.06, def.accent, 0, 0.22, 0, 14, { glow: 0.35 }));
+    // Deep dark interior launch bore
+    pivot.add(C(0.185, 0.185, 0.03, 0x09090b, 0, 0.665, 0, 12, { ol: false }));
+
+    // Level upgrades: reinforced banding
+    if (level >= 2) {
+      pivot.add(C(0.265, 0.265, 0.05, 0xfbbf24, 0, 0.44, 0, 14, { glow: 0.3 }));
+    }
+    if (level >= 3) {
+      for (let i = 0; i < 4; i++) {
+        const a = (i * Math.PI) / 2;
+        pivot.add(S(0.04, 0xfde047, Math.cos(a) * 0.27, 0.52, Math.sin(a) * 0.27, { glow: 0.7 }));
+      }
+    }
+
+    // Muzzle blast flash (throwaway effect scaled when firing)
+    muzzle = makeBlast(0.68, 0xfff3b0, 0xffa11f, 0xff5a1a, 'y');
+    muzzle.position.set(0, 0.7, 0);
+    pivot.add(muzzle);
+
+    // Curling fuse cord extending from the breech of the mortar tube
+    const fuse = C(0.018, 0.018, 0.18, 0xa1a1aa, 0, 0.1, -0.22, 6, { ol: false });
+    fuse.rotation.x = -0.5;
+    head.add(fuse);
+    const fl = makeFlame(0.11);
+    fl.position.set(0, 0.19, -0.26);
+    head.add(fl);
+    flames.push(fl);
+
+    // Cute mischievous grin face with blushing cheeks and dark eyebrows
+    face = makeFace({ r: 0.135, gap: 0.17, iris: 0x9a3412, skin: def.color, mouth: 'grin', cheeks: true, brows: 0x7c2d12, body: { R, cy, sy, y0: 0.52 } });
   } else if (type === 'tesla') {
     // "Zappy": coil-body creature with a glowing glass bulb head, antennae and orbiting sparks
     head.add(C(0.3, 0.34, 0.24, 0x6d28d9, 0, 0.12, 0, 14));
@@ -1164,30 +1296,6 @@ export function buildTowerModel(type: TowerType, level: number, def: { color: nu
     starCrown.position.set(0, 0.74, 0);
     highSpire.add(starCrown);
     palace.add(highSpire);
-
-    // 7. Wajah Imut Komandan Penjaga Istana (Cute Royal Castle Commander Face)
-    // Tampil manis & ramah di balkon istana dengan mahkota emas kerajaan
-    face = makeFace({
-      r: 0.115,
-      gap: 0.155,
-      iris: 0x0284c7,
-      skin: 0xf1f5f9,
-      mouth: 'smile',
-      bias: 0.22,
-      brows: 0xd97706,
-      body: { kind: 'cyl', R: 0.28, cy: 0.48, y0: 0.58 },
-    });
-
-    // Mahkota emas kerajaan mungil di dahi/atas wajah komandan istana
-    const crown = new THREE.Group();
-    crown.position.set(0, 0.68, 0.25);
-    crown.add(C(0.09, 0.08, 0.05, 0xfbbf24, 0, 0, 0, 12, { glow: 0.4 }));
-    for (let c = 0; c < 5; c++) {
-      const ca = (c / 5) * Math.PI - Math.PI / 2;
-      crown.add(cone(0.022, 0.06, 0xfbbf24, Math.sin(ca) * 0.08, 0.05, Math.cos(ca) * 0.08, 5));
-    }
-    crown.add(shard(0.025, 0x38bdf8, 1.5).rotateX(0.2));
-    palace.add(crown);
   } else {
     // "Sir Bubbo": knight with a blue helmet & red plume, three orbiting shield plates and a protective dome
     const R = 0.37, cy = 0.38, sy = 0.95;

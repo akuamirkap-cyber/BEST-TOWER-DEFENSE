@@ -646,13 +646,13 @@ export function buildWorld(o: WorldOpts): World {
     const mb = boulderMB(rng, B.strata[i % B.strata.length], undefined), b = mb.build(); track(b.geo); track(b.ol); const g = staticGroup(b); g.scale.setScalar(0.5 + rng() * 0.5);
     const side = rng() < 0.5 ? -1 : 1; g.position.set(side * (8 + rng() * 4), -3.6 - rng() * 3.2, (rng() - 0.3) * 9); g.rotation.set(rng(), rng() * 6, rng()); group.add(g); rocks.push({ m: g, y0: g.position.y, ph: rng() * 6.28 });
   }
-  const FLY = 34, flyMat = track(new THREE.MeshBasicMaterial({ color: B.fly })), haloMat = track(new THREE.MeshBasicMaterial({ color: B.fly, transparent: true, opacity: 0.22, blending: THREE.AdditiveBlending, depthWrite: false }));
+  const FLY = 18, flyMat = track(new THREE.MeshBasicMaterial({ color: B.fly })), haloMat = track(new THREE.MeshBasicMaterial({ color: B.fly, transparent: true, opacity: 0.22, blending: THREE.AdditiveBlending, depthWrite: false }));
   const flies = new THREE.InstancedMesh(LOWSPH, flyMat, FLY), halos = new THREE.InstancedMesh(LOWSPH, haloMat, FLY); flies.frustumCulled = halos.frustumCulled = false; group.add(flies, halos);
   const fb: { x: number; y: number; z: number; ph: number }[] = [];
   for (let i = 0; i < FLY; i++) { let x = 0, z = 0; for (let a = 0; a < 20; a++) { x = (rng() - 0.5) * 2 * hx; z = (rng() - 0.5) * 2 * hz; if (sdIsland(x, z) < -0.8) break; } fb.push({ x, y: 0.5 + rng() * 1.4, z, ph: rng() * 6.28 }); }
 
   // ----- leaves / petals / snowflakes / sprinkles drifting down (the colours depend on the biome) -----
-  const FALL = 46;
+  const FALL = 22;
   const fallCols = B.snow ? [0xffffff, 0xe4f6ff, 0xc9ecff] : B.name === 'Negeri Permen' ? B.candy.concat([0xffffff]) : B.name === 'Musim Gugur' ? B.leaf : B.name === 'Hutan Kristal' ? B.crystal : B.blossom.concat(B.leaf);
   const fallers = new THREE.InstancedMesh(LOWSPH, track(new THREE.MeshBasicMaterial({ side: THREE.DoubleSide })), FALL); fallers.frustumCulled = false; group.add(fallers);
   const fl: { x: number; z: number; ph: number; sp: number; sz: number; dr: number }[] = []; const fcol = new THREE.Color();

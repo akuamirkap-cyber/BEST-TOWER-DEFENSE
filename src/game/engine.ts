@@ -201,7 +201,7 @@ const KNIGHT_SCALE = 0.55;
 /** an airborne space bounty hunter of the Aero Hunter Barracks tower */
 interface AeroTrooper {
   id: number; group: THREE.Group; rig: THREE.Group; limbs: Record<string, THREE.Group>;
-  jetFlames: THREE.Object3D[]; blasterMuzzle: THREE.Object3D; visor: THREE.Mesh;
+  jetFlames: THREE.Object3D[]; blasterMuzzle: THREE.Object3D; visor: THREE.Object3D;
   state: 'launch' | 'hover' | 'burst' | 'shoot' | 'down';
   t: number; hp: number; maxHp: number; target: Enemy | null;
   cd: number; burstCd: number; burstT: number;
@@ -260,8 +260,8 @@ class Particles {
   pos: Float32Array; vel: Float32Array; life: Float32Array; maxLife: Float32Array; size: Float32Array; alive: Uint8Array; grav: Float32Array;
   dummy = new THREE.Object3D(); cursor = 0; smoke = new Uint8Array(1100);
   constructor(scene: THREE.Scene) {
-    this.mesh = new THREE.InstancedMesh(BOX, new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.6 }), this.n);
-    this.mesh.frustumCulled = false; this.mesh.castShadow = true;
+    this.mesh = new THREE.InstancedMesh(BOX, new THREE.MeshBasicMaterial({ color: 0xffffff }), this.n);
+    this.mesh.frustumCulled = false; this.mesh.castShadow = false; // Disable particle shadow casting for massive shadow pass speedup
     this.pos = new Float32Array(this.n * 3); this.vel = new Float32Array(this.n * 3); this.grav = new Float32Array(this.n);
     this.life = new Float32Array(this.n); this.maxLife = new Float32Array(this.n); this.size = new Float32Array(this.n); this.alive = new Uint8Array(this.n);
     for (let i = 0; i < this.n; i++) { this.dummy.scale.setScalar(0); this.dummy.updateMatrix(); this.mesh.setMatrixAt(i, this.dummy.matrix); this.mesh.setColorAt(i, new THREE.Color(1, 1, 1)); }
@@ -289,8 +289,10 @@ class Particles {
     if (this.mesh.instanceColor) this.mesh.instanceColor.needsUpdate = true;
   }
   update(dt: number) {
+    let anyAlive = false;
     for (let i = 0; i < this.n; i++) {
       if (!this.alive[i]) continue;
+      anyAlive = true;
       this.life[i] -= dt;
       if (this.life[i] <= 0) { this.alive[i] = 0; this.dummy.scale.setScalar(0); this.dummy.updateMatrix(); this.mesh.setMatrixAt(i, this.dummy.matrix); continue; }
       this.vel[i * 3 + 1] -= this.grav[i] * dt;
@@ -305,7 +307,7 @@ class Particles {
       } else this.dummy.scale.setScalar(this.size[i] * Math.min(1, t * 2));
       this.dummy.updateMatrix(); this.mesh.setMatrixAt(i, this.dummy.matrix);
     }
-    this.mesh.instanceMatrix.needsUpdate = true;
+    if (anyAlive) this.mesh.instanceMatrix.needsUpdate = true;
   }
 }
 
@@ -320,17 +322,18 @@ export class Game {
   particles: Particles; hover: THREE.Mesh; hoverRing: THREE.Mesh; selRing: THREE.Mesh;
   crystal?: THREE.Mesh; crystalLight?: THREE.PointLight;
   spawnQueue: EnemyType[] = []; spawnTimer = 0; hpMult = 1; spdMult = 1;
-  shake = 0; raf = 0; lastEmit = 0; dirty = true; time = 0; nextId = 1; floatId = 1;
+  shake = 0; raf = 0; lastEmit = 0; lastScreen = 'menu'; dirty = true; time = 0; nextId = 1; floatId = 1;
+  canvasWidth = 0; canvasHeight = 0; canvasLeft = 0; canvasTop = 0; zoomLevel = 1.0;
   selectedTowerId: number | null = null; pointerDown: { x: number; y: number } | null = null;
   ray = new THREE.Raycaster(); plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
   canvas: HTMLCanvasElement; sfx = new Sfx(); clock = new THREE.Clock(); ro?: ResizeObserver;
-  camTarget = new THREE.Vector3(0, 0, 2.0);
+  camTarget = new THREE.Vector3(0, 0, 0.72);
 
   constructor(canvas: HTMLCanvasElement, onState: (s: GameState) => void, onFloat: (f: FloatText) => void) {
     this.canvas = canvas; this.onState = onState; this.onFloat = onFloat;
-    this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    this.renderer.shadowMap.enabled = true; this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+    this.renderer.shadowMap.enabled = true; this.renderer.shadowMap.type = THREE.PCFShadowMap;
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping; this.renderer.toneMappingExposure = 1.05;
     this.scene = new THREE.Scene();
@@ -339,10 +342,10 @@ export class Game {
     this.camera = new THREE.PerspectiveCamera(40, 1, 0.1, 120);
     this.scene.add(new THREE.HemisphereLight(0xffffff, 0x7fb069, 0.7));
     const sun = new THREE.DirectionalLight(0xfff3dc, 1.9); sun.position.set(11, 20, 9); sun.castShadow = true;
-    sun.shadow.mapSize.set(2048, 2048); sun.shadow.camera.left = -16; sun.shadow.camera.right = 16; sun.shadow.camera.top = 16; sun.shadow.camera.bottom = -16;
-    sun.shadow.camera.near = 1; sun.shadow.camera.far = 60; sun.shadow.bias = -0.0006; sun.shadow.normalBias = 0.02;
+    sun.shadow.mapSize.set(1024, 1024); sun.shadow.camera.left = -11; sun.shadow.camera.right = 11; sun.shadow.camera.top = 9; sun.shadow.camera.bottom = -9;
+    sun.shadow.camera.near = 4; sun.shadow.camera.far = 48; sun.shadow.bias = -0.0005; sun.shadow.normalBias = 0.02;
     this.scene.add(sun); this.scene.add(new THREE.AmbientLight(0xffffff, 0.15));
-    for (let i = 0; i < 8; i++) { const l = new THREE.PointLight(0xffffff, 0, 6); l.userData.life = 0; this.scene.add(l); this.lights.push(l); }
+    for (let i = 0; i < 8; i++) { const l = new THREE.PointLight(0xffffff, 0, 6); l.userData.life = 0; l.visible = false; this.scene.add(l); this.lights.push(l); }
 
     this.particles = new Particles(this.scene);
     // ragdoll for dead orcs; a soft puff of pale dust where a piece hits the ground hard
@@ -799,10 +802,34 @@ export class Game {
     });
     c.addEventListener('pointermove', e => { if (e.pointerType === 'mouse') this.onHover(e.clientX, e.clientY); });
     c.addEventListener('pointerleave', () => { this.hover.visible = false; this.hoverRing.visible = false; });
+    // Smooth wheel zoom for player: allows zooming in/out to inspect the action or see wide terrain
+    c.addEventListener('wheel', e => {
+      e.preventDefault();
+      const delta = Math.sign(e.deltaY) * 0.055;
+      this.zoomLevel = THREE.MathUtils.clamp(this.zoomLevel + delta, 0.65, 1.35);
+    }, { passive: false });
+    // Mobile pinch zoom
+    let touchDist0 = 0;
+    c.addEventListener('touchstart', e => {
+      if (e.touches.length === 2) {
+        touchDist0 = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+      }
+    }, { passive: true });
+    c.addEventListener('touchmove', e => {
+      if (e.touches.length === 2 && touchDist0 > 0) {
+        const d = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+        if (d > 0) {
+          const factor = touchDist0 / d;
+          this.zoomLevel = THREE.MathUtils.clamp(this.zoomLevel * (1 + (factor - 1) * 0.4), 0.65, 1.35);
+          touchDist0 = d;
+        }
+      }
+    }, { passive: true });
   }
   pick(cx: number, cy: number) {
-    const rect = this.canvas.getBoundingClientRect();
-    const ndc = new THREE.Vector2(((cx - rect.left) / rect.width) * 2 - 1, -((cy - rect.top) / rect.height) * 2 + 1);
+    const w = this.canvasWidth || (this.canvasWidth = this.canvas.clientWidth || window.innerWidth);
+    const h = this.canvasHeight || (this.canvasHeight = this.canvas.clientHeight || window.innerHeight);
+    const ndc = new THREE.Vector2(((cx - this.canvasLeft) / w) * 2 - 1, -((cy - this.canvasTop) / h) * 2 + 1);
     this.ray.setFromCamera(ndc, this.camera); const p = new THREE.Vector3();
     if (!this.ray.ray.intersectPlane(this.plane, p)) return null;
     const c = Math.floor(p.x + W / 2), r = Math.floor(p.z + H / 2);
@@ -828,7 +855,7 @@ export class Game {
   // ---------- FX helpers ----------
   flash(pos: THREE.Vector3, color: number, intensity: number, dist = 5) {
     const l = this.lights[this.lightIdx]; this.lightIdx = (this.lightIdx + 1) % this.lights.length;
-    l.position.copy(pos); l.color.setHex(color); l.intensity = intensity; l.distance = dist; l.userData.life = 1;
+    l.position.copy(pos); l.color.setHex(color); l.intensity = intensity; l.distance = dist; l.userData.life = 1; l.visible = true;
   }
   ring(pos: THREE.Vector3, color: number, s0: number, s1: number, life: number, geo: THREE.BufferGeometry = RING, opacity = 0.9, rise = 0) {
     // no black "oil slick" scorch discs on the ground: a dark ring becomes a quick, pale dust ring instead
@@ -1066,8 +1093,10 @@ export class Game {
     if (this.debris.length > 160) { const d = this.debris.shift()!; this.scene.remove(d.obj); }
   }
   float(text: string, world: THREE.Vector3, color: string) {
-    const v = world.clone().project(this.camera); const rect = this.canvas.getBoundingClientRect();
-    this.onFloat({ id: this.floatId++, x: (v.x * 0.5 + 0.5) * rect.width, y: (-v.y * 0.5 + 0.5) * rect.height, text, color });
+    const v = world.clone().project(this.camera);
+    const w = this.canvasWidth || (this.canvasWidth = this.canvas.clientWidth || window.innerWidth);
+    const h = this.canvasHeight || (this.canvasHeight = this.canvas.clientHeight || window.innerHeight);
+    this.onFloat({ id: this.floatId++, x: (v.x * 0.5 + 0.5) * w, y: (-v.y * 0.5 + 0.5) * h, text, color });
   }
   enemyCenter(e: Enemy) {
     if (e.type === 'balloon') return e.group.position.clone().setY(e.group.position.y + e.size * 2.3);
@@ -2549,14 +2578,22 @@ export class Game {
   loop = () => {
     this.raf = requestAnimationFrame(this.loop);
     const dt = Math.min(0.05, this.clock.getDelta());
-    const steps = this.state.screen === 'playing' ? this.state.speed : 1;
-    for (let i = 0; i < steps; i++) { this.time += dt; this.update(dt); }
+    const speed = this.state.screen === 'playing' ? this.state.speed : 1;
+    // Smooth time-scaled substepping: avoid CPU choke at 2x/4x speed by using at most 2 balanced sub-steps
+    const totalDt = Math.min(0.12, dt * speed);
+    const subSteps = totalDt > 0.045 ? 2 : 1;
+    const stepDt = totalDt / subSteps;
+    for (let i = 0; i < subSteps; i++) { this.time += stepDt; this.update(stepDt); }
     if (this.world) { this.world.pads.visible = this.state.screen === 'playing'; this.world.update(this.clock.elapsedTime); }
-    if (this.state.screen !== 'select') this.render(); // the select screen is opaque and runs its own 3D horde preview, so don't draw the level behind it
+    // Only render 3D scene when level is visible (saves 100% of GPU rendering during full-screen menu / select screens)
+    if (this.state.screen === 'playing' || this.state.screen === 'levelComplete' || this.state.screen === 'gameOver') {
+      this.render();
+    }
     this.syncAudio();
     const now = performance.now();
-    if (this.dirty || now - this.lastEmit > 120) {
-      this.lastEmit = now; this.dirty = false;
+    const screenChanged = this.lastScreen !== this.state.screen;
+    if (screenChanged || ((this.dirty || now - this.lastEmit > 110) && now - this.lastEmit >= 65)) {
+      this.lastEmit = now; this.dirty = false; this.lastScreen = this.state.screen;
       const t = this.towers.find(x => x.id === this.selectedTowerId);
       this.state.selectedTower = t ? { id: t.id, type: t.type, level: t.level, upgradeCost: this.upgradeCost(t.type, t.level), sellValue: Math.round(t.invested * 0.7), dmg: t.type === 'plasma' ? Math.round(this.towerStats(t.type, t.level, t.buff).dmg / this.towerStats(t.type, t.level).rate) : this.towerStats(t.type, t.level, t.buff).dmg, range: this.towerStats(t.type, t.level).range.toFixed(1), buff: t.buff, hp: Math.ceil(t.hp) } : null;
       this.state.enemiesLeft = this.enemies.length + this.spawnQueue.length;
@@ -2657,7 +2694,7 @@ export class Game {
       }
       if (t.type === 'banner') { t.pulseT -= dt; if (t.pulseT <= 0) { t.pulseT = 2.5; this.ring(t.group.position.clone().setY(0.08), 0xfbbf24, 0.3, 1.9, 0.9, RING, 0.6); } }
     }
-    for (const l of this.lights) { if (l.userData.life > 0) { l.userData.life -= dt * 7; l.intensity *= Math.max(0, 1 - dt * 9); if (l.userData.life <= 0) l.intensity = 0; } }
+    for (const l of this.lights) { if (l.userData.life > 0) { l.userData.life -= dt * 7; l.intensity *= Math.max(0, 1 - dt * 9); if (l.userData.life <= 0 || l.intensity <= 0.05) { l.intensity = 0; l.visible = false; } } }
     this.arcs = this.arcs.filter(z => {
       z.life -= dt; if (z.life <= 0) { this.releaseBolt(z.bolt); return false; }
       z.rs -= dt; if (z.rs <= 0) { z.bolt.reseed(); z.rs = 0.045; }
@@ -2666,7 +2703,7 @@ export class Game {
     });
     if (!playing) for (const t of this.towers) if (t.arc) { this.releaseBolt(t.arc); t.arc = undefined; }
     this.fx = this.fx.filter(f => {
-      f.life -= dt; if (f.life <= 0) { this.scene.remove(f.mesh); return false; }
+      f.life -= dt; if (f.life <= 0) { this.scene.remove(f.mesh); if (f.mesh instanceof THREE.Mesh) (f.mesh.material as THREE.Material)?.dispose?.(); return false; }
       const t = 1 - f.life / f.max; const op = (f.max > 2 ? Math.min(1, f.life / 1.5) : 1 - t) * 0.9;
       if (f.fixed) {
         f.mesh.traverse(o => { const m = (o as THREE.Mesh).material as THREE.MeshBasicMaterial | undefined; if (m) m.opacity = op * ((m.userData.k as number | undefined) ?? 1); }); // userData.k = per-layer brightness (soft halo vs. hot core)
@@ -2698,6 +2735,7 @@ export class Game {
         this.spawnTimer -= dt;
         if (this.spawnTimer <= 0) { const type = this.spawnQueue.shift()!; this.spawnEnemy(type); this.spawnTimer = type === 'boss' || type === 'dragon' || type === 'dread' ? 1.4 : type === 'legion' ? 0.5 : Math.max(0.35, 0.75 - s.level * 0.03); }
       }
+      const clockTowers = this.towers.filter(t => t.type === 'clock' && !t.dead && (t.frozenT ?? 0) <= 0);
       const tmp = new THREE.Vector3(), tmp2 = new THREE.Vector3();
       for (const e of this.enemies) {
         // A unit killed by a tower / mine / boomerang AFTER this loop ran last frame is still in the list until the next filter.
@@ -2710,8 +2748,8 @@ export class Game {
         if ((e.shockT ?? 0) > 0) mult *= 0.75;
         // Clock Tower: slow down enemies ONLY while strictly inside the tower's radius (no lingering aura)
         let clockSlow = 1;
-        for (const t of this.towers) {
-          if (t.type === 'clock' && !t.dead) {
+        if (clockTowers.length > 0) {
+          for (const t of clockTowers) {
             const st = this.towerStats(t.type, t.level, t.buff);
             const tp = t.group.position;
             const dx = e.group.position.x - tp.x, dz = e.group.position.z - tp.z;
@@ -2750,8 +2788,8 @@ export class Game {
         // gunner & balloon: walk/fly while shooting nearest tower
         let aimAt: Tower | null = null;
         if ((e.type === 'gunner' || e.type === 'balloon') && e.stunT <= 0 && !dazed) {
-          let best: Tower | null = null, bd = e.type === 'balloon' ? 4.2 : 3.6;
-          for (const t of this.towers) { const d = t.group.position.distanceTo(e.group.position); if (d < bd) { bd = d; best = t; } }
+          let best: Tower | null = null, bd = e.type === 'balloon' ? 4.2 : 3.6; let bd2 = bd * bd;
+          for (const t of this.towers) { const dx = t.group.position.x - e.group.position.x, dz = t.group.position.z - e.group.position.z; const d2 = dx * dx + dz * dz; if (d2 < bd2) { bd2 = d2; best = t; } }
           if (best) {
             aimAt = best; e.shootT -= dt; if (e.type === 'gunner') mult *= 0.55;
             if (e.shootT <= 0) {
@@ -2769,8 +2807,8 @@ export class Game {
         else if (e.type === 'captain') this.captainAI(e, dt);
         // dragon rider: hover over the nearest tower and roast it with a stream of fire – 5 HP/s, so a full 20-HP tower burns down in 4 seconds
         if (e.type === 'dragon') {
-          let tg: Tower | null = e.breathTarget && !e.breathTarget.dead && this.towers.includes(e.breathTarget) && e.breathTarget.group.position.distanceTo(e.group.position) <= 3.6 ? e.breathTarget : null;
-          if (!tg && e.stunT <= 0 && !dazed) { let bd = 3.1; for (const t of this.towers) { const d = Math.hypot(t.group.position.x - e.group.position.x, t.group.position.z - e.group.position.z); if (d < bd) { bd = d; tg = t; } } }
+          let tg: Tower | null = e.breathTarget && !e.breathTarget.dead && this.towers.includes(e.breathTarget) && (e.breathTarget.group.position.x - e.group.position.x) * (e.breathTarget.group.position.x - e.group.position.x) + (e.breathTarget.group.position.z - e.group.position.z) * (e.breathTarget.group.position.z - e.group.position.z) <= 3.6 * 3.6 ? e.breathTarget : null;
+          if (!tg && e.stunT <= 0 && !dazed) { let bd2 = 3.1 * 3.1; for (const t of this.towers) { const dx = t.group.position.x - e.group.position.x, dz = t.group.position.z - e.group.position.z; const d2 = dx * dx + dz * dz; if (d2 < bd2) { bd2 = d2; tg = t; } } }
           e.breathTarget = tg;
           if (tg && e.stunT <= 0 && !dazed) { mult *= 0.12; this.dragonBreath(e, tg, dt); } else this.stopBreath(e);
         }
@@ -3361,7 +3399,12 @@ export class Game {
           const arm = t.head.getObjectByName('hammer');
           if (t.cooldown <= 0) {
             t.cooldown = st.rate / (1 + 0.5 * (t.level - 1)); let best: Tower | null = null;
-            for (const o of this.towers) if (o !== t && o.hp < TOWER_HP && o.group.position.distanceTo(tp) <= st.range && (!best || o.hp < best.hp)) best = o;
+            for (const o of this.towers) {
+              if (o !== t && o.hp < TOWER_HP) {
+                const dx = o.group.position.x - tp.x, dz = o.group.position.z - tp.z;
+                if (dx * dx + dz * dz <= st.range * st.range && (!best || o.hp < best.hp)) best = o;
+              }
+            }
             if (best) { this.setTowerHp(best, best.hp + 2); const p = best.group.position.clone().setY(1.2); this.particles.emit(p, 0x6ee7b7, 5, 0.6, 0.06, 0.6, 1.5, -1); this.bolt(tp.clone().setY(0.9), p, 0xfda4af, 0.04, 0.2, 0.1); t.recoil = 1; this.sfx.repair(); }
           }
           if (arm) arm.rotation.x = -0.8 + t.recoil * 1.2;
@@ -3371,8 +3414,17 @@ export class Game {
         if (t.type === 'gravity') { this.gravityTick(t, st, dt); continue; }
         const can = (e: Enemy) => (e.flying ? def.air : def.ground) && ((e.stealthT ?? 0) <= 0) && (!e.digging || t.type === 'blaster' || t.type === 'catapult' || t.type === 'meteor' || t.type === 'meteor_v2' || t.type === 'naga' || t.type === 'trap' || t.type === 'bowl');
         let target: Enemy | null = null;
-        if (t.target && !t.target.dead && can(t.target) && t.target.group.position.distanceTo(tp) <= st.range) target = t.target;
-        else for (const e of this.enemies) { if (!can(e)) continue; const dx = e.group.position.x - tp.x, dz = e.group.position.z - tp.z; if (dx * dx + dz * dz <= st.range * st.range && (!target || e.s > target.s)) target = e; }
+        if (t.target && !t.target.dead && can(t.target)) {
+          const dx = t.target.group.position.x - tp.x, dz = t.target.group.position.z - tp.z;
+          if (dx * dx + dz * dz <= st.range * st.range) target = t.target;
+        }
+        if (!target) {
+          for (const e of this.enemies) {
+            if (!can(e)) continue;
+            const dx = e.group.position.x - tp.x, dz = e.group.position.z - tp.z;
+            if (dx * dx + dz * dz <= st.range * st.range && (!target || e.s > target.s)) target = e;
+          }
+        }
         t.target = target;
         if (target) {
           const ang = Math.atan2(target.group.position.x - tp.x, target.group.position.z - tp.z);
@@ -3400,7 +3452,7 @@ export class Game {
         m.arm -= dt; m.mesh.scale.setScalar(Math.min(1, m.mesh.scale.x + dt * 3));
         const led = m.mesh.getObjectByName('led'); if (led) led.visible = m.arm > 0 ? Math.sin(this.time * 20) > 0 : Math.sin(this.time * 7) > -0.2;
         if (m.arm > 0) return true;
-        for (const e of this.enemies) { if (e.flying || e.dead) continue; if (e.group.position.distanceTo(m.pos) < 0.7) { this.mineBoom(m); return false; } }
+        for (const e of this.enemies) { if (e.flying || e.dead) continue; const dx = e.group.position.x - m.pos.x, dz = e.group.position.z - m.pos.z; if (dx * dx + dz * dz < 0.49) { this.mineBoom(m); return false; } }
         return true;
       });
       // boomerangs: elliptical loop out and back, damaging each orc once per pass
@@ -3758,15 +3810,22 @@ export class Game {
   }
 
   render() {
-    const aspect = this.camera.aspect; const d = Math.max(22, 29 / aspect);
-    const dir = new THREE.Vector3(0, 1.15, 0.95).normalize();
-    this.camera.position.copy(this.camTarget).addScaledVector(dir, d);
+    const aspect = this.camera.aspect;
+    // Zoom in so the terrain fills the screen (full screen terrain) with user zoom multiplier
+    const baseD = Math.max(11.8, 15.6 / aspect);
+    const d = baseD * this.zoomLevel;
+    this.camera.position.copy(this.camTarget).addScaledVector(CAM_DIR, d);
     if (this.shake > 0) { const k = this.shake * this.shake * 0.6; this.camera.position.x += (Math.random() - 0.5) * k; this.camera.position.y += (Math.random() - 0.5) * k; }
     this.camera.lookAt(this.camTarget); this.renderer.render(this.scene, this.camera);
   }
   resize() {
     const p = this.canvas.parentElement!; const w = p.clientWidth, h = p.clientHeight; if (!w || !h) return;
+    const rect = this.canvas.getBoundingClientRect();
+    this.canvasLeft = rect.left; this.canvasTop = rect.top;
+    this.canvasWidth = w; this.canvasHeight = h;
     this.renderer.setSize(w, h, false); this.camera.aspect = w / h; this.camera.updateProjectionMatrix();
   }
   destroy() { cancelAnimationFrame(this.raf); this.ro?.disconnect(); this.sfx.dispose(); this.renderer.dispose(); }
 }
+
+const CAM_DIR = new THREE.Vector3(0, 1.15, 0.95).normalize();

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { Game, GameState, FloatText, TOWER_DEFS, TowerType, TOWER_HP } from './game/engine';
 
 import { NICK, Portrait, TOWER_COL, TowerCard } from './ui/shared';
@@ -6,20 +6,60 @@ import Loadout from './ui/Loadout';
 import MainMenu from './ui/MainMenu';
 import { useDragScroll } from './ui/useDragScroll';
 
+function FloatingTextsOverlay({ onRegister }: { onRegister: (cb: (f: FloatText) => void) => void }) {
+  const [floats, setFloats] = useState<FloatText[]>([]);
+  const queue = useRef<FloatText[]>([]);
+  const scheduled = useRef(false);
+
+  useEffect(() => {
+    onRegister(f => {
+      queue.current.push(f);
+      if (!scheduled.current) {
+        scheduled.current = true;
+        requestAnimationFrame(() => {
+          scheduled.current = false;
+          if (queue.current.length > 0) {
+            const incoming = queue.current;
+            queue.current = [];
+            setFloats(prev => [...prev, ...incoming].slice(-10));
+          }
+        });
+      }
+    });
+    const tm = window.setInterval(() => {
+      setFloats(prev => (prev.length > 0 ? prev.slice(Math.min(prev.length, 3)) : prev));
+    }, 450);
+    return () => window.clearInterval(tm);
+  }, [onRegister]);
+
+  return (
+    <div className="absolute inset-0 pointer-events-none overflow-hidden">
+      {floats.map(f => (
+        <div key={f.id} className="absolute pointer-events-none font-display text-xl text-outline-sm float-up" style={{ left: f.x, top: f.y, color: f.color, transform: 'translate(-50%,-50%)' }}>
+          {f.text}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function App() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gameRef = useRef<Game | null>(null);
   const [s, setS] = useState<GameState | null>(null);
-  const [floats, setFloats] = useState<FloatText[]>([]);
   const [portraits, setPortraits] = useState<Partial<Record<TowerType, string>>>({});
   const [enemyPortraits, setEnemyPortraits] = useState<Record<string, string>>({});
   const trayRef = useDragScroll('x'); // the tower tray in the game: drag sideways when there are more cards than fit
 
+  const floatCbRef = useRef<((f: FloatText) => void) | null>(null);
+  const handleRegisterFloats = useCallback((cb: (f: FloatText) => void) => {
+    floatCbRef.current = cb;
+  }, []);
+
   useEffect(() => {
     if (!canvasRef.current) return;
     const g = new Game(canvasRef.current, setS, f => {
-      setFloats(prev => [...prev.slice(-20), f]);
-      setTimeout(() => setFloats(prev => prev.filter(x => x.id !== f.id)), 1100);
+      floatCbRef.current?.(f);
     });
     gameRef.current = g;
     setPortraits(g.makePortraits());
@@ -33,9 +73,7 @@ export default function App() {
     <div className="fixed inset-0 overflow-hidden bg-sky-300 select-none" style={{ touchAction: 'none' }}>
       <canvas ref={canvasRef} className="block w-full h-full" />
 
-      {floats.map(f => (
-        <div key={f.id} className="absolute pointer-events-none font-display text-xl text-outline-sm float-up" style={{ left: f.x, top: f.y, color: f.color, transform: 'translate(-50%,-50%)' }}>{f.text}</div>
-      ))}
+      <FloatingTextsOverlay onRegister={handleRegisterFloats} />
 
       {s && s.screen !== 'menu' && s.screen !== 'select' && (
         <>

@@ -7,16 +7,24 @@ export interface AeroHunterModel {
   limbs: Record<string, THREE.Group>;
   jetFlames: THREE.Object3D[];
   blasterMuzzle: THREE.Object3D;
-  visor: THREE.Mesh;
+  visor: THREE.Object3D;
 }
 
-const toon = (color: number, rough = 0.35, glow = 0.08) =>
-  new THREE.MeshStandardMaterial({
-    color,
-    roughness: rough,
-    emissive: color,
-    emissiveIntensity: glow,
-  });
+const TOON_CACHE = new Map<number, THREE.MeshStandardMaterial>();
+const toon = (color: number, rough = 0.35, glow = 0.08) => {
+  const key = ((color & 0xffffff) << 8) ^ (Math.round(rough * 50) << 4) ^ Math.round(glow * 50);
+  let m = TOON_CACHE.get(key);
+  if (!m) {
+    m = new THREE.MeshStandardMaterial({
+      color,
+      roughness: rough,
+      emissive: color,
+      emissiveIntensity: glow,
+    });
+    TOON_CACHE.set(key, m);
+  }
+  return m;
+};
 
 function S(r: number, color: number, x = 0, y = 0, z = 0, o: { sx?: number; sy?: number; sz?: number; ol?: boolean; glow?: number; rough?: number } = {}) {
   const m = new THREE.Mesh(SPH, toon(color, o.rough ?? 0.35, o.glow ?? 0.08));
@@ -88,9 +96,161 @@ function tor(r: number, tube: number, color: number, x = 0, y = 0, z = 0, o: { r
 }
 
 /**
+ * Authentic "Destroyer" Mandalorian Helmet matching the user's reference image (Gambar 2):
+ * - Top half-hemisphere Beskar dome terminating at brow line (cannot clip or bulge into face)
+ * - Bold Royal Cobalt Blue center crest stripe over dome with white specular gloss streak on upper-left
+ * - Dark horizontal dividing brow ridge
+ * - Glossy pitch-black T-Visor with downward-tapered vertical stem
+ * - Two crisp parallel diagonal white glossy glare slashes across the dark visor
+ * - Royal Cobalt Blue angled cheek plates flanking the visor with deep navy inner chamfer bevels
+ * - Light silver Beskar jawline and chin guard wrapping the bottom of the cheeks
+ * - Symmetrical Royal Blue vertical ear stalks with sharp golden/yellow needle spikes pointing straight up
+ * - Flared rear neck guard plate
+ */
+export function makeMandalorianHelmet(scale = 1): THREE.Group {
+  const helmet = new THREE.Group();
+  helmet.name = 'mandalorianHelmet';
+
+  const beskar = 0xd1d7e0;
+  const beskarLight = 0xf1f5f9;
+  const outlineCol = 0x121620;
+  const mandoBlue = 0x1d4ed8;
+  const mandoBlueDark = 0x172554;
+  const visorBlack = 0x10141d;
+  const goldTip = 0xf59e0b;
+  const goldTipLight = 0xfde047;
+
+  // 1. Sleek Top Dome (True hemisphere terminating at brow line, cannot clip through face)
+  const domeGeo = new THREE.SphereGeometry(0.40, 24, 14, 0, Math.PI * 2, 0, Math.PI * 0.52);
+  const dome = new THREE.Mesh(domeGeo, toon(beskar, 0.4));
+  dome.position.set(0, 0.08, 0);
+  const domeOl = new THREE.Mesh(domeGeo, OUTLINE_MAT);
+  domeOl.scale.setScalar(1.075);
+  dome.add(domeOl);
+  helmet.add(dome);
+
+  // 2. Bold Royal Cobalt Blue Center Mohawk Stripe (From Crown Apex down to Brow)
+  // Arched band over top dome
+  helmet.add(B(0.16, 0.04, 0.54, mandoBlue, 0, 0.42, -0.02, { ol: false }));
+  // Front crest block running down to meet the brow
+  helmet.add(B(0.16, 0.22, 0.12, mandoBlue, 0, 0.32, 0.23, { rx: 0.22, ol: false }));
+  // Rear spine down back of dome
+  helmet.add(B(0.16, 0.26, 0.04, mandoBlue, 0, 0.22, -0.36, { ol: false }));
+
+  // --- WHITE SPECULAR HIGHLIGHT on top-left of the blue stripe (Matches Gambar 2!) ---
+  helmet.add(B(0.045, 0.10, 0.04, 0xffffff, -0.045, 0.36, 0.25, { rx: 0.22, rz: 0.14, lit: true }));
+
+  // 3. Horizontal Brow Ridge (Dividing Line across the forehead)
+  helmet.add(B(0.48, 0.04, 0.12, outlineCol, 0, 0.09, 0.24));
+  helmet.add(B(0.46, 0.03, 0.10, beskarLight, 0, 0.115, 0.25));
+
+  // 4. Iconic Mandalorian T-Visor (Pitch-black charcoal with tapered vertical stem)
+  // A. Horizontal Eye Visor (ear to ear below brow)
+  helmet.add(B(0.42, 0.085, 0.10, visorBlack, 0, 0.04, 0.25, { ol: true }));
+
+  // B. Tapered Vertical Visor Stem (Wider at nose, narrows into downward wedge)
+  // Upper nose section
+  helmet.add(B(0.12, 0.08, 0.10, visorBlack, 0, -0.03, 0.25));
+  // Mid stem
+  helmet.add(B(0.08, 0.10, 0.10, visorBlack, 0, -0.11, 0.23));
+  // Lower stem / wedge point
+  helmet.add(B(0.045, 0.10, 0.10, visorBlack, 0, -0.19, 0.21));
+
+  // C. Two Diagonal White Gloss Visor Glare Slashes (Matches Gambar 2!)
+  // Long diagonal glare slash across visor glass
+  helmet.add(B(0.02, 0.26, 0.03, 0xffffff, 0.025, -0.05, 0.31, { rz: 0.62, rx: 0.18, lit: true }));
+  // Shorter parallel diagonal glare slash
+  helmet.add(B(0.016, 0.14, 0.03, 0xffffff, -0.06, 0.01, 0.31, { rz: 0.62, rx: 0.18, lit: true }));
+
+  // 5. Royal Cobalt Blue Cheek Plates (Mandibular Chamfer Panels)
+  for (const sd of [-1, 1]) {
+    // Upper blue cheek plate right beneath horizontal visor
+    helmet.add(B(0.14, 0.10, 0.10, mandoBlue, sd * 0.18, 0.035, 0.25, { ol: true }));
+
+    // Lower angled blue cheek plate hugging the tapered vertical stem
+    helmet.add(B(0.13, 0.18, 0.10, mandoBlue, sd * 0.16, -0.08, 0.23, {
+      rx: 0.18,
+      ry: sd * 0.25,
+      rz: sd * -0.12,
+      ol: true,
+    }));
+
+    // Inner deep navy chamfer shadow bevel along vertical stem
+    helmet.add(B(0.05, 0.18, 0.08, mandoBlueDark, sd * 0.105, -0.07, 0.27, {
+      rx: 0.16,
+      ry: sd * 0.18,
+      ol: false,
+    }));
+
+    // Outer angled blue mandibular wing
+    helmet.add(B(0.09, 0.20, 0.09, mandoBlue, sd * 0.24, -0.06, 0.20, {
+      rx: 0.14,
+      ry: sd * 0.35,
+      ol: true,
+    }));
+  }
+
+  // 6. Silver Beskar Jaw & Tapered Chin Guard (Framing bottom of cheeks)
+  for (const sd of [-1, 1]) {
+    // Outer silver jaw contour
+    helmet.add(B(0.08, 0.24, 0.10, beskar, sd * 0.32, -0.06, 0.17, {
+      rx: 0.14,
+      ry: sd * 0.34,
+      ol: true,
+    }));
+
+    // Angled lower jaw leading into chin
+    helmet.add(B(0.12, 0.10, 0.10, beskar, sd * 0.15, -0.21, 0.21, {
+      rx: 0.25,
+      ry: sd * 0.22,
+      ol: true,
+    }));
+  }
+
+  // Central tapered flat chin plate
+  helmet.add(B(0.18, 0.08, 0.11, beskar, 0, -0.24, 0.21, { rx: 0.25, ol: true }));
+  helmet.add(B(0.14, 0.025, 0.06, outlineCol, 0, -0.27, 0.21, { rx: 0.25 }));
+
+  // 7. Symmetrical Royal Blue Ear Stalks with Golden Needle Spikes (Matches Gambar 2!)
+  for (const sd of [-1, 1]) {
+    const earGroup = new THREE.Group();
+    earGroup.position.set(sd * 0.42, 0.04, 0.02);
+
+    // Blue vertical stalk
+    earGroup.add(B(0.065, 0.32, 0.12, mandoBlue, 0, 0, 0, { ol: true }));
+    // Rear dark rib
+    earGroup.add(B(0.045, 0.30, 0.04, outlineCol, 0, 0, -0.05));
+    // Center com disc
+    earGroup.add(C(0.04, 0.04, 0.02, beskar, sd * 0.035, 0.01, 0, 10, { rz: Math.PI / 2 }));
+
+    // Golden ear cap base
+    earGroup.add(B(0.068, 0.05, 0.10, goldTip, 0, 0.19, 0, { ol: false }));
+    // Sharp golden cone spike pointing straight up!
+    earGroup.add(cone(0.028, 0.16, goldTip, 0, 0.28, 0, 6, 0.4));
+    // Pointy bright gold needle spire tip
+    earGroup.add(cone(0.013, 0.08, goldTipLight, 0, 0.37, 0, 5, 0.7));
+
+    // Bottom golden accent trim band
+    earGroup.add(B(0.068, 0.03, 0.10, goldTip, 0, -0.15, 0));
+
+    helmet.add(earGroup);
+  }
+
+  // 8. Flared Rear Neck Guard
+  helmet.add(B(0.44, 0.18, 0.12, beskar, 0, -0.08, -0.26, { rx: -0.22, ol: true }));
+  helmet.add(B(0.38, 0.04, 0.05, outlineCol, 0, -0.16, -0.28));
+
+  if (scale !== 1) {
+    helmet.scale.setScalar(scale);
+  }
+
+  return helmet;
+}
+
+/**
  * Creates the original "Aero Hunter" space bounty hunter character model.
  * Specially updated to user brief:
- * - Cute, big astronaut bubble helmet with shiny reflective faceplate & iconic Mandalorian T-visor framing
+ * - Authentic "Destroyer" Mandalorian helmet matching reference image
  * - Huge chunky dual-rocket jetpack with flared booster bells and massive dynamic burst flames
  * - Chubby heroic chibi body with Beskar silver plating and warm leather belt
  * - Heavy plasma blaster carbine with visible hollow muzzle hole
@@ -105,7 +265,6 @@ export function makeAeroHunter(tint = 0x38bdf8, accent = 0xd97706): AeroHunterMo
   const darkCape = 0x1e293b;     // textured graphite combat half-cape
   const bronze = accent;         // cyber-bronze / gold trim (0xd97706)
   const cyanCore = tint;         // luminous cyan plasma energy (0x38bdf8)
-  const visorBlack = 0x09090b;   // deep glossy obsidian space helmet glass
 
   const group = new THREE.Group();
   const rig = new THREE.Group();
@@ -291,125 +450,27 @@ export function makeAeroHunter(tint = 0x38bdf8, accent = 0xd97706): AeroHunterMo
   jetpack.add(mkThruster(-1));
   jetpack.add(mkThruster(1));
 
-  // ==================== ASTRONAUT + MANDALORIAN BUBBLE HELMET ====================
-  // ==================== AUTHENTIC MANDALORIAN BESKAR HELMET ====================
-  // Designed exactly per user's reference image ("helm mandalorian kek gini aja"):
-  // - Sleek Beskar silver chrome helmet dome with chibi/orc warrior proportions
-  // - Bold Royal Cobalt Blue central crest mohawk stripe running front-to-back over the crown
-  // - Vibrant Royal Blue angled cheek plates flanking the visor with Mandalorian chamfers
-  // - Iconic pitch-black glossy Mandalorian T-Visor (horizontal brow slit + vertical stem)
-  // - Dual ear stalks on both sides with distinctive golden/bronze tips
-  // - Right-side rangefinder targeting antenna stalk with optic viewfinder
-  // - Angled Mandalorian chin guard and bronze rebreather aerators
+  // ==================== AUTHENTIC "DESTROYER" MANDALORIAN BESKAR HELMET ====================
+  // Designed exactly per user's reference image ("Destroyer" Mandalorian helmet):
+  // - Smooth silver/grey Beskar dome with rounded contour
+  // - Bold Royal Cobalt Blue center stripe from crown apex to brow with glossy white shine streak
+  // - Crisp dark horizontal brow ridge framing the visor opening
+  // - Glossy pitch-black T-Visor with tapered vertical stem and two diagonal glossy glare slashes
+  // - Vibrant Royal Cobalt Blue angled cheek plates flanking the visor with deep navy chamfer bevels
+  // - Sleek angled Beskar jaw & chin guard framing the bottom of the cheeks
+  // - Symmetrical Royal Blue vertical ear stalks with sharp golden/yellow needle spikes pointing straight up
   const head = new THREE.Group();
   head.position.set(0, 0.42, 0.02);
   body.add(head);
   limbs.head = head;
 
-  const mandoBlue = 0x1d4ed8;     // iconic Royal Cobalt Blue from reference image
-  const mandoBlueDark = 0x1e3a8a; // deep navy shadow for cheek bevels
-
   // Airtight neck sealing collar ring
   head.add(tor(0.31, 0.035, bronze, 0, -0.25, 0, { rx: Math.PI / 2 }));
   head.add(C(0.30, 0.32, 0.08, flightSuit, 0, -0.25, 0, 16, { ol: true }));
 
-  // 1. Sleek Beskar Silver Helmet Dome
-  const helm = S(0.41, beskar, 0, 0.07, 0, { sx: 1.05, sy: 1.05, sz: 1.08, ol: true });
-  head.add(helm);
-
-  // Flared rear neck guard plate
-  head.add(B(0.44, 0.16, 0.10, beskar, 0, -0.10, -0.36, { rx: -0.22, ol: true }));
-  head.add(B(0.36, 0.04, 0.05, beskarTrim, 0, -0.16, -0.37));
-
-  // 2. Bold Royal Cobalt Blue Center Crest / Mohawk Stripe (Matches Image!)
-  // Top crown strip running from brow to back
-  head.add(B(0.12, 0.05, 0.64, mandoBlue, 0, 0.48, -0.01, { ol: false }));
-  // Front apex crest block above brow
-  head.add(B(0.12, 0.09, 0.10, mandoBlue, 0, 0.36, 0.30, { ol: false }));
-  // Rear spine stripe down the back of the helmet
-  head.add(B(0.12, 0.30, 0.04, mandoBlue, 0, 0.22, -0.42, { ol: false }));
-  // Subtle glowing center diode on top crest
-  head.add(B(0.04, 0.02, 0.38, cyanCore, 0, 0.51, -0.02, { lit: true }));
-
-  // 3. Forehead Brow Band (Beskar Brow Ridge framing upper visor)
-  head.add(B(0.48, 0.085, 0.16, beskarLight, 0, 0.20, 0.24, { ol: true }));
-  head.add(B(0.42, 0.03, 0.06, beskarTrim, 0, 0.145, 0.30, { ol: false }));
-
-  // 4. Iconic Royal Cobalt Blue Cheek Plates & Mandibular Bevels (Matches Image!)
-  for (const sd of [-1, 1]) {
-    // Primary Royal Blue cheek armor plate
-    head.add(B(0.13, 0.24, 0.15, mandoBlue, sd * 0.24, -0.04, 0.21, { rx: 0.16, ry: sd * 0.26, ol: true }));
-    // Inner dark navy recessed cheek chamfer
-    head.add(B(0.08, 0.18, 0.08, mandoBlueDark, sd * 0.18, -0.05, 0.27, { rx: 0.14, ry: sd * 0.18, ol: false }));
-    // Outer Beskar jaw / cheek contour rim
-    head.add(B(0.06, 0.22, 0.14, beskar, sd * 0.33, -0.04, 0.18, { ry: sd * 0.18, ol: false }));
-  }
-
-  // 5. Pitch-Black Glossy Mandalorian T-Visor
-  const visorHorizMat = new THREE.MeshStandardMaterial({
-    color: visorBlack,
-    roughness: 0.04,
-    emissive: 0x0284c7,
-    emissiveIntensity: 0.35,
-  });
-
-  // Horizontal eye slit
-  const visorHoriz = new THREE.Mesh(BOX, visorHorizMat);
-  visorHoriz.scale.set(0.38, 0.085, 0.08);
-  visorHoriz.position.set(0, 0.085, 0.355);
-  head.add(visorHoriz);
-
-  // Cyan HUD scanline inside the eye slit
-  const scanline = new THREE.Mesh(BOX, coreMat);
-  scanline.scale.set(0.36, 0.022, 0.085);
-  scanline.position.set(0, 0.085, 0.36);
-  head.add(scanline);
-
-  // Vertical nose/mouth slit forming the iconic "T"
-  const visorVert = new THREE.Mesh(BOX, visorHorizMat);
-  visorVert.scale.set(0.09, 0.21, 0.08);
-  visorVert.position.set(0, -0.05, 0.365);
-  head.add(visorVert);
-
-  // Cyan vertical power slit
-  const vertLight = new THREE.Mesh(BOX, coreMat);
-  vertLight.scale.set(0.028, 0.19, 0.085);
-  vertLight.position.set(0, -0.05, 0.37);
-  head.add(vertLight);
-
-  // 6. Mandalorian Tapered Beskar Chin & Rebreathers
-  head.add(B(0.18, 0.12, 0.12, beskar, 0, -0.19, 0.30, { ol: true }));
-  head.add(B(0.12, 0.08, 0.04, beskarLight, 0, -0.19, 0.36, { ol: false }));
-  // Rebreather aerator cylinders on bottom chin
-  head.add(C(0.035, 0.035, 0.05, bronze, -0.08, -0.22, 0.33, 10, { rx: Math.PI / 2 }));
-  head.add(C(0.035, 0.035, 0.05, bronze, 0.08, -0.22, 0.33, 10, { rx: Math.PI / 2 }));
-
-  // 7. Dual Symmetrical Ear Stalk Modules with Golden/Bronze Tips (Matches Image!)
-  for (const sd of [-1, 1]) {
-    // Silver rectangular ear module housing
-    head.add(B(0.08, 0.32, 0.14, beskarLight, sd * 0.44, 0.06, 0.02, { ol: true }));
-    // Distinctive GOLDEN / BRONZE TOP CAP on both ear modules (as in image)
-    head.add(B(0.085, 0.08, 0.145, bronze, sd * 0.44, 0.24, 0.02, { ol: false }));
-    // Golden / Bronze lower trim band
-    head.add(B(0.085, 0.04, 0.145, bronze, sd * 0.44, -0.08, 0.02, { ol: false }));
-    // Circular com disc in the center of ear stalk
-    head.add(C(0.045, 0.045, 0.02, beskarTrim, sd * 0.485, 0.08, 0.02, 12, { rz: Math.PI / 2 }));
-    head.add(C(0.02, 0.02, 0.025, cyanCore, sd * 0.49, 0.08, 0.02, 10, { rz: Math.PI / 2, glow: 1.0 }));
-  }
-
-  // 8. Right-Side Rangefinder Targeting Antenna
-  const antenna = new THREE.Group();
-  antenna.name = 'antenna';
-  antenna.position.set(0.48, 0.06, 0.03);
-  // Cylindrical base pivot joint
-  antenna.add(C(0.03, 0.03, 0.05, bronze, 0, 0, 0, 10, { rz: Math.PI / 2 }));
-  // Vertical antenna stalk
-  antenna.add(B(0.022, 0.32, 0.025, beskarLight, 0.02, 0.16, 0));
-  // Rangefinder optical viewfinder block
-  antenna.add(B(0.05, 0.08, 0.11, bronze, 0.02, 0.32, 0.04));
-  antenna.add(B(0.04, 0.05, 0.02, cyanCore, 0.02, 0.32, 0.10, { lit: true })); // cyan targeting optic
-  antenna.add(S(0.018, 0xef4444, 0.02, 0.36, 0.04, { glow: 1.2, ol: false })); // red tracking diode
-  head.add(antenna);
+  // Attach authentic Destroyer Mandalorian helmet
+  const helmet = makeMandalorianHelmet();
+  head.add(helmet);
 
   // ==================== LEFT ARM (Beskar Gauntlet & Stabilizer) ====================
   const armL = new THREE.Group();
@@ -506,7 +567,7 @@ export function makeAeroHunter(tint = 0x38bdf8, accent = 0xd97706): AeroHunterMo
     limbs,
     jetFlames,
     blasterMuzzle,
-    visor: scanline,
+    visor: helmet,
   };
 }
 

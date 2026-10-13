@@ -53,9 +53,9 @@ export class Ragdoll {
 
       this.bodies.push({ holder, v, w, r, gid, rest: 0, life: light ? 4.2 + Math.random() : 3.2 + Math.random() * 1.2, light, grav: light ? 4.2 : 12, drag: light ? 2.4 : 0.12, hits: 0 });
     }
-    // too many pieces on screen: the oldest ones fade out gracefully instead of popping
-    const extra = this.bodies.length - 120;
-    for (let i = 0; i < extra; i++) this.bodies[i].life = Math.min(this.bodies[i].life, 0.5);
+    // Keep max ragdoll pieces under 28 so heavy waves with lots of kills stay buttery smooth
+    const extra = this.bodies.length - 28;
+    for (let i = 0; i < extra; i++) this.bodies[i].life = Math.min(this.bodies[i].life, 0.25);
   }
 
   update(dt: number) {
@@ -76,22 +76,22 @@ export class Ragdoll {
       if (over && p.y - b.r < this.groundY) {
         contact = true; const impact = -b.v.y; p.y = this.groundY + b.r;
         if (b.v.y < 0) {
-          if (impact > 2.4 && b.hits < 4) { b.hits++; this.onImpact(p, impact); }
-          b.v.y = impact > 1.3 ? impact * (b.light ? 0.1 : 0.34) : 0; // restitution (resting contact kills the bounce)
+          if (impact > 2.4 && b.hits < 3) { b.hits++; this.onImpact(p, impact); }
+          b.v.y = impact > 1.3 ? impact * (b.light ? 0.1 : 0.3) : 0; // restitution (resting contact kills the bounce)
         }
-        const f = Math.pow(b.light ? 0.45 : 0.8, dt * 60); b.v.x *= f; b.v.z *= f; // friction
+        const f = Math.pow(b.light ? 0.45 : 0.78, dt * 60); b.v.x *= f; b.v.z *= f; // friction
         const k2 = 1 - Math.pow(0.6, dt * 60); // rolling: spin follows the sliding speed
         b.w.x += (b.v.z / b.r - b.w.x) * k2; b.w.z += (-b.v.x / b.r - b.w.z) * k2; b.w.y *= Math.pow(0.88, dt * 60);
       } else b.w.multiplyScalar(Math.max(0, 1 - 0.12 * dt));
       // settle
       if (contact && b.v.lengthSq() < 0.12 && b.w.lengthSq() < 3) b.rest += dt; else b.rest = 0;
-      if (b.rest > 0.2) { b.v.set(0, 0, 0); b.w.set(0, 0, 0); }
+      if (b.rest > 0.15) { b.v.set(0, 0, 0); b.w.set(0, 0, 0); }
       // soft fade (shrink) once at rest or at the end of life
-      if (b.rest > 1.0 || b.life < 0.75) {
-        const s = Math.max(0, h.scale.x - dt * 1.7); h.scale.setScalar(s);
+      if (b.rest > 0.4 || b.life < 0.6) {
+        const s = Math.max(0, h.scale.x - dt * 2.2); h.scale.setScalar(s);
         if (s < 0.06) { this.scene.remove(h); this.bodies.splice(k, 1); continue; }
       }
-      if (b.life <= -0.6 || (!over && p.y < -8)) { this.scene.remove(h); this.bodies.splice(k, 1); continue; }
+      if (b.life <= -0.5 || (!over && p.y < -8)) { this.scene.remove(h); this.bodies.splice(k, 1); continue; }
       let g = groups.get(b.gid); if (!g) { g = []; groups.set(b.gid, g); } g.push(b);
     }
     // pieces of the same orc push each other apart (and swap a bit of momentum) instead of ghosting through one another

@@ -12,7 +12,16 @@ const FLAME_GEO = new THREE.ConeGeometry(0.5, 1, 6).translate(0, 0.5, 0);
 export const OUTLINE_MAT = new THREE.MeshBasicMaterial({ color: 0x1b1030, side: THREE.BackSide });
 
 // ---------- basic builders ----------
-export function mat(color: number, emissive = 0, rough = 0.8) { return new THREE.MeshStandardMaterial({ color, roughness: rough, emissive, emissiveIntensity: 0.7 }); }
+const MAT_CACHE = new Map<number, THREE.MeshStandardMaterial>();
+export function mat(color: number, emissive = 0, rough = 0.8) {
+  const key = ((color & 0xffffff) << 8) ^ ((emissive & 0xffffff) >> 4) ^ Math.round(rough * 100);
+  let m = MAT_CACHE.get(key);
+  if (!m) {
+    m = new THREE.MeshStandardMaterial({ color, roughness: rough, emissive, emissiveIntensity: 0.7 });
+    MAT_CACHE.set(key, m);
+  }
+  return m;
+}
 export function mkBox(w: number, h: number, d: number, color: number, x = 0, y = 0, z = 0, emissive = 0) {
   const m = new THREE.Mesh(BOX, mat(color, emissive)); m.scale.set(w, h, d); m.position.set(x, y, z); m.castShadow = true; m.receiveShadow = true; return m;
 }
