@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { updateFace, flickerFlame, makeFlame } from './voxel';
+import { updateFace, flickerFlame } from './voxel';
 import { poseOrc } from './orcs';
 import type { OrcKind } from './orcs';
 import { isElite, poseElite, poseDread, setBowDraw } from './elites';
@@ -74,48 +74,48 @@ interface Fig {
   tx: number; tz: number; x: number; z: number; y: number; yaw: number;
 }
 
-function glowTex() {
-  const c = document.createElement('canvas'); c.width = c.height = 64; const g = c.getContext('2d')!;
-  const gr = g.createRadialGradient(32, 32, 0, 32, 32, 32); gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(0.4, 'rgba(255,255,255,0.35)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
-  g.fillStyle = gr; g.fillRect(0, 0, 64, 64); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
-}
-/** alpha map for the ground: opaque in the middle, fading to nothing at the rim (a soft "stage" instead of a hard disc) */
 function fadeTex() {
-  const c = document.createElement('canvas'); c.width = c.height = 128; const g = c.getContext('2d')!;
-  const gr = g.createRadialGradient(64, 64, 0, 64, 64, 64); gr.addColorStop(0, '#fff'); gr.addColorStop(0.5, '#fff'); gr.addColorStop(1, '#000');
-  g.fillStyle = gr; g.fillRect(0, 0, 128, 128); return new THREE.CanvasTexture(c);
+  const c = document.createElement('canvas'); c.width = c.height = 256; const g = c.getContext('2d')!;
+  const gr = g.createRadialGradient(128, 128, 0, 128, 128, 128);
+  gr.addColorStop(0, '#fff');
+  gr.addColorStop(0.82, '#fff');
+  gr.addColorStop(1, 'rgba(255,255,255,0)');
+  g.fillStyle = gr; g.fillRect(0, 0, 256, 256);
+  return new THREE.CanvasTexture(c);
 }
 
 export class HordeView {
   private renderer: THREE.WebGLRenderer;
   private scene = new THREE.Scene();
-  private camera = new THREE.PerspectiveCamera(32, 1, 0.1, 140);
+  private camera = new THREE.PerspectiveCamera(34, 1, 0.1, 140);
   private figs: Fig[] = [];
   private raf = 0; private last = performance.now(); private t = 0;
   private w = 0; private placedAspect = -1;
   private selected: string | null = null;
-  private center = new THREE.Vector3(-2, 1, 0); private pts: THREE.Vector3[] = [];
-  private camAz = 0.6; private camEl = 0.5; private dist = 14; private orbit = 0;
+  private center = new THREE.Vector3(-2, 0.62, 0); private pts: THREE.Vector3[] = [];
+  private camAz = 0.55; private camEl = 0.32; private baseDist = 9; private dist = 9; private orbit = 0;
+  private userZoom = 1.0;
   private dragging = false; private moved = false; private downX = 0; private downY = 0; private lastX = 0;
+  private activePointers = new Map<number, { x: number; y: number }>();
+  private initialPinchDist = 0;
+  private initialZoom = 1.0;
   private ray = new THREE.Raycaster(); private tmp = new THREE.Vector3();
   private shadowGeo = new THREE.CircleGeometry(1, 20).rotateX(-Math.PI / 2);
-  private shadowMat = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.32, depthWrite: false });
+  private shadowMat = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.28, depthWrite: false });
   private ringGeo = new THREE.RingGeometry(0.82, 1, 40).rotateX(-Math.PI / 2);
   private ringMat = new THREE.MeshBasicMaterial({ color: 0xfde047, transparent: true, opacity: 0.9, depthWrite: false, side: THREE.DoubleSide });
   private hemi: THREE.HemisphereLight;
-  private key: THREE.DirectionalLight; private rim: THREE.DirectionalLight; private torchLights: THREE.PointLight[] = [];
-  private scenery: THREE.Group | null = null; private flames: THREE.Object3D[] = []; private flags: THREE.Object3D[] = [];
+  private key: THREE.DirectionalLight; private rim: THREE.DirectionalLight;
+  private scenery: THREE.Group | null = null; private flags: THREE.Object3D[] = [];
   private treeSways: { piv: THREE.Object3D; amp: number; ph: number }[] = [];
   private dust: THREE.Points; private dustBase: Float32Array;
-  private glow: THREE.Sprite; private glowTexture: THREE.Texture; private fade: THREE.Texture;
+  private fade: THREE.Texture;
   private ground: THREE.Mesh | null = null;
-  private poleGeo = new THREE.CylinderGeometry(0.05, 0.07, 1, 8); private boxGeo = new THREE.BoxGeometry(1, 1, 1); private sphGeo = new THREE.SphereGeometry(1, 10, 8); private coneGeo = new THREE.ConeGeometry(1, 1, 8);
+  private poleGeo = new THREE.CylinderGeometry(0.05, 0.07, 1, 8); private boxGeo = new THREE.BoxGeometry(1, 1, 1); private sphGeo = new THREE.SphereGeometry(1, 10, 8);
   private poleMat = new THREE.MeshStandardMaterial({ color: 0x6b4423, roughness: 0.8 });
   private flagMat = new THREE.MeshStandardMaterial({ color: 0x6d28d9, roughness: 0.6, emissive: 0x4c1d95, emissiveIntensity: 0.25, side: THREE.DoubleSide });
   private sigilMat = new THREE.MeshStandardMaterial({ color: 0x7ed957, roughness: 0.6, emissive: 0x3f8f2a, emissiveIntensity: 0.3 });
   private whiteMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
-  private rockMat = new THREE.MeshStandardMaterial({ color: 0x7b708a, roughness: 0.95 });
-  private haloMat: THREE.SpriteMaterial;
   private biome: Biome;
   private seed: number;
   private disposables: { dispose(): void }[] = [];
@@ -128,32 +128,28 @@ export class HordeView {
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75));
     this.renderer.setClearColor(0x000000, 0);
-    this.renderer.outputColorSpace = THREE.SRGBColorSpace; this.renderer.toneMapping = THREE.ACESFilmicToneMapping; this.renderer.toneMappingExposure = 1.12;
+    this.renderer.outputColorSpace = THREE.SRGBColorSpace; this.renderer.toneMapping = THREE.ACESFilmicToneMapping; this.renderer.toneMappingExposure = 1.15;
 
-    // lights: hemisphere light matches the upcoming level's sky and grass
-    this.hemi = new THREE.HemisphereLight(this.biome.skyTop, this.biome.grass[1], 1.15);
+    // Daylight lighting: bright sun + vibrant sky hemisphere reflection
+    this.hemi = new THREE.HemisphereLight(this.biome.skyTop, this.biome.grass[1], 1.45);
     this.scene.add(this.hemi);
-    this.key = new THREE.DirectionalLight(0xfff0d6, 2.2); this.scene.add(this.key, this.key.target);
-    this.rim = new THREE.DirectionalLight(this.biome.skyBot, 1.0); this.scene.add(this.rim, this.rim.target);
-    for (let i = 0; i < 2; i++) { const l = new THREE.PointLight(0xff9a3c, 1.8, 7); this.scene.add(l); this.torchLights.push(l); }
+    this.key = new THREE.DirectionalLight(0xfffaec, 2.8); this.scene.add(this.key, this.key.target);
+    this.rim = new THREE.DirectionalLight(this.biome.skyBot, 1.1); this.scene.add(this.rim, this.rim.target);
+    this.scene.fog = new THREE.Fog(this.biome.fog, 24, 55);
 
-    // alpha map for the ground outer fade
+    // Alpha map for outer ground boundary
     this.fade = fadeTex();
 
-    // violet glow of the portal the orcs come through (far behind the army)
-    this.glowTexture = glowTex(); this.haloMat = new THREE.SpriteMaterial({ map: this.glowTexture, color: 0xa855f7, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true, opacity: 0.55 });
-    this.glow = new THREE.Sprite(this.haloMat); this.glow.scale.setScalar(16); this.glow.position.set(-16, 3, 0); this.scene.add(this.glow);
-
-    // drifting dust / particles matching the biome atmosphere
+    // Sunny floating particles (dandelion, pollen, light breeze dust)
     const prng = mulberry32(this.seed * 31 + 5);
-    const N = 70; const pos = new Float32Array(N * 3); this.dustBase = new Float32Array(N * 3);
+    const N = 65; const pos = new Float32Array(N * 3); this.dustBase = new Float32Array(N * 3);
     for (let i = 0; i < N; i++) { this.dustBase[i * 3] = (prng() - 0.5) * 24 - 2; this.dustBase[i * 3 + 1] = prng() * 5; this.dustBase[i * 3 + 2] = (prng() - 0.5) * 16; }
     pos.set(this.dustBase);
     const dg = new THREE.BufferGeometry(); dg.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-    const dustCol = this.biome.snow ? 0xffffff : (this.biome.fly ?? 0xffe2b0);
-    this.dust = new THREE.Points(dg, new THREE.PointsMaterial({ color: dustCol, size: 0.08, transparent: true, opacity: 0.65, depthWrite: false, sizeAttenuation: true })); this.dust.frustumCulled = false; this.scene.add(this.dust);
+    const dustCol = this.biome.snow ? 0xffffff : (this.biome.fly ?? 0xfff6a8);
+    this.dust = new THREE.Points(dg, new THREE.PointsMaterial({ color: dustCol, size: 0.09, transparent: true, opacity: 0.65, depthWrite: false, sizeAttenuation: true })); this.dust.frustumCulled = false; this.scene.add(this.dust);
 
-    // how many of each type to show
+    // How many figures to show
     const reps = entries.map(e => ({ type: e.type, n: Math.min(CAP[e.type] ?? 3, Math.max(1, Math.ceil(e.count / (DIV[e.type] ?? 3)))) }));
     let total = reps.reduce((a, r) => a + r.n, 0); const normal = reps.find(r => r.type === 'normal');
     while (total > MAX_FIGS && normal && normal.n > 4) { normal.n--; total--; }
@@ -165,13 +161,16 @@ export class HordeView {
       const root = new THREE.Group(); root.add(model.group); root.userData.etype = r.type; this.scene.add(root);
       const fly = model.flying; const size = model.size;
       const rad = fly ? (r.type === 'dragon' ? 1.15 : r.type === 'balloon' ? 1.2 : 0.9) : r.type === 'log' ? 0.85 : 0.28 + size * 0.42;
-      const shadow = new THREE.Mesh(this.shadowGeo, this.shadowMat); shadow.scale.setScalar(rad * (fly ? 1.0 : 1.25)); shadow.renderOrder = -1; this.scene.add(shadow);
+      const shadow = new THREE.Mesh(this.shadowGeo, this.shadowMat); shadow.scale.setScalar(rad * (fly ? 0.95 : 1.2)); shadow.renderOrder = -1; this.scene.add(shadow);
       const ring = new THREE.Mesh(this.ringGeo, this.ringMat); ring.scale.setScalar(rad * 2.1); ring.renderOrder = -1; ring.visible = false; this.scene.add(ring);
       this.figs.push({ type: r.type, model, root, shadow, ring, r: rad, fly, seed: srand() * 50, headY0: model.limbs.head ? model.limbs.head.position.y : 0, tx: 0, tz: 0, x: 0, z: 0, y: 0, yaw: 0 });
     }
 
-    canvas.addEventListener('pointerdown', this.onDown); canvas.addEventListener('pointermove', this.onMove);
-    canvas.addEventListener('pointerup', this.onUp); canvas.addEventListener('pointercancel', this.onCancel);
+    canvas.addEventListener('pointerdown', this.onDown);
+    canvas.addEventListener('pointermove', this.onMove);
+    canvas.addEventListener('pointerup', this.onUp);
+    canvas.addEventListener('pointercancel', this.onCancel);
+    canvas.addEventListener('wheel', this.onWheel, { passive: false });
     this.loop();
   }
 
@@ -186,12 +185,12 @@ export class HordeView {
   }
 
   // ---------- formation ----------
-  /** role zones -> gentle random offsets -> repulsion until nobody overlaps -> tidy but natural ranks. The shape adapts to the panel: compact for tall panels, wide for wide ones. */
   private place(aspect: number) {
-    const k = clamp((aspect - 0.6) / 1.0, 0, 1); // 0 = tall panel, 1 = wide panel
-    const dk = lerp(0.62, 1.0, k), lk = lerp(1.05, 1.12, k);
-    this.camAz = lerp(0.38, 0.98, k); this.camEl = lerp(0.66, 0.42, k);
-    const yaw0 = Math.PI / 2 - 0.35 * this.camAz; // facing the towers (+x), turned a little toward the camera so the faces show
+    const k = clamp((aspect - 0.6) / 1.0, 0, 1);
+    const dk = lerp(0.68, 1.0, k), lk = lerp(1.05, 1.12, k);
+    this.camAz = lerp(0.42, 0.88, k);
+    this.camEl = lerp(0.38, 0.28, k); // engaging ground view looking directly at standing troops
+    const yaw0 = Math.PI / 2 - 0.32 * this.camAz;
     const rng = mulberry32(this.seed * 131 + 7); const flank = new Map<string, number>(); const figs = this.figs;
     for (const f of figs) {
       const z = ZONES[f.type] ?? ZONES.normal; const x = lerp(z.x[0], z.x[1], rng()); let zz: number;
@@ -206,22 +205,28 @@ export class HordeView {
         if (d < 1e-4) { dx = rng() - 0.5; dz = rng() - 0.5; d = Math.hypot(dx, dz) || 1; }
         const push = ((min - d) * 0.5) / d; a.x += dx * push; a.z += dz * push; b.x -= dx * push; b.z -= dz * push;
       }
-      for (const f of figs) { f.x += (f.tx - f.x) * 0.03; f.z += (f.tz - f.z) * 0.03; } // a soft pull keeps every role near its zone
+      for (const f of figs) { f.x += (f.tx - f.x) * 0.03; f.z += (f.tz - f.z) * 0.03; }
     }
     this.pts = []; const box = new THREE.Box3(); let minX = 1e9, maxX = -1e9, minZ = 1e9, maxZ = -1e9;
     for (const f of figs) {
       f.root.position.set(f.x, f.y, f.z); f.root.rotation.y = f.yaw; f.shadow.position.set(f.x, 0.02, f.z); f.ring.position.set(f.x, 0.03, f.z);
       f.root.updateMatrixWorld(true); box.setFromObject(f.root);
-      for (const cx of [box.min.x, box.max.x]) for (const cy of [box.min.y, box.max.y]) for (const cz of [box.min.z, box.max.z]) this.pts.push(new THREE.Vector3(cx, cy, cz));
+      // Bound framing around ground troops with reasonable height allowance so flyers do not push camera far away
+      const topY = f.fly ? 1.6 : Math.min(1.85, box.max.y);
+      for (const cx of [box.min.x, box.max.x])
+        for (const cy of [Math.min(0, box.min.y), topY])
+          for (const cz of [box.min.z, box.max.z])
+            this.pts.push(new THREE.Vector3(cx, cy, cz));
       if (!f.fly) { minX = Math.min(minX, f.x - f.r); maxX = Math.max(maxX, f.x + f.r); minZ = Math.min(minZ, f.z - f.r); maxZ = Math.max(maxZ, f.z + f.r); }
     }
     if (!figs.length) { minX = -4; maxX = 0; minZ = -3; maxZ = 3; }
-    const bb = new THREE.Box3().setFromPoints(this.pts.length ? this.pts : [new THREE.Vector3()]);
-    this.center.set((bb.min.x + bb.max.x) / 2, (bb.min.y + bb.max.y) / 2, (bb.min.z + bb.max.z) / 2);
+    const midX = (minX + maxX) / 2;
+    const midZ = (minZ + maxZ) / 2;
+    this.center.set(midX, 0.62, midZ);
     this.buildScenery(minX, maxX, minZ, maxZ);
   }
 
-  /** builds the terrain of the upcoming level: central flat staging clearing ("lapangan"), surrounded by rolling grass terrain */
+  /** Central flat staging lapangan (troop muster field), surrounded by rolling green grass terrain */
   private buildTerrain(cx: number, cz: number, rx: number, rz: number): (x: number, z: number) => number {
     if (this.ground) {
       this.scene.remove(this.ground);
@@ -231,19 +236,21 @@ export class HordeView {
     }
     const B = this.biome;
 
+    // Inside the lapangan (d <= 0.95): flat staging surface (y = 0).
+    // Surrounding: rolling grass hills forming an arena around the clearing.
     const elevationAt = (x: number, z: number) => {
       const dx = (x - cx) / rx, dz = (z - cz) / rz;
       const d = Math.hypot(dx, dz);
-      if (d <= 1.0) return 0;
-      const t = clamp((d - 1.0) / 1.6, 0, 1);
+      if (d <= 0.95) return 0;
+      const t = clamp((d - 0.95) / 1.5, 0, 1);
       const w = t * t * (3 - 2 * t);
-      const hill = 0.38 + 0.32 * Math.sin(x * 0.22 + 1.4) * Math.cos(z * 0.2) + 0.16 * Math.cos((x - z) * 0.24);
-      const frontFactor = x > cx + 1 ? 0.65 : 1.15;
-      return w * hill * frontFactor;
+      const hill = 0.58 + 0.35 * Math.sin(x * 0.22 + 1.4) * Math.cos(z * 0.2) + 0.2 * Math.cos((x - z) * 0.24);
+      const rearFactor = x < cx ? 1.4 : 0.75;
+      return w * hill * rearFactor;
     };
 
-    const S = 22;
-    const seg = 56;
+    const S = 28;
+    const seg = 64;
     const nx = seg + 1, nz = seg + 1;
     const pos = new Float32Array(nx * nz * 3);
     const col = new Float32Array(nx * nz * 3);
@@ -277,15 +284,15 @@ export class HordeView {
         const d = Math.hypot(dx, dz);
         const noise = (Math.sin(x * 1.7) * Math.cos(z * 1.5) + 1) * 0.5;
 
-        // Lapangan (staging camp dirt/sand mix)
+        // Lapangan: assembly ground dirt, trodden soil, and sand
         const cLap = cEarth.clone().lerp(cSand0, 0.45).lerp(cSand1, noise * 0.35);
         cLap.lerp(cLane, (Math.sin(x * 3.1 + z * 2.7) + 1) * 0.1);
 
-        // Rumput (biome grass)
+        // Rumput terain: lush biome grass with natural multi-tone variations
         const cGrass = cGrass1.clone().lerp(cGrass0, noise * 0.4).lerp(cGrass2, (Math.cos(x * 2.3) + 1) * 0.15);
 
-        // Transition from lapangan to rumput
-        const tGrass = clamp((d - 0.92) / 0.42, 0, 1);
+        // Smooth transition from the trodden field into the surrounding grass
+        const tGrass = clamp((d - 0.88) / 0.35, 0, 1);
         const blend = tGrass * tGrass * (3 - 2 * tGrass);
         const finalCol = cLap.clone().lerp(cGrass, blend);
 
@@ -313,7 +320,7 @@ export class HordeView {
 
     const mat = new THREE.MeshStandardMaterial({
       vertexColors: true,
-      roughness: 0.95,
+      roughness: 0.92,
       transparent: true,
       alphaMap: this.fade,
       depthWrite: true,
@@ -327,26 +334,25 @@ export class HordeView {
     return elevationAt;
   }
 
-  /** war-camp scenery: banners behind, torches at sides, real 3D voxel trees matching the level's biome on the surrounding grass terrain, grass tufts, flowers, boulders */
+  /** Scenery: muster banners behind the army, 3D voxel trees ringing the lapangan, tufts, flowers, boulders */
   private buildScenery(minX: number, maxX: number, minZ: number, maxZ: number) {
     if (this.scenery) this.scene.remove(this.scenery);
     const g = new THREE.Group(); this.scenery = g; this.scene.add(g);
-    this.flames = []; this.flags = []; this.treeSways = [];
+    this.flags = []; this.treeSways = [];
     for (const d of this.disposables) d.dispose();
     this.disposables = [];
 
     const side = Math.max(Math.abs(minZ), Math.abs(maxZ)) + 1.5;
-    const rear = minX - 2.5;
-    const front = maxX + 1.2;
+    const rear = minX - 2.2;
     const cx = (minX + maxX) / 2;
     const cz = (minZ + maxZ) / 2;
-    const rx = Math.max(4.2, (maxX - minX) * 0.52 + 1.2);
-    const rz = Math.max(3.8, (maxZ - minZ) * 0.52 + 1.2);
+    const rx = Math.max(4.4, (maxX - minX) * 0.52 + 1.2);
+    const rz = Math.max(4.0, (maxZ - minZ) * 0.52 + 1.2);
 
     const elevationAt = this.buildTerrain(cx, cz, rx, rz);
 
-    // purple banners with the orc sigil
-    for (const z of [-0.85 * side, 0, 0.85 * side]) {
+    // War banners on carved wooden poles behind the rear line
+    for (const z of [-0.75 * side, 0, 0.75 * side]) {
       const by = elevationAt(rear, z);
       const pole = new THREE.Mesh(this.poleGeo, this.poleMat); pole.scale.set(1, 3.6, 1); pole.position.set(rear, by + 1.8, z); g.add(pole);
       const flag = new THREE.Group(); flag.position.set(rear, by + 3.0, z); g.add(flag); this.flags.push(flag);
@@ -356,38 +362,33 @@ export class HordeView {
       const top = new THREE.Mesh(this.sphGeo, this.whiteMat); top.scale.setScalar(0.09); top.position.set(rear, by + 3.65, z); g.add(top);
     }
 
-    // torches with flame and halo at the 4 corners of the clearing
-    const torchSpots: [number, number][] = [[front, -side], [front, side], [rear + 2.2, -side], [rear + 2.2, side]];
-    torchSpots.forEach(([x, z], i) => {
-      const ty = elevationAt(x, z);
-      const pole = new THREE.Mesh(this.poleGeo, this.poleMat); pole.scale.set(1, 1.7, 1); pole.position.set(x, ty + 0.85, z); g.add(pole);
-      const bowl = new THREE.Mesh(this.coneGeo, this.poleMat); bowl.scale.set(0.2, 0.22, 0.2); bowl.rotation.x = Math.PI; bowl.position.set(x, ty + 1.8, z); g.add(bowl);
-      const fl = makeFlame(0.42); fl.position.set(x, ty + 1.86, z); g.add(fl); this.flames.push(fl);
-      const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: this.glowTexture, color: 0xffa24a, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true, opacity: 0.6 })); halo.scale.setScalar(1.9); halo.position.set(x, ty + 2.1, z); g.add(halo);
-      if (i < this.torchLights.length) this.torchLights[i].position.set(x, ty + 2.2, z);
-    });
-
-    // trees matching the level's biome in the surrounding grass terrain
+    // 3D Voxel trees ringing the lapangan on the surrounding grass terrain
     const B = this.biome;
     const treeRng = mulberry32(this.level * 41 + 17);
     const treeSpots: [number, number, number][] = [
-      // Rear line (behind banners and portal):
-      [minX - 3.8, cz - 3.5, 1.05],
-      [minX - 4.6, cz + 1.2, 1.15],
-      [minX - 5.8, cz - 1.5, 1.2],
-      [minX - 6.2, cz + 4.2, 1.1],
-      [minX - 7.5, cz - 4.8, 1.0],
-      [minX - 8.4, cz + 1.8, 1.25],
-      // North flank (+z):
-      [cx - 2.8, maxZ + 3.2, 1.0],
-      [cx + 0.8, maxZ + 4.5, 0.95],
-      [cx + 3.6, maxZ + 3.4, 0.9],
-      [minX - 1.8, maxZ + 6.2, 1.1],
-      // South flank (-z):
-      [cx - 2.5, minZ - 3.2, 1.05],
-      [cx + 1.2, minZ - 4.2, 0.95],
-      [cx + 3.8, minZ - 3.0, 0.9],
-      [minX - 2.0, minZ - 6.0, 1.1],
+      // Rear hill line (directly framing the background behind the army):
+      [minX - 3.2, cz - 3.4, 1.2],
+      [minX - 3.8, cz - 0.8, 1.25],
+      [minX - 3.3, cz + 1.9, 1.15],
+      [minX - 4.2, cz + 3.9, 1.25],
+      [minX - 5.4, cz - 4.6, 1.2],
+      [minX - 6.0, cz - 1.9, 1.3],
+      [minX - 5.8, cz + 1.3, 1.25],
+      [minX - 6.4, cz + 4.8, 1.15],
+      [minX - 7.5, cz - 3.2, 1.1],
+      [minX - 8.2, cz + 2.5, 1.2],
+      // North flank (+z grass hills):
+      [cx - 2.0, maxZ + 2.4, 1.15],
+      [cx + 0.6, maxZ + 3.4, 1.1],
+      [cx + 3.0, maxZ + 2.8, 1.0],
+      [cx + 5.2, maxZ + 3.8, 1.05],
+      [minX - 1.5, maxZ + 5.4, 1.2],
+      // South flank (-z grass hills):
+      [cx - 1.8, minZ - 2.5, 1.15],
+      [cx + 0.8, minZ - 3.4, 1.1],
+      [cx + 3.2, minZ - 2.9, 1.0],
+      [cx + 5.4, minZ - 3.9, 1.05],
+      [minX - 1.4, minZ - 5.2, 1.2],
     ];
 
     treeSpots.forEach(([tx, tz, s]) => {
@@ -400,54 +401,54 @@ export class HordeView {
       const ty = elevationAt(tx, tz);
       tree.group.position.set(tx, ty, tz);
       tree.group.rotation.y = treeRng() * 6.28;
-      tree.group.scale.setScalar(s * (0.85 + treeRng() * 0.3));
+      tree.group.scale.setScalar(s * (0.88 + treeRng() * 0.28));
       g.add(tree.group);
       this.treeSways.push({ piv: tree.piv, amp: tree.amp, ph: tree.ph });
     });
 
-    // Tufts of grass on the surrounding grass terrain
+    // Tufts of grass on the surrounding hills
     const tuftG = tuftGeo();
     this.disposables.push(tuftG);
     const tuftMat = new THREE.MeshStandardMaterial({ color: B.grass[1], roughness: 0.95, side: THREE.DoubleSide });
     this.disposables.push(tuftMat);
-    for (let i = 0; i < 28; i++) {
+    for (let i = 0; i < 32; i++) {
       const ang = treeRng() * 6.28;
-      const dist = 1.12 + treeRng() * 0.75;
+      const dist = 1.05 + treeRng() * 0.8;
       const gx = cx + Math.cos(ang) * rx * dist;
       const gz = cz + Math.sin(ang) * rz * dist;
       const gy = elevationAt(gx, gz);
       const tm = new THREE.Mesh(tuftG, tuftMat);
       tm.position.set(gx, gy, gz);
-      tm.scale.setScalar(0.24 + treeRng() * 0.16);
+      tm.scale.setScalar(0.25 + treeRng() * 0.18);
       tm.rotation.y = treeRng() * 6.28;
       g.add(tm);
     }
 
     // Biome flowers
     if (B.flowers && B.flowers.length > 0) {
-      for (let i = 0; i < 18; i++) {
+      for (let i = 0; i < 22; i++) {
         const fc = B.flowers[i % B.flowers.length];
         const flG = flowerGeo(fc);
         this.disposables.push(flG);
         const flMat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.8 });
         this.disposables.push(flMat);
         const ang = treeRng() * 6.28;
-        const dist = 1.15 + treeRng() * 0.65;
+        const dist = 1.08 + treeRng() * 0.75;
         const fx = cx + Math.cos(ang) * rx * dist;
         const fz = cz + Math.sin(ang) * rz * dist;
         const fy = elevationAt(fx, fz);
         const fm = new THREE.Mesh(flG, flMat);
         fm.position.set(fx, fy, fz);
-        fm.scale.setScalar(0.28 + treeRng() * 0.18);
+        fm.scale.setScalar(0.3 + treeRng() * 0.2);
         fm.rotation.y = treeRng() * 6.28;
         g.add(fm);
       }
     }
 
     // Boulders
-    for (let i = 0; i < 6; i++) {
+    for (let i = 0; i < 7; i++) {
       const ang = treeRng() * 6.28;
-      const dist = 1.25 + treeRng() * 0.6;
+      const dist = 1.15 + treeRng() * 0.7;
       const bx = cx + Math.cos(ang) * rx * dist;
       const bz = cz + Math.sin(ang) * rz * dist;
       const by = elevationAt(bx, bz);
@@ -458,32 +459,78 @@ export class HordeView {
       g.add(bObj.group);
       this.disposables.push(bObj.geo, bObj.ol);
     }
-
-    // Portal glow in the distance behind the rear tree line
-    const py = elevationAt(rear - 6, 0);
-    this.glow.position.set(rear - 6, py + 3.2, 0);
   }
 
   // ---------- camera ----------
   private dirOut(az: number, el: number) { return new THREE.Vector3(Math.cos(el) * Math.cos(az), Math.sin(el), Math.cos(el) * Math.sin(az)); }
-  /** the camera distance at which every figure (incl. flyers) is inside the frame for a given viewing angle */
+  /** distance at which figures fit inside the camera frame */
   private fitFor(az: number, el: number) {
     const out = this.dirOut(az, el); const f = out.clone().negate(); const right = new THREE.Vector3().crossVectors(f, new THREE.Vector3(0, 1, 0)).normalize(); const up = new THREE.Vector3().crossVectors(right, f).normalize();
     const tv = Math.tan(THREE.MathUtils.degToRad(this.camera.fov) / 2); const th = tv * this.camera.aspect; let dist = 4;
     for (const p of this.pts) { const r = this.tmp.copy(p).sub(this.center); dist = Math.max(dist, Math.abs(r.dot(right)) / th - r.dot(f), Math.abs(r.dot(up)) / tv - r.dot(f)); }
     return dist;
   }
-  private fit() { this.dist = Math.max(this.fitFor(this.camAz - 0.5, this.camEl), this.fitFor(this.camAz, this.camEl), this.fitFor(this.camAz + 0.5, this.camEl)) * 1.07; }
+  private fit() {
+    const rawDist = Math.max(
+      this.fitFor(this.camAz - 0.4, this.camEl),
+      this.fitFor(this.camAz, this.camEl),
+      this.fitFor(this.camAz + 0.4, this.camEl)
+    );
+    // Zoom in noticeably closer so troops appear large and detailed
+    this.baseDist = rawDist * 0.64;
+    this.dist = this.baseDist * this.userZoom;
+  }
 
   // ---------- interaction ----------
-  private onDown = (e: PointerEvent) => { this.downX = e.clientX; this.downY = e.clientY; this.lastX = e.clientX; this.moved = false; this.dragging = true; try { this.canvas.setPointerCapture(e.pointerId); } catch { /* not supported */ } };
-  private onMove = (e: PointerEvent) => {
-    if (!this.dragging) return; const dx = e.clientX - this.lastX; this.lastX = e.clientX;
-    if (Math.abs(e.clientX - this.downX) + Math.abs(e.clientY - this.downY) > 8) this.moved = true;
-    if (this.moved) this.orbit = clamp(this.orbit - dx * 0.006, -0.5, 0.5);
+  private onWheel = (e: WheelEvent) => {
+    e.preventDefault();
+    this.userZoom = clamp(this.userZoom * (1 + e.deltaY * 0.0012), 0.45, 1.4);
+    this.fit();
   };
-  private onUp = (e: PointerEvent) => { if (!this.dragging) return; this.dragging = false; if (!this.moved) this.onPick(this.pick(e.clientX, e.clientY)); };
-  private onCancel = () => { this.dragging = false; };
+
+  private onDown = (e: PointerEvent) => {
+    this.activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (this.activePointers.size === 1) {
+      this.downX = e.clientX; this.downY = e.clientY; this.lastX = e.clientX; this.moved = false; this.dragging = true;
+      try { this.canvas.setPointerCapture(e.pointerId); } catch { /* not supported */ }
+    } else if (this.activePointers.size === 2) {
+      this.dragging = false;
+      const pts = Array.from(this.activePointers.values());
+      this.initialPinchDist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+      this.initialZoom = this.userZoom;
+    }
+  };
+
+  private onMove = (e: PointerEvent) => {
+    if (this.activePointers.has(e.pointerId)) {
+      this.activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    }
+    if (this.activePointers.size === 2 && this.initialPinchDist > 5) {
+      const pts = Array.from(this.activePointers.values());
+      const curDist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+      const ratio = curDist / this.initialPinchDist;
+      this.userZoom = clamp(this.initialZoom / Math.max(0.2, ratio), 0.45, 1.4);
+      this.fit();
+      return;
+    }
+    if (!this.dragging) return;
+    const dx = e.clientX - this.lastX; this.lastX = e.clientX;
+    if (Math.abs(e.clientX - this.downX) + Math.abs(e.clientY - this.downY) > 8) this.moved = true;
+    if (this.moved) this.orbit = clamp(this.orbit - dx * 0.006, -0.65, 0.65);
+  };
+
+  private onUp = (e: PointerEvent) => {
+    this.activePointers.delete(e.pointerId);
+    if (!this.dragging) return;
+    this.dragging = false;
+    if (!this.moved) this.onPick(this.pick(e.clientX, e.clientY));
+  };
+
+  private onCancel = (e: PointerEvent) => {
+    this.activePointers.delete(e.pointerId);
+    this.dragging = false;
+  };
+
   private pick(cx: number, cy: number): string | null {
     const rect = this.canvas.getBoundingClientRect(); if (!rect.width || !rect.height) return null;
     this.ray.setFromCamera(new THREE.Vector2(((cx - rect.left) / rect.width) * 2 - 1, -((cy - rect.top) / rect.height) * 2 + 1), this.camera);
@@ -502,14 +549,12 @@ export class HordeView {
 
   private update(dt: number) {
     const t = this.t;
-    const az = this.camAz + this.orbit + Math.sin(t * 0.25) * 0.045, el = this.camEl + Math.sin(t * 0.19) * 0.012;
+    const az = this.camAz + this.orbit + Math.sin(t * 0.25) * 0.035, el = this.camEl + Math.sin(t * 0.19) * 0.012;
     this.camera.position.copy(this.center).addScaledVector(this.dirOut(az, el), this.dist); this.camera.lookAt(this.center);
-    this.key.position.copy(this.camera.position).add(this.tmp.set(0, 4, 0)); this.key.target.position.copy(this.center);
-    this.rim.position.set(this.center.x - 9, 7, this.center.z - 5); this.rim.target.position.copy(this.center);
+    this.key.position.copy(this.camera.position).add(this.tmp.set(5, 10, 4)); this.key.target.position.copy(this.center);
+    this.rim.position.set(this.center.x - 9, 7, this.center.z - 6); this.rim.target.position.copy(this.center);
     for (const f of this.figs) this.animFig(f, t, dt);
-    this.flames.forEach((fl, i) => flickerFlame(fl, t + i * 1.7)); this.torchLights.forEach((l, i) => { l.intensity = 1.7 + Math.sin(t * 9 + i * 2) * 0.35; });
     this.flags.forEach((fl, i) => { fl.rotation.y = Math.sin(t * 2.2 + i) * 0.28; fl.rotation.z = Math.sin(t * 1.6 + i * 2) * 0.05; });
-    this.haloMat.opacity = 0.5 + Math.sin(t * 1.4) * 0.12;
     this.ringMat.opacity = 0.65 + Math.sin(t * 6) * 0.25;
     this.treeSways.forEach(s => {
       s.piv.rotation.z = Math.sin(t * 1.8 + s.ph) * s.amp;
@@ -559,6 +604,21 @@ export class HordeView {
       if (type === 'cannoneer' && L.torch) { const tf = L.torch.getObjectByName('flame'); if (tf) flickerFlame(tf, tt); }
       if (type === 'bomber' && L.head) { const hf = L.head.getObjectByName('flame'); if (hf) flickerFlame(hf, tt); }
       if (type === 'rider' && L.mount) { L.mount.position.y = 0.72 + Math.sin(tt * 2.5) * 0.02; }
+      if (type === 'bat') {
+        if (L.wingL && L.wingR) {
+          const flap = Math.sin(tt * 4.2) * 0.35;
+          L.wingL.rotation.y = 0.25 + flap;
+          L.wingR.rotation.y = -0.25 - flap;
+          L.wingL.rotation.z = Math.sin(tt * 4.2) * 0.18;
+          L.wingR.rotation.z = -Math.sin(tt * 4.2) * 0.18;
+        }
+      }
+      if (type === 'gargantuar') {
+        if (L.impRider) {
+          L.impRider.position.y = 0.22 * 1.42 + Math.abs(Math.sin(tt * 2.2)) * 0.04;
+          L.impRider.rotation.y = Math.sin(tt * 1.4) * 0.2;
+        }
+      }
     }
     if (L.face) updateFace(L.face, dt, t, { lookX: Math.sin(tt * 0.5) * 0.8, lookY: Math.sin(tt * 0.33) * 0.2, focus: sel ? 0.6 : 0.3, squint: cheer > 0.35 ? 1 : 0, worry: 0 });
     if (L.face2) updateFace(L.face2, dt, t, { lookX: Math.sin(tt * 0.5) * 0.8, lookY: 0, focus: 0.3, squint: 0, worry: 0 });
@@ -569,8 +629,13 @@ export class HordeView {
 
   dispose() {
     cancelAnimationFrame(this.raf);
-    const c = this.canvas; c.removeEventListener('pointerdown', this.onDown); c.removeEventListener('pointermove', this.onMove); c.removeEventListener('pointerup', this.onUp); c.removeEventListener('pointercancel', this.onCancel);
-    for (const d of [this.shadowGeo, this.shadowMat, this.ringGeo, this.ringMat, this.glowTexture, this.fade, this.poleGeo, this.boxGeo, this.sphGeo, this.coneGeo, this.poleMat, this.flagMat, this.sigilMat, this.whiteMat, this.rockMat, this.haloMat, this.dust.geometry]) d.dispose();
+    const c = this.canvas;
+    c.removeEventListener('pointerdown', this.onDown);
+    c.removeEventListener('pointermove', this.onMove);
+    c.removeEventListener('pointerup', this.onUp);
+    c.removeEventListener('pointercancel', this.onCancel);
+    c.removeEventListener('wheel', this.onWheel);
+    for (const d of [this.shadowGeo, this.shadowMat, this.ringGeo, this.ringMat, this.fade, this.poleGeo, this.boxGeo, this.sphGeo, this.poleMat, this.flagMat, this.sigilMat, this.whiteMat, this.dust.geometry]) d.dispose();
     if (this.ground) { this.ground.geometry.dispose(); (this.ground.material as THREE.Material).dispose(); }
     for (const d of this.disposables) d.dispose();
     this.renderer.dispose();

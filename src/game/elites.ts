@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { BOX, SPH, OUTLINE_MAT, makeFace } from './voxel';
+import { BOX, OUTLINE_MAT, makeFace } from './voxel';
 import { M, S, cap, cyl, cone, tor, box, newSkin, orcArm } from './orcs';
 import type { OrcBuild } from './orcs';
 
@@ -51,27 +51,20 @@ function eliteHead(def: Def, skinMat: THREE.MeshStandardMaterial, mats: THREE.Me
     p.add(cone(0.13, 0.36 * ears, skinMat, 0, 0, 0, { sz: 0.42, ol: true })); p.add(cone(0.075, 0.27 * ears, inner, 0, 0.02, 0.03, { sz: 0.4 })); head.add(p); return p;
   };
   const earL = mkEar(-1), earR = mkEar(1);
-  const face = makeFace({ r: o.eye, gap: o.gap, iris: o.iris, skin: def.skin, mouth: 'grin', cheeks: true, bias: o.bias ?? 0, brows: o.brows, body: { R: 0.43, cy: 0, sy: 0.96, y0: 0.02 } });
+  const face = makeFace({ r: o.eye, gap: o.gap, iris: o.iris, skin: def.skin, mouth: 'none', cheeks: true, bias: o.bias ?? 0, brows: o.brows, body: { R: 0.43, cy: 0, sy: 0.96, y0: 0.02 } });
   head.add(face);
   mats.push((face.userData.eyes as { lid: THREE.Mesh }[])[0].lid.material as THREE.MeshStandardMaterial);
   head.add(S(0.045, M(shade(def.skin, -0.12)), 0, -0.1, 0.425, { sx: 1.3, sy: 0.9, sz: 0.9 }));
-  const tk = o.tusk ?? 1; if (tk > 0) for (const sd of [-1, 1]) head.add(cone(0.045 * tk, 0.13 * tk, M(0xfff7e0), sd * 0.13, -0.215, 0.335, { rz: -sd * 0.12 }));
+  const tk = o.tusk ?? 1;
+  if (tk > 0) {
+    const toothMat = M(0xfffff2, 0.15, 0.3);
+    for (const sd of [-1, 1]) {
+      head.add(cone(0.045 * tk, 0.15 * tk, toothMat, sd * 0.125, -0.17, 0.41, { rx: 0.22, rz: -sd * 0.15, ol: true }));
+    }
+  }
   return { head, face, earL, earR };
 }
 
-/** turns the tower-style eyes into glowing ones: bright emissive sclera, a dark slit pupil, an additive halo and glowing brows */
-function glowEyes(face: THREE.Object3D, color: number, irisDark: number) {
-  const u = face.userData as { r: number; eyes: { eye: THREE.Group; pupil: THREE.Group }[]; brows?: { m: THREE.Mesh }[] };
-  const ball = u.eyes[0].eye.children[0] as THREE.Mesh; const bm = ball.material as THREE.MeshStandardMaterial;
-  bm.color.setHex(color); bm.emissive.setHex(color); bm.emissiveIntensity = 1.6; bm.roughness = 0.35;
-  const im = (u.eyes[0].pupil.children[0] as THREE.Mesh).material as THREE.MeshStandardMaterial; im.color.setHex(irisDark); im.emissive.setHex(irisDark); im.emissiveIntensity = 0.25;
-  const halo = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.3, blending: THREE.AdditiveBlending, depthWrite: false });
-  for (const e of u.eyes) {
-    (e.pupil.children[1] as THREE.Mesh).scale.x *= 0.5; // slit pupil
-    const h = new THREE.Mesh(SPH, halo); h.scale.setScalar(u.r * 1.9); h.position.z = u.r * 0.15; e.eye.add(h);
-  }
-  if (u.brows) for (const b of u.brows) { const bmat = b.m.material as THREE.MeshStandardMaterial; bmat.emissive.setHex(color); bmat.emissiveIntensity = 0.9; }
-}
 
 /** curved bull-horn made of tapering segments that bend up and then back inwards; the last two segments can be a different (glowing) material */
 function horn(sd: number, mat: THREE.Material, len = 0.38, r0 = 0.08, out = 0.85, tip?: THREE.Material) {
@@ -199,21 +192,37 @@ function buildDread(def: Def): OrcBuild {
   const armL = orcArm(skinMat), armR = orcArm(skinMat);
   armL.scale.setScalar(1.25); armR.scale.setScalar(1.25); armL.position.set(-0.52, 0.84, 0); armR.position.set(0.52, 0.84, 0);
 
-  // head: black horned helmet, a dark visor slot with glowing green eyes, a glowing grille instead of a mouth, glowing horn tips and a crest
+  // head: sleek black obsidian plate knight helmet with glowing emerald visor slits & horned crest
   const head = new THREE.Group(); head.position.y = 1.22; head.scale.setScalar(1.18);
-  head.add(S(0.43, skinMat, 0, 0, 0, { sx: 1.1, sy: 0.98, sz: 1.02, cast: true, ol: true }));
-  head.add(S(0.3, dark, 0, -0.01, 0.34, { sx: 1.3, sy: 0.6, sz: 0.28 }));
-  head.add(S(0.16, dark, 0, -0.2, 0.34, { sx: 1.5, sy: 0.6, sz: 0.3 }));
-  for (let i = -2; i <= 2; i++) head.add(box(0.022, 0.1, 0.03, glow, i * 0.055, -0.2, 0.395, {}));
-  head.add(box(0.07, 0.14, 0.5, plate, 0, 0.44, -0.02, { ol: true })); head.add(box(0.03, 0.05, 0.44, glow, 0, 0.52, -0.02, {}));
-  head.add(tor(0.4, 0.03, trim, 0, 0.24, 0, { rx: Math.PI / 2 }));
+  head.add(S(0.42, skinMat, 0, 0, 0, { sx: 1.08, sy: 0.96, sz: 1.0, cast: true, ol: true }));
+  head.add(dome(plate, 0.48, 0.42, 0.46, 0, 0.18, 0));
+  head.add(cyl(0.44, 0.38, 0.28, plate, 0, -0.08, 0.05, { seg: 18, ol: true }));
+  head.add(tor(0.44, 0.032, trim, 0, 0.22, 0, { rx: Math.PI / 2 }));
+
+  const visor = new THREE.Group(); visor.position.set(0, 0.04, 0.36);
+  visor.add(box(0.38, 0.15, 0.06, dark, 0, 0, 0, { ol: true }));
   for (const sd of [-1, 1]) {
-    const h = horn(sd, plate, 0.5, 0.1, 0.9, glow); h.position.set(sd * 0.36, 0.2, 0.0); head.add(h);
-    head.add(cone(0.045, 0.14, trim, sd * 0.4, -0.12, 0.2, { rz: -sd * 1.2 })); // cheek spikes
+    const eyeSlit = box(0.11, 0.042, 0.05, glow, sd * 0.1, 0.01, 0.02, {});
+    eyeSlit.rotation.z = -sd * 0.18;
+    visor.add(eyeSlit);
   }
-  const face = makeFace({ r: 0.125, gap: 0.17, iris: 0x14532d, skin: def.skin, mouth: 'none', cheeks: false, bias: 0.9, brows: 0x16a34a, body: { R: 0.43, cy: 0, sy: 0.98, y0: 0.03 } });
-  head.add(face); glowEyes(face, 0x66ff8f, 0x14532d);
-  skinMats.push((face.userData.eyes as { lid: THREE.Mesh }[])[0].lid.material as THREE.MeshStandardMaterial);
+  for (let i = -2; i <= 2; i++) {
+    visor.add(box(0.018, 0.075, 0.03, plateL, i * 0.052, -0.16, 0.01, {}));
+  }
+  head.add(visor);
+
+  head.add(box(0.08, 0.14, 0.52, plate, 0, 0.45, -0.04, { ol: true }));
+  head.add(box(0.035, 0.05, 0.46, glow, 0, 0.53, -0.04, {}));
+
+  for (const sd of [-1, 1]) {
+    const h = horn(sd, plate, 0.52, 0.11, 0.95, glow);
+    h.position.set(sd * 0.38, 0.22, 0.0);
+    head.add(h);
+    head.add(S(0.04, trim, sd * 0.42, -0.05, 0.22));
+  }
+
+  const face = new THREE.Group(); face.name = 'face';
+  head.add(face);
   const sword = greatsword(); sword.position.set(0, -0.3, 0.01); sword.rotation.x = 2.7; armR.add(sword);
   Object.assign(limbs, { legL, legR, body, armL, armR, head, face, sword });
   return { parts: [legL, legR, body, armL, armR, head], debris: [legL, legR, body, armL, armR, head, sword], limbs, skinMats, hpY: 2.6 };
@@ -269,10 +278,14 @@ function buildLegion(def: Def): OrcBuild {
   shield.add(S(0.1, gold, 0, 0, 0.07, { sz: 0.6, ol: true })); shield.add(box(0.5, 0.06, 0.02, gold, 0, 0, 0.05)); shield.add(box(0.06, 0.5, 0.02, gold, 0, 0, 0.05));
   const hd = eliteHead(def, skinMat, skinMats, { eye: 0.125, gap: 0.175, iris: 0x0ea5e9, brows: 0x365314, tusk: 0.9 });
   const head = hd.head; head.position.y = 1.08; head.scale.setScalar(1.0);
-  head.add(dome(steel, 0.45, 0.34, 0.43, 0, 0.26, 0)); head.add(tor(0.43, 0.035, gold, 0, 0.26, 0, { rx: Math.PI / 2 }));
-  head.add(box(0.06, 0.18, 0.05, steel, 0, 0.1, 0.42, { ol: true }));
-  for (const sd of [-1, 1]) head.add(box(0.06, 0.2, 0.22, steel, sd * 0.4, 0.06, 0.05, { ol: true }));
-  head.add(cap(0.07, 0.5, red, 0, 0.58, -0.15, { rx: Math.PI / 2, ol: true })); head.add(cone(0.06, 0.2, red, 0, 0.55, 0.12, {}));
+  head.add(dome(steel, 0.45, 0.34, 0.43, 0, 0.26, 0));
+  head.add(tor(0.43, 0.038, gold, 0, 0.26, 0, { rx: Math.PI / 2 }));
+  head.add(box(0.065, 0.18, 0.06, steel, 0, 0.1, 0.42, { ol: true }));
+  head.add(S(0.035, gold, 0, 0.26, 0.44));
+  for (const sd of [-1, 1]) head.add(box(0.07, 0.22, 0.22, steel, sd * 0.4, 0.06, 0.05, { ol: true }));
+  head.add(box(0.06, 0.08, 0.52, gold, 0, 0.46, -0.05));
+  head.add(cap(0.075, 0.52, red, 0, 0.58, -0.05, { rx: Math.PI / 2, ol: true }));
+  head.add(cone(0.065, 0.22, red, 0, 0.56, 0.22, { rx: 0.35 }));
   const armL = orcArm(skinMat), armR = orcArm(skinMat); armL.position.set(-0.32, 0.76, 0); armR.position.set(0.32, 0.76, 0);
   const spear = new THREE.Group(); spear.position.set(0, -0.3, 0.01); spear.rotation.x = 0.35; armR.add(spear);
   // Grip centered around y = 0 inside hand, shaft extends down and up

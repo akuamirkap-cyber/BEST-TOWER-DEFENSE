@@ -92,13 +92,13 @@ const CFG: Record<OrcKind, Cfg> = {
   magnet: { ...N, bodyS: 1.28, bodyY: 0.65, headY: 1.15, armX: 0.42, armY: 0.8, eye: 0.118, iris: 0x3b82f6, bias: 0.35, ears: 0.9, tusk: 1.3, brows: 0x1e293b, hpY: 2.25 },
   frost: { ...N, legH: 0.3, bodyS: 0.95, bodyY: 0.55, headY: 1.02, armX: 0.29, armY: 0.68, eye: 0.13, iris: 0x06b6d4, ears: 1.1, tusk: 0.7, brows: 0x0e7490, hpY: 2.05 },
   rider: { ...N, bodyS: 1.25, bodyY: 1.38, headY: 1.93, armX: 0.42, armY: 1.55, eye: 0.12, iris: 0xeab308, bias: 0.3, ears: 1.0, tusk: 1.4, brows: 0x334155, hpY: 2.85 },
-  punk: { ...N, bodyS: 0.94, bodyY: 0.58, headS: 1.0, headY: 1.06, armX: 0.3, armY: 0.72, eye: 0.13, iris: 0xdc2626, bias: 0.5, ears: 1.3, tusk: 1.1, brows: 0x991b1b, hpY: 2.15 },
+  punk: { ...N, bodyS: 0.94, bodyY: 0.58, headS: 1.0, headY: 1.06, armX: 0.3, armY: 0.72, eye: 0.13, iris: 0xdc2626, bias: 0.1, ears: 1.3, tusk: 1.1, brows: 0x991b1b, hpY: 2.15 },
   shield: { ...N, bodyS: 1.24, bodyY: 0.64, headY: 1.14, armX: 0.42, armY: 0.8, eye: 0.118, iris: 0x64748b, bias: 0.25, ears: 0.9, tusk: 1.1, brows: 0x1e293b, hpY: 2.25 },
   toxic: { ...N, bodyS: 0.96, bodyY: 0.57, headY: 1.05, armX: 0.3, armY: 0.72, eye: 0.13, iris: 0x16a34a, bias: 0.45, ears: 1.0, tusk: 0.8, brows: 0x14532d, hpY: 2.05 },
-  bat: { ...N, bodyS: 0.86, bodyY: 0.54, headS: 0.95, headY: 1.0, armX: 0.27, armY: 0.67, eye: 0.135, iris: 0x9333ea, bias: 0.5, ears: 1.6, tusk: 1.4, brows: 0x581c87, hpY: 2.05 },
+  bat: { ...N, bodyS: 0.86, bodyY: 0.54, headS: 0.95, headY: 1.0, armX: 0.27, armY: 0.67, eye: 0.135, iris: 0xa855f7, bias: 0.1, ears: 1.6, tusk: 1.4, brows: 0x581c87, hpY: 2.05 },
   troll: { ...N, legH: 0.38, bodyS: 1.38, bodyY: 0.72, headS: 1.1, headY: 1.26, armX: 0.45, armY: 0.86, eye: 0.12, iris: 0x15803d, bias: 0.35, ears: 1.2, tusk: 1.5, brows: 0x064e3b, hpY: 2.5 },
-  gargantuar: { ...N, legH: 0.38, bodyS: 1.42, bodyY: 0.74, headS: 1.12, headY: 1.28, armX: 0.46, armY: 0.88, eye: 0.118, iris: 0xd97706, bias: 0.5, ears: 1.1, tusk: 1.6, brows: 0x1c1917, hpY: 2.65 },
-  imp: { ...N, legH: 0.26, bodyS: 0.8, bodyY: 0.46, headS: 1.28, headY: 1.04, armX: 0.24, armY: 0.58, eye: 0.15, gap: 0.175, iris: 0xf59e0b, bias: 0.25, ears: 1.5, tusk: 0.6, brows: 0x3f6212, hpY: 2.0 },
+  gargantuar: { ...N, legH: 0.38, bodyS: 1.42, bodyY: 0.74, headS: 1.12, headY: 1.28, armX: 0.46, armY: 0.88, eye: 0.125, iris: 0xd97706, bias: 0.08, ears: 1.1, tusk: 1.6, brows: 0x1c1917, hpY: 2.65 },
+  imp: { ...N, legH: 0.26, bodyS: 0.8, bodyY: 0.46, headS: 1.28, headY: 1.04, armX: 0.24, armY: 0.58, eye: 0.15, gap: 0.175, iris: 0xf59e0b, bias: 0.15, ears: 1.5, tusk: 0.6, brows: 0x3f6212, hpY: 2.0 },
   bungee: { ...N, bodyS: 0.92, bodyY: 0.56, headS: 0.98, headY: 1.04, armX: 0.29, armY: 0.7, eye: 0.13, iris: 0x0284c7, bias: 0.3, ears: 1.2, tusk: 0.9, brows: 0x1e293b, hpY: 2.35 },
   miner: { ...N, legH: 0.3, bodyS: 1.05, bodyY: 0.56, headS: 1.02, headY: 1.04, armX: 0.32, armY: 0.7, eye: 0.125, iris: 0xca8a04, bias: 0.2, ears: 1.0, tusk: 1.0, brows: 0x422006, hpY: 2.05 },
 };
@@ -116,12 +116,17 @@ function orcHead(kind: OrcKind, def: Def, skinMat: THREE.MeshStandardMaterial, m
   };
   const earL = mkEar(-1), earR = mkEar(1);
 
-  const face = makeFace({ r: c.eye, gap: c.gap, iris: c.iris, skin: def.skin, mouth: c.mouth, cheeks: true, bias: c.bias, brows: c.brows, body: { R: 0.43, cy: 0, sy: 0.96, y0: 0.02 } });
+  const face = makeFace({ r: c.eye, gap: c.gap, iris: c.iris, skin: def.skin, mouth: 'none', cheeks: true, bias: c.bias, brows: c.brows, body: { R: 0.43, cy: 0, sy: 0.96, y0: 0.02 } });
   head.add(face);
   const eyes = face.userData.eyes as { eye: THREE.Group; lid: THREE.Mesh }[];
   mats.push(eyes[0].lid.material as THREE.MeshStandardMaterial);
   head.add(S(0.045, M(shade(def.skin, -0.12)), 0, -0.1, 0.425, { sx: 1.3, sy: 0.9, sz: 0.9 }));
-  if (c.tusk > 0) for (const sd of [-1, 1]) head.add(cone(0.045 * c.tusk, 0.13 * c.tusk, M(0xfff7e0), sd * 0.13, -0.215, 0.335, { rz: -sd * 0.12 }));
+  if (c.tusk > 0) {
+    const toothMat = M(0xfffff2, 0.15, 0.3);
+    for (const sd of [-1, 1]) {
+      head.add(cone(0.045 * c.tusk, 0.15 * c.tusk, toothMat, sd * 0.125, -0.17, 0.41, { rx: 0.22, rz: -sd * 0.15, ol: true }));
+    }
+  }
 
   if (hat) {
     const gold = M(0xfbbf24, 0.25, 0.3), steel = M(0x9aa4b5, 0.1, 0.35);
@@ -203,21 +208,54 @@ function orcHead(kind: OrcKind, def: Def, skinMat: THREE.MeshStandardMaterial, m
         head.add(tor(0.44, 0.035, gold, 0, 0.27, 0, { rx: Math.PI / 2 }));
         for (const sd of [-1, 1]) head.add(cone(0.08, 0.34, M(0xf1f5f9), sd * 0.38, 0.38, 0, { rz: -sd * 0.8, ol: true }));
         break;
-      case 'punk': { // tall spiky crimson-red punk mohawk + studded ear piercings
-        const punkRed = M(0xef4444, 0.3);
-        const punkDark = M(0xb91c1c, 0.2);
-        [[-0.24, 0.22], [-0.16, 0.3], [-0.08, 0.36], [0, 0.4], [0.08, 0.36], [0.16, 0.3], [0.24, 0.22]].forEach(([z, h], idx) => {
-          head.add(cone(0.065, h, idx % 2 === 0 ? punkRed : punkDark, 0, 0.38, z, { ol: true }));
+      case 'punk': { // Badass spiked combat/biker punk helmet with flame mohawk crest, chrome studs & biker goggles
+        const darkSteel = M(0x27272a, 0.12, 0.4);
+        const chrome = M(0xd1d5db, 0.35, 0.25);
+        const punkRed = M(0xef4444, 0.45);
+        const punkFlame = M(0xf97316, 0.4);
+        const leather = M(0x18181b, 0.1, 0.6);
+
+        // 1. Sleek dark-steel combat helmet dome & rim
+        head.add(domeMesh(darkSteel, 0.46, 0.36, 0.44, 0, 0.26, 0));
+        head.add(tor(0.445, 0.04, leather, 0, 0.25, 0, { rx: Math.PI / 2 }));
+
+        // 2. Front brow visor plate with row of chrome pyramid studs
+        head.add(box(0.36, 0.07, 0.08, darkSteel, 0, 0.26, 0.36, { ol: true }));
+        for (let i = -2; i <= 2; i++) {
+          head.add(cone(0.026, 0.07, chrome, i * 0.07, 0.26, 0.41, { rx: Math.PI / 2 }));
+        }
+
+        // 3. Spiked Mohawk crest running over the helmet from front to back
+        const crestSpikes = [
+          [-0.26, 0.22], [-0.18, 0.32], [-0.1, 0.4], [-0.01, 0.44], [0.08, 0.4], [0.17, 0.32], [0.26, 0.22]
+        ];
+        crestSpikes.forEach(([z, h], idx) => {
+          head.add(cone(0.065, h, idx % 2 === 0 ? punkRed : punkFlame, 0, 0.38, z, { ol: true }));
+          head.add(cyl(0.035, 0.045, 0.04, chrome, 0, 0.37, z, { seg: 8 }));
         });
-        // leather choker with silver spikes
-        head.add(tor(0.32, 0.035, M(0x18181b), 0, -0.28, 0, { rx: Math.PI / 2 }));
+
+        // 4. Tinted Biker / Aviator Goggles strapped above the brow
+        const strap = M(0x09090b);
+        const lensCyan = M(0x06b6d4, 0.9, 0.15);
+        head.add(tor(0.45, 0.03, strap, 0, 0.33, 0, { rx: Math.PI / 2 }));
+        for (const sd of [-1, 1]) {
+          head.add(tor(0.09, 0.028, chrome, sd * 0.15, 0.35, 0.38, {}));
+          head.add(cyl(0.075, 0.075, 0.04, lensCyan, sd * 0.15, 0.35, 0.38, { rx: Math.PI / 2, seg: 14 }));
+        }
+
+        // 5. Side ear-guards & gold punk piercing rings
+        for (const sd of [-1, 1]) {
+          head.add(box(0.08, 0.22, 0.18, darkSteel, sd * 0.42, 0.12, -0.02, { ol: true }));
+          head.add(tor(0.045, 0.014, gold, sd * 0.46, 0.14, -0.02, { ry: Math.PI / 2 }));
+          head.add(tor(0.038, 0.012, chrome, sd * 0.46, 0.06, -0.02, { ry: Math.PI / 2 }));
+        }
+
+        // 6. Leather spiked choker / chin strap
+        head.add(tor(0.32, 0.035, leather, 0, -0.28, 0, { rx: Math.PI / 2 }));
         for (let a = 0; a < 5; a++) {
           const ang = -0.8 + a * 0.4;
-          head.add(cone(0.025, 0.08, steel, Math.sin(ang) * 0.33, -0.28, Math.cos(ang) * 0.33, { rx: Math.PI / 2 - 0.2 }));
+          head.add(cone(0.025, 0.08, chrome, Math.sin(ang) * 0.33, -0.28, Math.cos(ang) * 0.33, { rx: Math.PI / 2 - 0.2 }));
         }
-        // gold punk piercing rings on ears
-        head.add(tor(0.04, 0.012, gold, -0.42, 0.15, 0, { ry: Math.PI / 2 }));
-        head.add(tor(0.04, 0.012, gold, 0.42, 0.15, 0, { ry: Math.PI / 2 }));
         break;
       }
       case 'shield': // heavy iron kettle helmet with eye slit visor
@@ -233,26 +271,75 @@ function orcHead(kind: OrcKind, def: Def, skinMat: THREE.MeshStandardMaterial, m
         }
         head.add(cyl(0.1, 0.12, 0.16, M(0x334155), 0, -0.2, 0.36, { rx: -0.3, seg: 12, ol: true }));
         break;
-      case 'bat': // sleek bat cowl, long pointed bat ears & white fangs
-        head.add(tor(0.33, 0.035, M(0x2e1065), 0, 0.3, 0, { rx: Math.PI / 2 }));
+      case 'bat': { // Full vampire bat cowl: pointed gothic ears, eye mask, ruby brooch, and sharp white vampire fangs
+        const cowlDark = M(0x2e1065, 0.15, 0.45); // Midnight deep purple
+        const cowlInner = M(0x581c87, 0.2, 0.5);
+        const earInner = M(0xa855f7, 0.25, 0.4);
+        const ruby = M(0xe11d48, 1.2, 0.2); // Glowing vampire gem
+        const fangs = M(0xfffff0, 0.2, 0.2);
+
+        // 1. Sleek midnight cowl enveloping head
+        head.add(domeMesh(cowlDark, 0.46, 0.36, 0.44, 0, 0.25, -0.02));
+        head.add(tor(0.44, 0.035, cowlInner, 0, 0.24, 0, { rx: Math.PI / 2 }));
+
+        // 2. Sculpted gothic bat ears with inner ear membrane
         for (const sd of [-1, 1]) {
-          head.add(cone(0.08, 0.38, M(0x3b0764), sd * 0.28, 0.42, 0.05, { rz: -sd * 0.3, ol: true }));
-          head.add(cone(0.035, 0.16, M(0xffffff), sd * 0.16, -0.26, 0.36, { rx: 0.1 }));
+          const earGroup = new THREE.Group();
+          earGroup.position.set(sd * 0.3, 0.38, 0.02);
+          earGroup.rotation.z = -sd * 0.35;
+          earGroup.rotation.x = -0.12;
+          earGroup.add(cone(0.09, 0.42, cowlDark, 0, 0, 0, { sx: 0.9, sz: 0.45, ol: true }));
+          earGroup.add(cone(0.055, 0.32, earInner, 0, 0.04, 0.03, { sx: 0.85, sz: 0.4 }));
+          head.add(earGroup);
+        }
+
+        // 3. Bat mask visor framing the brow & eyes
+        head.add(box(0.26, 0.08, 0.06, cowlDark, 0, 0.12, 0.39, { ol: true }));
+        head.add(cone(0.05, 0.12, cowlDark, 0, 0.18, 0.41, { rx: 0.25 }));
+
+        // 4. Golden vampire bat amulet brooch on forehead with glowing ruby
+        head.add(box(0.12, 0.06, 0.03, gold, 0, 0.28, 0.42, { ol: true }));
+        head.add(S(0.04, ruby, 0, 0.28, 0.44, { sz: 0.6 }));
+
+        // 5. Pair of long ivory vampire fangs protruding over lower lip
+        for (const sd of [-1, 1]) {
+          head.add(cone(0.036, 0.18, fangs, sd * 0.14, -0.25, 0.38, { rx: 0.15, rz: -sd * 0.1 }));
         }
         break;
+      }
       case 'troll': // moss clumps, rocky horns & overgrown leafy crown
         for (const sd of [-1, 1]) head.add(cone(0.085, 0.28, M(0x3f3f46), sd * 0.32, 0.36, 0, { rz: -sd * 0.6, ol: true }));
         head.add(S(0.14, M(0x15803d, 0.2), 0, 0.42, 0, { sx: 1.8, sy: 0.6, sz: 1.2 }));
         head.add(S(0.09, M(0x22c55e, 0.2), 0.15, 0.44, 0.1, { sx: 1.1, sy: 0.7 }));
         break;
-      case 'gargantuar': // iron brow band + rugged leather skullcap & bone horns
-        head.add(tor(0.42, 0.04, M(0x3f2e21), 0, 0.26, 0, { rx: Math.PI / 2 }));
-        head.add(domeMesh(M(0x451a03, 0.08, 0.65), 0.44, 0.3, 0.42, 0, 0.27, 0));
+      case 'gargantuar': { // Gladiator brow-plate with brass rivets, rugged horned skullcap & curved bull horns
+        const iron = M(0x64748b, 0.15, 0.35);
+        const brass = M(0xd97706, 0.3, 0.35);
+        const leather = M(0x451a03, 0.1, 0.6);
+        const hornBone = M(0xfef3c7, 0.15, 0.45);
+
+        // 1. Heavy leather skullcap
+        head.add(domeMesh(leather, 0.46, 0.34, 0.44, 0, 0.26, 0));
+        // 2. Thick riveted gladiator iron brow band
+        head.add(tor(0.44, 0.048, iron, 0, 0.24, 0, { rx: Math.PI / 2 }));
+        head.add(box(0.38, 0.08, 0.08, iron, 0, 0.24, 0.38, { ol: true }));
+        for (let i = -2; i <= 2; i++) {
+          head.add(S(0.032, brass, i * 0.08, 0.24, 0.43));
+        }
+        // 3. Huge forward-curving bull horns with golden reinforcement collars
         for (const sd of [-1, 1]) {
-          head.add(cone(0.08, 0.28, M(0xfef3c7), sd * 0.36, 0.34, 0.04, { rz: -sd * 0.75, ol: true }));
-          head.add(S(0.045, steel, sd * 0.2, 0.26, 0.38));
+          head.add(tor(0.09, 0.024, brass, sd * 0.38, 0.32, 0.04, { rz: -sd * 0.75 }));
+          head.add(cone(0.09, 0.38, hornBone, sd * 0.38, 0.34, 0.04, { rz: -sd * 0.78, rx: 0.15, ol: true }));
+          head.add(cone(0.05, 0.18, hornBone, sd * 0.48, 0.56, 0.12, { rz: -sd * 0.45, rx: 0.3 }));
+        }
+        // 4. Sturdy iron chin-strap and extra large lower jaw tusks
+        head.add(cyl(0.03, 0.03, 0.36, iron, -0.38, 0.06, 0.12, { rx: 0.4 }));
+        head.add(cyl(0.03, 0.03, 0.36, iron, 0.38, 0.06, 0.12, { rx: 0.4 }));
+        for (const sd of [-1, 1]) {
+          head.add(cone(0.065, 0.26, hornBone, sd * 0.22, -0.22, 0.38, { rz: -sd * 0.22, rx: 0.18, ol: true }));
         }
         break;
+      }
       case 'imp': // mischievous patched beanie cap with a little pom-pom
         head.add(domeMesh(M(0xdc2626, 0.12, 0.5), 0.42, 0.32, 0.4, 0, 0.25, 0));
         head.add(tor(0.41, 0.04, M(0xfbbf24), 0, 0.25, 0, { rx: Math.PI / 2 }));
@@ -317,14 +404,45 @@ function makeWeapon(kind: WeaponKind) {
       const sp = cone(0.045, 0.11, steel, v.x * 0.13, 0.36 + v.y * 0.13, v.z * 0.13);
       sp.quaternion.setFromUnitVectors(Y, v); g.add(sp);
     }
-  } else if (kind === 'pole') { // Gargantuar's uprooted utility pole: grip at y = 0, rests on shoulder
-    g.add(cyl(0.08, 0.11, 1.45, M(0x5c3a1a), 0, 0.34, 0, { ol: true, cast: true }));
-    g.add(tor(0.095, 0.022, steel, 0, -0.15, 0, { rx: Math.PI / 2 }));
-    g.add(tor(0.09, 0.022, steel, 0, 0.55, 0, { rx: Math.PI / 2 }));
-    g.add(box(0.56, 0.08, 0.08, wood, 0, 0.95, 0, { ol: true, cast: true }));
+  } else if (kind === 'pole') { // Gargantuar's uprooted utility pole: detailed wooden pole, crossarm, ceramic insulators, hanging cables
+    const darkWood = M(0x4a2c16, 0.1, 0.6);
+    const timber = M(0x6b4423, 0.1, 0.55);
+    const steelMat = M(0x94a3b8, 0.2, 0.35);
+    const insulator = M(0x38bdf8, 0.6, 0.3); // Turquoise ceramic bell insulators
+    const copper = M(0xb45309, 0.3, 0.4);
+
+    // Main telephone pole trunk
+    g.add(cyl(0.085, 0.12, 1.5, darkWood, 0, 0.35, 0, { ol: true, cast: true, seg: 12 }));
+    // Steel ground reinforcement collars
+    g.add(tor(0.105, 0.024, steelMat, 0, -0.16, 0, { rx: Math.PI / 2 }));
+    g.add(tor(0.095, 0.024, steelMat, 0, 0.55, 0, { rx: Math.PI / 2 }));
+
+    // Horizontal timber crossarm beam
+    g.add(box(0.68, 0.09, 0.09, timber, 0, 0.98, 0, { ol: true, cast: true }));
+    // Steel mounting bracket with bolts
+    g.add(box(0.18, 0.14, 0.12, steelMat, 0, 0.98, 0, { ol: true }));
+    g.add(S(0.03, copper, 0, 0.98, 0.07));
+    g.add(S(0.03, copper, 0, 0.98, -0.07));
+
+    // Crossarm diagonal steel braces
     for (const sd of [-1, 1]) {
-      g.add(cyl(0.045, 0.045, 0.12, M(0x38bdf8, 0.6), sd * 0.2, 1.03, 0, { ol: true }));
-      g.add(S(0.04, gold, sd * 0.2, 1.1, 0));
+      g.add(cyl(0.018, 0.018, 0.24, steelMat, sd * 0.14, 0.88, 0, { rz: -sd * 0.7 }));
+    }
+
+    // 4 Ceramic insulators on top of the crossarm
+    for (const x of [-0.26, -0.11, 0.11, 0.26]) {
+      g.add(cyl(0.045, 0.045, 0.13, insulator, x, 1.08, 0, { ol: true, seg: 8 }));
+      g.add(tor(0.048, 0.012, insulator, x, 1.05, 0, { rx: Math.PI / 2 }));
+      g.add(S(0.032, copper, x, 1.16, 0));
+    }
+
+    // Loose dangling electrical cables hanging from the pole
+    for (const sd of [-1, 1]) {
+      const cable = new THREE.Group();
+      cable.position.set(sd * 0.26, 1.05, 0);
+      cable.add(cyl(0.012, 0.012, 0.45, M(0x18181b), sd * 0.06, -0.22, sd * 0.04, { rz: -sd * 0.35, rx: 0.2 }));
+      cable.add(cyl(0.01, 0.01, 0.35, M(0x18181b), sd * 0.12, -0.45, sd * 0.06, { rz: sd * 0.2 }));
+      g.add(cable);
     }
   } else if (kind === 'pickaxe') { // Miner's steel pickaxe: grip at y = 0, heads point along ±z
     g.add(cap(0.038, 0.52, wood, 0, 0.07, 0, { ol: true, cast: true }));
@@ -499,11 +617,16 @@ export function buildOrc(kind: OrcKind, def: Def): OrcBuild {
   } else if (kind === 'frost') { // frost robe with icy hem
     body.add(cyl(0.24 * bs, 0.41 * bs, 0.52, M(0x0284c7, 0.15), 0, -0.17, 0, { ol: true, cast: true }));
     body.add(tor(0.41 * bs, 0.03, M(0xbae6fd), 0, -0.41, 0, { rx: Math.PI / 2 }));
-  } else if (kind === 'punk') { // spiked dark vest, silver studs
-    body.add(cyl(0.26 * bs, 0.35 * bs, 0.26 * bs, M(0x18181b), 0, -0.15 * bs, 0, { ol: true, cast: true }));
+  } else if (kind === 'punk') { // Spiked biker leather vest with studs, chain, and steel shoulder pads
+    const leather = M(0x18181b, 0.1, 0.6);
+    body.add(cyl(0.27 * bs, 0.36 * bs, 0.28 * bs, leather, 0, -0.14 * bs, 0, { ol: true, cast: true }));
+    body.add(box(0.04 * bs, 0.28 * bs, 0.03 * bs, steel, 0, -0.14 * bs, 0.28 * bs));
+    body.add(S(0.04 * bs, gold, 0, -0.04 * bs, 0.29 * bs));
     for (const sd of [-1, 1]) {
-      body.add(cone(0.04 * bs, 0.12 * bs, steel, sd * 0.28 * bs, 0.18 * bs, 0, { rz: -sd * 0.5 }));
-      body.add(cone(0.04 * bs, 0.12 * bs, steel, sd * 0.28 * bs, 0.12 * bs, 0.1 * bs, { rz: -sd * 0.5 }));
+      body.add(S(0.14 * bs, leather, sd * 0.32 * bs, 0.16 * bs, 0, { ol: true, cast: true }));
+      body.add(cone(0.045 * bs, 0.14 * bs, steel, sd * 0.34 * bs, 0.24 * bs, 0, { rz: -sd * 0.4 }));
+      body.add(cone(0.035 * bs, 0.11 * bs, steel, sd * 0.32 * bs, 0.18 * bs, 0.1 * bs, { rz: -sd * 0.4 }));
+      body.add(cone(0.035 * bs, 0.11 * bs, steel, sd * 0.32 * bs, 0.18 * bs, -0.1 * bs, { rz: -sd * 0.4 }));
     }
   } else if (kind === 'shield') { // heavy steel body armor
     body.add(S(0.25 * bs, steel, 0, 0.04 * bs, 0.18 * bs, { sy: 1.1, sz: 0.5, ol: true }));
@@ -515,11 +638,59 @@ export function buildOrc(kind: OrcKind, def: Def): OrcBuild {
     tank.add(tor(0.16 * bs, 0.02 * bs, steel, 0, 0.14 * bs, 0, { rx: Math.PI / 2 }));
     tank.add(tor(0.16 * bs, 0.02 * bs, steel, 0, -0.14 * bs, 0, { rx: Math.PI / 2 }));
     body.add(tank);
-  } else if (kind === 'bat') { // bat wings on back
+  } else if (kind === 'bat') { // Full Vampire Bat Costume: high Dracula collar, velvet doublet, bat medallion & articulated wings
+    const velvetDark = M(0x2e1065, 0.15, 0.45);
+    const velvetCrimson = M(0x881337, 0.2, 0.4);
+    const velvetPlum = M(0x4c1d95, 0.2, 0.5);
+    const ruby = M(0xe11d48, 1.2, 0.2);
+
+    // 1. Gothic doublet tunic on torso
+    body.add(cyl(0.26 * bs, 0.34 * bs, 0.24 * bs, velvetDark, 0, -0.15 * bs, 0, { ol: true, cast: true }));
+    body.add(tor(0.28 * bs, 0.025 * bs, gold, 0, -0.06 * bs, 0.02 * bs, { rx: Math.PI / 2 }));
+    for (let i = 0; i < 3; i++) {
+      body.add(S(0.025 * bs, gold, 0, (-0.08 - i * 0.07) * bs, 0.26 * bs));
+    }
+
+    // 2. High Vampire Collar
+    const collar = new THREE.Group();
+    collar.position.set(0, 0.2 * bs, -0.1 * bs);
+    collar.add(cyl(0.38 * bs, 0.28 * bs, 0.32 * bs, velvetDark, 0, 0.1 * bs, 0, { rx: -0.25, ol: true, seg: 14 }));
+    collar.add(cyl(0.36 * bs, 0.26 * bs, 0.31 * bs, velvetCrimson, 0, 0.1 * bs, 0.01 * bs, { rx: -0.25, seg: 14 }));
+    for (const sd of [-1, 1]) {
+      collar.add(cone(0.08 * bs, 0.28 * bs, velvetDark, sd * 0.28 * bs, 0.22 * bs, 0.02 * bs, { rz: -sd * 0.5, rx: -0.2, ol: true }));
+      collar.add(cone(0.06 * bs, 0.24 * bs, velvetCrimson, sd * 0.27 * bs, 0.21 * bs, 0.03 * bs, { rz: -sd * 0.5, rx: -0.2 }));
+    }
+    body.add(collar);
+
+    // 3. Golden Bat Medallion on chest
+    const med = new THREE.Group();
+    med.position.set(0, 0.04 * bs, 0.26 * bs);
+    med.add(box(0.14 * bs, 0.06 * bs, 0.02 * bs, gold, 0, 0, 0, { ol: true }));
+    med.add(S(0.045 * bs, ruby, 0, 0, 0.02 * bs, { sz: 0.5 }));
+    for (const sd of [-1, 1]) {
+      med.add(cone(0.03 * bs, 0.09 * bs, gold, sd * 0.09 * bs, 0.02 * bs, 0, { rz: -sd * 0.7 }));
+    }
+    body.add(med);
+
+    // 4. Scalloped vampire cape tail in the back
+    body.add(box(0.48 * bs, 0.65 * bs, 0.03 * bs, velvetDark, 0, -0.25 * bs, -0.26 * bs, { rx: 0.15, ol: true, cast: true }));
+    body.add(box(0.44 * bs, 0.62 * bs, 0.02 * bs, velvetCrimson, 0, -0.25 * bs, -0.25 * bs, { rx: 0.15 }));
+
+    // 5. Detailed Articulated Bat Wings
     const mkWing = (sd: number) => {
-      const w = new THREE.Group(); w.position.set(sd * 0.2 * bs, 0.12 * bs, -0.22 * bs);
-      w.add(cap(0.035 * bs, 0.4 * bs, M(0x1e1b4b), sd * 0.2 * bs, 0.15 * bs, 0, { rz: -sd * 0.8, ol: true }));
-      w.add(box(0.42 * bs, 0.32 * bs, 0.02 * bs, M(0x312e81, 0.15), sd * 0.22 * bs, 0.05 * bs, 0, { rz: -sd * 0.4, ol: true }));
+      const w = new THREE.Group();
+      w.position.set(sd * 0.18 * bs, 0.16 * bs, -0.24 * bs);
+      w.add(cap(0.032 * bs, 0.42 * bs, velvetDark, sd * 0.22 * bs, 0.2 * bs, 0, { rz: -sd * 0.85, ol: true, cast: true }));
+      w.add(cap(0.028 * bs, 0.48 * bs, velvetDark, sd * 0.52 * bs, 0.18 * bs, 0, { rz: sd * 0.35, ol: true, cast: true }));
+      w.add(cone(0.035 * bs, 0.12 * bs, gold, sd * 0.38 * bs, 0.36 * bs, 0.02 * bs, { rz: -sd * 0.3, ol: true }));
+      for (let f = 0; f < 3; f++) {
+        const fAng = sd * (0.1 + f * 0.32);
+        const fLen = (0.45 - f * 0.06) * bs;
+        w.add(cyl(0.015 * bs, 0.01 * bs, fLen, velvetDark, sd * (0.35 + f * 0.14) * bs, -0.05 * bs, 0, { rz: fAng, seg: 6 }));
+        w.add(cone(0.02 * bs, 0.06 * bs, gold, sd * (0.35 + f * 0.14 + Math.sin(fAng) * 0.2) * bs, -0.05 * bs - Math.cos(fAng) * (fLen * 0.5), 0));
+      }
+      w.add(box(0.68 * bs, 0.46 * bs, 0.02 * bs, velvetPlum, sd * 0.45 * bs, 0.06 * bs, -0.01 * bs, { rz: -sd * 0.25, ol: true }));
+      w.add(box(0.6 * bs, 0.4 * bs, 0.015 * bs, velvetDark, sd * 0.45 * bs, 0.06 * bs, 0.005 * bs, { rz: -sd * 0.25 }));
       return w;
     };
     const wingL = mkWing(-1), wingR = mkWing(1);
@@ -529,22 +700,89 @@ export function buildOrc(kind: OrcKind, def: Def): OrcBuild {
     body.add(S(0.24 * bs, M(0x27272a), -0.2 * bs, 0.2 * bs, -0.18 * bs, { ol: true, cast: true }));
     body.add(S(0.28 * bs, M(0x166534, 0.2), 0.16 * bs, 0.22 * bs, -0.16 * bs, { ol: true, cast: true }));
     body.add(S(0.2 * bs, M(0x15803d, 0.3), 0, 0.28 * bs, -0.12 * bs, { ol: true }));
-  } else if (kind === 'gargantuar') { // leather harness + wicker backpack basket carrying a cute Imp orc on his back
-    for (const sd of [-1, 1]) body.add(box(0.09 * bs, 0.58 * bs, 0.05, brown, sd * 0.16 * bs, 0.06 * bs, 0.24 * bs, { ol: true }));
-    const basket = new THREE.Group(); basket.position.set(0, 0.1 * bs, -0.34 * bs);
-    basket.add(cyl(0.24 * bs, 0.19 * bs, 0.38 * bs, M(0x9a5b25, 0.08, 0.65), 0, 0, 0, { ol: true, cast: true }));
-    basket.add(tor(0.24 * bs, 0.028 * bs, M(0x78350f), 0, 0.17 * bs, 0, { rx: Math.PI / 2 }));
-    body.add(basket);
-    const impRider = new THREE.Group(); impRider.name = 'impRider'; impRider.position.set(0, 0.28 * bs, 0);
-    const impSkin = M(0x84cc16);
-    impRider.add(S(0.18 * bs, impSkin, 0, 0.06 * bs, 0, { ol: true, cast: true }));
-    impRider.add(domeMesh(M(0xdc2626), 0.18 * bs, 0.14 * bs, 0.18 * bs, 0, 0.16 * bs, 0));
+  } else if (kind === 'gargantuar') { // Rugged gladiator armor, spiked pauldron, and high-detail woven basket carrying Imp
+    const harnessLeather = M(0x451a03, 0.1, 0.6);
+    const wickerWeave = M(0xb46b2b, 0.1, 0.65);
+    const wickerTrim = M(0x78350f, 0.1, 0.5);
+    const iron = M(0x64748b, 0.15, 0.35);
+    const brass = M(0xd97706, 0.3, 0.35);
+
+    // 1. Heavy cross-chest leather harness with central brass ring
     for (const sd of [-1, 1]) {
-      impRider.add(cone(0.05 * bs, 0.16 * bs, impSkin, sd * 0.18 * bs, 0.08 * bs, 0, { rz: -sd * 1.1, ol: true }));
-      impRider.add(S(0.038 * bs, white, sd * 0.065 * bs, 0.08 * bs, 0.16 * bs));
-      impRider.add(S(0.02 * bs, M(0x111827), sd * 0.065 * bs, 0.08 * bs, 0.19 * bs));
+      body.add(box(0.12 * bs, 0.65 * bs, 0.06, harnessLeather, sd * 0.15 * bs, 0.06 * bs, 0.24 * bs, { ol: true }));
     }
+    body.add(tor(0.09 * bs, 0.024 * bs, brass, 0, 0.08 * bs, 0.27 * bs, {}));
+
+    // 2. Spiked steel pauldron on left shoulder (opposite the pole-carrying right arm)
+    const pauldron = new THREE.Group();
+    pauldron.position.set(0.46 * bs, 0.26 * bs, 0);
+    pauldron.add(S(0.22 * bs, iron, 0, 0, 0, { sx: 1.1, sy: 0.9, sz: 1.1, ol: true, cast: true }));
+    pauldron.add(tor(0.21 * bs, 0.03 * bs, brass, 0, 0, 0, { rx: Math.PI / 2 }));
+    pauldron.add(cone(0.06 * bs, 0.22 * bs, iron, 0, 0.18 * bs, 0, { ol: true }));
+    pauldron.add(cone(0.045 * bs, 0.16 * bs, iron, -0.08 * bs, 0.14 * bs, 0.08 * bs, { rz: 0.4 }));
+    pauldron.add(cone(0.045 * bs, 0.16 * bs, iron, -0.08 * bs, 0.14 * bs, -0.08 * bs, { rz: 0.4 }));
+    body.add(pauldron);
+
+    // 3. Woven backpack basket with timber braces and rolled sleeping mat
+    const basket = new THREE.Group();
+    basket.position.set(0, 0.1 * bs, -0.36 * bs);
+    basket.add(cyl(0.28 * bs, 0.21 * bs, 0.44 * bs, wickerWeave, 0, 0, 0, { ol: true, cast: true, seg: 14 }));
+    basket.add(tor(0.285 * bs, 0.035 * bs, wickerTrim, 0, 0.21 * bs, 0, { rx: Math.PI / 2 }));
+    basket.add(tor(0.25 * bs, 0.025 * bs, wickerTrim, 0, 0.02 * bs, 0, { rx: Math.PI / 2 }));
+    basket.add(cyl(0.22 * bs, 0.22 * bs, 0.05 * bs, wickerTrim, 0, -0.21 * bs, 0, { seg: 12 }));
+    for (let a = 0; a < 6; a++) {
+      const ang = (a / 6) * Math.PI * 2;
+      basket.add(box(0.04 * bs, 0.42 * bs, 0.03 * bs, wickerTrim, Math.sin(ang) * 0.25 * bs, 0, Math.cos(ang) * 0.25 * bs, { ry: ang }));
+    }
+    basket.add(cyl(0.08 * bs, 0.08 * bs, 0.48 * bs, M(0xa16207, 0.1, 0.8), 0, -0.28 * bs, 0, { rz: Math.PI / 2, ol: true, seg: 10 }));
+    for (const sd of [-1, 1]) {
+      basket.add(tor(0.082 * bs, 0.015 * bs, harnessLeather, sd * 0.16 * bs, -0.28 * bs, 0, { ry: Math.PI / 2 }));
+    }
+
+    // 4. Detailed, charming Imp Rider peeking out of the basket
+    const impRider = new THREE.Group();
+    impRider.name = 'impRider';
+    impRider.position.set(0, 0.22 * bs, 0);
+
+    const impSkin = M(0x84cc16);
+    const impRed = M(0xdc2626, 0.2, 0.5);
+    const pompom = M(0xfacc15, 0.25, 0.4);
+
+    impRider.add(S(0.19 * bs, impSkin, 0, 0.08 * bs, 0, { ol: true, cast: true }));
+    impRider.add(domeMesh(impRed, 0.2 * bs, 0.16 * bs, 0.2 * bs, 0, 0.18 * bs, 0));
+    impRider.add(tor(0.195 * bs, 0.028 * bs, M(0xb91c1c), 0, 0.17 * bs, 0, { rx: Math.PI / 2 }));
+    impRider.add(S(0.065 * bs, pompom, 0, 0.36 * bs, -0.04 * bs, { ol: true }));
+
+    for (const sd of [-1, 1]) {
+      const iEar = new THREE.Group();
+      iEar.position.set(sd * 0.2 * bs, 0.12 * bs, -0.02 * bs);
+      iEar.rotation.z = -sd * 1.1;
+      iEar.add(cone(0.06 * bs, 0.22 * bs, impSkin, 0, 0, 0, { sz: 0.4, ol: true }));
+      iEar.add(cone(0.035 * bs, 0.16 * bs, M(0xa3e635), 0, 0.02 * bs, 0.02 * bs, { sz: 0.35 }));
+      impRider.add(iEar);
+    }
+
+    for (const sd of [-1, 1]) {
+      impRider.add(S(0.042 * bs, white, sd * 0.075 * bs, 0.1 * bs, 0.17 * bs));
+      impRider.add(S(0.024 * bs, M(0xf59e0b), sd * 0.075 * bs, 0.1 * bs, 0.205 * bs));
+      impRider.add(S(0.012 * bs, M(0x111827), sd * 0.075 * bs, 0.1 * bs, 0.218 * bs));
+      impRider.add(S(0.007 * bs, white, sd * 0.082 * bs, 0.11 * bs, 0.222 * bs));
+    }
+    for (const sd of [-1, 1]) {
+      impRider.add(cone(0.018 * bs, 0.07 * bs, M(0xfff7e0), sd * 0.06 * bs, 0.01 * bs, 0.185 * bs, { rx: 0.2, rz: -sd * 0.1 }));
+    }
+
+    // Chubby green imp hands gripping the basket rim
+    for (const sd of [-1, 1]) {
+      impRider.add(cap(0.032 * bs, 0.11 * bs, impSkin, sd * 0.16 * bs, 0.01 * bs, 0.19 * bs, { rx: 0.9, rz: -sd * 0.35, ol: true }));
+      impRider.add(S(0.042 * bs, impSkin, sd * 0.18 * bs, -0.01 * bs, 0.27 * bs, { ol: true }));
+      for (let k = 0; k < 3; k++) {
+        impRider.add(S(0.016 * bs, impSkin, (sd * 0.18 + (k - 1) * 0.02) * bs, 0.015 * bs, 0.285 * bs));
+      }
+    }
+
     basket.add(impRider);
+    body.add(basket);
     limbs.impRider = impRider;
   } else if (kind === 'bungee') { // parachute harness + colourful patchwork parachute canopy & bungee cords
     for (const sd of [-1, 1]) body.add(box(0.075, 0.52, 0.04, M(0x1f2937), sd * 0.14, 0.04, 0.26, { ol: true }));
@@ -571,9 +809,9 @@ export function buildOrc(kind: OrcKind, def: Def): OrcBuild {
     limbs.mound = mound;
   }
 
-  // arms + head
+  // arms + head: armR is anatomical right (-c.armX), armL is anatomical left (+c.armX)
   const armL = orcArm(skinMat), armR = orcArm(skinMat);
-  armL.position.set(-c.armX, c.armY, 0); armR.position.set(c.armX, c.armY, 0);
+  armR.position.set(-c.armX, c.armY, 0); armL.position.set(c.armX, c.armY, 0);
   const hd = orcHead(kind, def, skinMat, skinMats, c);
   hd.head.position.y = c.headY; hd.head.scale.setScalar(c.headS);
 
@@ -621,10 +859,10 @@ export function buildOrc(kind: OrcKind, def: Def): OrcBuild {
     w.position.set(0, -0.3, 0.01);
     if (kindW === 'pole') {
       // Gargantuar rests the massive utility pole over his shoulder
-      w.rotation.set(-0.35, 0, 0.15);
+      w.rotation.set(-0.35, 0, -0.15);
     } else if (kindW === 'flamespear') {
       // Spear thrust forward
-      w.rotation.set(0.48, 0, -0.12);
+      w.rotation.set(0.48, 0, 0.12);
     } else if (kindW === 'pickaxe') {
       // Pickaxes held forward-down ready to strike earth
       w.rotation.set(0.65, isLeft ? 0.2 : -0.2, isLeft ? 0.2 : -0.2);
@@ -636,7 +874,7 @@ export function buildOrc(kind: OrcKind, def: Def): OrcBuild {
     } else if (kindW === 'vial') {
       w.rotation.set(0.12, 0, 0); // Upright flask, no spilling!
     } else if (kindW === 'torch') {
-      w.rotation.set(0.35, 0, 0.1);
+      w.rotation.set(0.35, 0, -0.1);
     } else {
       // Club, axe, hammer, staff: firm upright forward grip
       w.rotation.set(0.42, 0, isLeft ? 0.16 : -0.16);
@@ -657,7 +895,7 @@ export function buildOrc(kind: OrcKind, def: Def): OrcBuild {
       // Held firmly in right hand across chest
       const rifle = makeWeapon('rifle');
       rifle.position.set(0, -0.28, 0.06);
-      rifle.rotation.set(0.32, -0.12, 0.18);
+      rifle.rotation.set(0.32, 0.12, -0.18);
       armR.add(rifle);
       debris.push(rifle);
       limbs.gun = rifle;
@@ -750,35 +988,36 @@ export function poseOrc(kind: OrcKind, L: Limbs, ph: number) {
   } else {
     L.legL.rotation.x = sw; L.legR.rotation.x = -sw;
   }
-  L.armL.rotation.set(-sw * 0.8, 0, -0.12); L.armR.rotation.set(-0.48 + Math.sin(ph * 0.5) * 0.2, 0, 0.12);
+  L.armL.rotation.set(-sw * 0.8, 0, 0.12); L.armR.rotation.set(-0.48 + Math.sin(ph * 0.5) * 0.2, 0, -0.12);
   L.head.rotation.z = Math.sin(ph * 0.5) * 0.08; L.head.rotation.x = Math.sin(ph * 2) * 0.05;
   L.body.rotation.z = Math.sin(ph) * 0.05;
   L.earL.rotation.z = EAR + Math.sin(ph * 2) * 0.14; L.earR.rotation.z = -EAR - Math.sin(ph * 2 + 1) * 0.14;
   switch (kind) {
     case 'gunner':
       // Both hands grip the rifle firmly across chest
-      L.armR.rotation.set(-1.18, 0.15, -0.32);
-      L.armL.rotation.set(-1.05, -0.22, 0.52);
+      L.armR.rotation.set(-1.18, -0.15, 0.32);
+      L.armL.rotation.set(-1.05, 0.22, -0.52);
       break;
     case 'cannoneer':
-      L.armR.rotation.set(-0.65, 0, 0.15);
+      L.armR.rotation.set(-0.65, 0, -0.15);
       break;
     case 'shaman':
-      L.armR.rotation.set(-0.38 + Math.sin(ph * 0.5) * 0.08, 0, 0.12);
+      L.armR.rotation.set(-0.38 + Math.sin(ph * 0.5) * 0.08, 0, -0.12);
       break;
     case 'berserker':
-      L.armL.rotation.set(-0.48 + Math.sin(ph * 0.5 + 1) * 0.2, 0, -0.12);
+      L.armR.rotation.set(-0.48 + Math.sin(ph * 0.5) * 0.2, 0, -0.12);
+      L.armL.rotation.set(-0.48 + Math.sin(ph * 0.5 + 1) * 0.2, 0, 0.12);
       break;
     case 'ninja':
-      L.armL.rotation.set(-0.75, 0.15, 0.25);
       L.armR.rotation.set(-0.75, -0.15, -0.25);
+      L.armL.rotation.set(-0.75, 0.15, 0.25);
       break;
     case 'bomber':
       // Torch held high in the air
-      L.armR.rotation.set(-1.25 + Math.sin(ph) * 0.15, 0, 0.15);
+      L.armR.rotation.set(-1.25 + Math.sin(ph) * 0.15, 0, -0.15);
       break;
     case 'frost':
-      L.armR.rotation.set(-0.45 + Math.sin(ph * 0.5) * 0.1, 0, 0.15);
+      L.armR.rotation.set(-0.45 + Math.sin(ph * 0.5) * 0.1, 0, -0.15);
       break;
     case 'rider': {
       if (L.mount) {
@@ -793,38 +1032,43 @@ export function poseOrc(kind: OrcKind, L: Limbs, ph: number) {
           mountLegs[3].rotation.x = gSw;
         }
       }
-      L.armR.rotation.set(-1.05 + Math.sin(ph * 2) * 0.1, 0, 0.15);
-      L.armL.rotation.set(-0.85 + Math.sin(ph * 2) * 0.08, 0, -0.2);
+      L.armR.rotation.set(-1.05 + Math.sin(ph * 2) * 0.1, 0, -0.15);
+      L.armL.rotation.set(-0.85 + Math.sin(ph * 2) * 0.08, 0, 0.2);
       L.body.rotation.x = Math.sin(ph * 2) * 0.05;
       break;
     }
     case 'punk':
-      L.armR.rotation.set(-0.85 + Math.sin(ph) * 0.2, 0, -0.12);
+      L.armR.rotation.set(-0.85 + Math.sin(ph) * 0.2, 0, 0.12);
       break;
     case 'shield': {
-      L.armL.rotation.set(-0.72, 0.12, 0.2); // Forward defensive shield block
+      L.armL.rotation.set(-0.72, -0.12, -0.2); // Forward defensive shield block
       const sh = L.armL.getObjectByName('shield');
-      if (sh) sh.rotation.set(0.72, -0.12, -0.2); // Counter-rotated to face flat forward!
+      if (sh) sh.rotation.set(0.72, 0.12, 0.2); // Counter-rotated to face flat forward!
       break;
     }
     case 'toxic':
-      L.armR.rotation.set(-0.55 + Math.sin(ph * 0.6) * 0.15, 0, 0.1);
+      L.armR.rotation.set(-0.55 + Math.sin(ph * 0.6) * 0.15, 0, -0.1);
       break;
     case 'bat':
       if (L.wingL && L.wingR) {
         const flap = Math.sin(ph * 5.5) * 0.48;
-        L.wingL.rotation.y = 0.3 + flap;
-        L.wingR.rotation.y = -0.3 - flap;
+        L.wingL.rotation.y = 0.25 + flap;
+        L.wingR.rotation.y = -0.25 - flap;
+        L.wingL.rotation.z = Math.sin(ph * 5.5) * 0.22;
+        L.wingR.rotation.z = -Math.sin(ph * 5.5) * 0.22;
       }
       break;
     case 'troll':
-      L.armL.rotation.set(-sw * 0.9, 0, -0.2);
-      L.armR.rotation.set(sw * 0.9, 0, 0.2);
+      L.armR.rotation.set(sw * 0.9, 0, -0.2);
+      L.armL.rotation.set(-sw * 0.9, 0, 0.2);
       break;
     case 'gargantuar':
-      // Resting the massive pole over the shoulder
-      L.armR.rotation.set(-0.75 + Math.sin(ph * 0.6) * 0.15, 0, 0.18);
-      if (L.impRider) L.impRider.position.y = 0.38 + Math.abs(Math.sin(ph * 1.5)) * 0.06;
+      // Resting the massive pole over the right shoulder
+      L.armR.rotation.set(-0.75 + Math.sin(ph * 0.6) * 0.15, 0, -0.18);
+      if (L.impRider) {
+        L.impRider.position.y = 0.22 * 1.42 + Math.abs(Math.sin(ph * 1.5)) * 0.05;
+        L.impRider.rotation.y = Math.sin(ph * 0.8) * 0.15;
+      }
       break;
     case 'bungee':
       if (L.chute && L.chute.visible) {

@@ -128,14 +128,7 @@ export function makeFace(o: FaceOpts): THREE.Group {
   }
 
   let smile: THREE.Mesh | undefined, open: THREE.Mesh | undefined;
-  if (o.mouth && o.mouth !== 'none') {
-    const my = -(o.mouthY ?? r * 1.6); const mm = new THREE.MeshStandardMaterial({ color: 0x3b1020, roughness: 0.6 });
-    smile = new THREE.Mesh(new THREE.TorusGeometry(r * 0.42, r * 0.09, 6, 14, Math.PI), mm); smile.rotation.z = Math.PI; smile.position.set(0, my + r * 0.3, sz(0, my) + r * 0.03); g.add(smile);
-    if (o.mouth === 'grin') {
-      open = new THREE.Mesh(SPH, new THREE.MeshStandardMaterial({ color: 0x5b0f26, roughness: 0.5 })); open.scale.set(r * 0.32, r * 0.42, r * 0.22);
-      open.position.set(0, my, sz(0, my) - r * 0.02); open.visible = false; g.add(open);
-    }
-  }
+  // Garis mulut dihapus agar wajah bersih dan gigi tampak rapi
 
   const sweat = new THREE.Mesh(SPH, new THREE.MeshBasicMaterial({ color: 0x7dd3fc })); sweat.scale.set(r * 0.26, r * 0.4, r * 0.2);
   const sx = gap + r * 1.5; sweat.position.set(sx, r * 1.2, sz(sx, r * 1.2) + r * 0.2); sweat.userData.y0 = r * 1.2; sweat.visible = false; g.add(sweat);
